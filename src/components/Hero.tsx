@@ -5,7 +5,7 @@ const Hero = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-center px-14 py-10">
             <div className="">
                 {/* Since tag */}
-                <div className="flex space-x-8 items-center">
+                <div className="flex space-x-2 items-center">
                     <span className="rounded-full px-5 py-2 bg-secondary text-lg font-semibold text-black shadow-xl">Since 2008</span>
                     <span></span>
                     <span className="text-sm font-bold text-gray-500">16 years of excellence</span>
@@ -31,8 +31,16 @@ const Hero = () => {
                     <span className='flex gap-2 items-center'><i className='text-secondary'><Globe size={18} /></i>50+ Universities</span>
                 </div>
             </div>
-            <div>
-                <img src="/Gemini_2.jpg" alt="" />
+
+            <div className="relative flex justify-center items-end h-full">
+                <img
+                    src="/Gemini_2.jpg"
+                    alt="Student aiming for USA"
+                    className="relative z-0 max-h-[85vh] object-contain"
+                />
+
+                {/* Bottom Blur/Gradient Overlay */}
+                <div className="absolute inset-x-0 bottom-0 h-30 bg-linear-to-t from-white via-white/80 to-transparent z-10"></div>
             </div>
         </div>
     )
