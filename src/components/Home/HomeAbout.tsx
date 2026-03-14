@@ -22,7 +22,7 @@ const Card = ({ content, heading, icon: IconComponent }: CardProps) => {
 
 const HomeAbout = () => {
     return (
-        <div className="flex flex-col md:flex-row gap-10 items-center md:py-20 md:px-10 w-full bg-white">
+        <div className="flex flex-col md:flex-row gap-10 items-center md:py-20 w-full bg-white">
 
             {/* 2. Image Container: Changed to h-auto and used object-contain for the transparent subject */}
             <div className="w-full md:w-1/3 flex justify-center">
@@ -36,7 +36,7 @@ const HomeAbout = () => {
             {/* Content Side */}
             <div className="w-full md:w-2/3 space-y-6">
                 <div>
-                    <span className="text-primary tracking-widest text-sm font-bold uppercase">
+                    <span className="text-secondary tracking-widest text-sm font-bold uppercase">
                         About Doel
                     </span>
                 </div>
