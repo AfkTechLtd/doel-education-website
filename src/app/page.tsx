@@ -1,6 +1,10 @@
-
+import Hero from "@/components/Hero";
+import HomeAbout from "@/components/HomeAbout";
 export default function Home() {
   return (
-    <h1>Welcome to Doel Page</h1>
+    <div className="px-10 ">
+      <Hero />
+      <HomeAbout />
+    </div>
   );
 }
