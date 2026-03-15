@@ -50,7 +50,7 @@ export default function Navbar() {
     <>
       <header className="w-full bg-white/95 backdrop-blur-sm border-b border-gray-100 sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between gap-8">
-          <Logo />
+          <Logo showName={false} />
           <DesktopNav />
           <ConsultationButton />
           <MobileMenu

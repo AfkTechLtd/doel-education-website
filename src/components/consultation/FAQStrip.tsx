@@ -30,15 +30,17 @@ function FAQItem({ q, a }: { q: string; a: string }) {
   const [open, setOpen] = useState(false);
 
   return (
-    <li className="border-b border-slate-100 last:border-0">
+    <li className="border-b border-gray-100 last:border-0">
       <button
         onClick={() => setOpen((v) => !v)}
         className="w-full flex items-center justify-between gap-4 py-5 text-left group"
         aria-expanded={open}
       >
-        <span className="text-[15px] font-medium text-slate-800 font-inter transition-colors duration-150 group-hover:text-primary">{q}</span>
+        <span className="font-semibold text-gray-900 group-hover:text-primary transition-colors duration-150">
+          {q}
+        </span>
         <ChevronDown
-          className={`w-4 h-4 text-slate-400 shrink-0 transition-transform duration-200 ${open ? "rotate-180" : ""}`}
+          className={`w-4 h-4 text-gray-400 shrink-0 transition-transform duration-200 ${open ? "rotate-180" : ""}`}
           strokeWidth={2}
         />
       </button>
@@ -46,7 +48,7 @@ function FAQItem({ q, a }: { q: string; a: string }) {
         style={{ maxHeight: open ? "200px" : "0px" }}
         className="overflow-hidden transition-[max-height] duration-300 ease-in-out"
       >
-        <p className="pb-5 text-sm text-slate-500 font-inter leading-relaxed">{a}</p>
+        <p className="pb-5 text-sm text-gray-500 leading-relaxed">{a}</p>
       </div>
     </li>
   );
@@ -54,13 +56,19 @@ function FAQItem({ q, a }: { q: string; a: string }) {
 
 export default function FAQStrip() {
   return (
-    <section className="max-w-3xl mx-auto px-6 py-16">
-      <div className="text-center mb-10">
-        <span className="text-xs font-semibold tracking-widest uppercase text-primary font-inter">Got questions?</span>
-        <h2 className="mt-2 text-3xl font-bold text-slate-900 font-poppins">Common questions answered</h2>
+    <section className="py-10 space-y-6 pt-14 pb-4">
+      <div>
+        <span className="text-secondary tracking-widest text-sm font-bold uppercase">
+          FAQ
+        </span>
+        <h2 className="mt-3 text-4xl font-semibold font-inter text-slate-900">
+          Common questions
+        </h2>
       </div>
-      <ul className="bg-white border border-slate-200 rounded-2xl px-6">
-        {faqs.map((faq) => <FAQItem key={faq.q} {...faq} />)}
+      <ul className="bg-white border border-gray-200 shadow-lg rounded-2xl px-6">
+        {faqs.map((faq) => (
+          <FAQItem key={faq.q} {...faq} />
+        ))}
       </ul>
     </section>
   );
