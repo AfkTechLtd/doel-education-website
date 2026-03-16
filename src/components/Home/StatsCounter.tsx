@@ -1,30 +1,69 @@
-import React from 'react'
+import React from "react";
+
+const stats = [
+  { value: "15+", label: "Years of Experience", sub: "Est. 2008" },
+  { value: "500+", label: "University Partners", sub: "Across 25+ countries" },
+  { value: "10,000+", label: "Students Guided", sub: "And counting" },
+  { value: "98%", label: "Visa Success Rate", sub: "Industry leading" },
+];
 
 const StatsCounter = () => {
-    const stats = [
-        { value: '15+', label: 'Years of Experience' },
-        { value: '500+', label: 'University Partners' },
-        { value: '10,000+', label: 'Students Guided' },
-        { value: '25+', label: 'Countries Covered' },
-    ]
+  return (
+    <section className="py-6">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
+        {stats.map(({ value, label, sub }, index) => (
+          <div
+            key={label}
+            className={`
+              relative flex flex-col items-center justify-center text-center
+              rounded-2xl px-4 py-8 sm:py-10 overflow-hidden
+              border transition-all duration-300 hover:-translate-y-1 hover:shadow-lg
+              ${
+                index === 0
+                  ? "bg-primary border-primary text-white"
+                  : "bg-white border-slate-100 shadow-sm"
+              }
+            `}
+          >
+            {/* Decorative circle */}
+            <div
+              className={`
+                absolute -top-6 -right-6 w-20 h-20 rounded-full opacity-10
+                ${index === 0 ? "bg-white" : "bg-primary"}
+              `}
+            />
 
-    // Subtle white-to-blue gradient like the provided design.
-    const columnGradient = 'bg-[linear-gradient(180deg,#ffffff_0%,#FFF6E0_100%)]'
-    const columnStyles = `flex flex-col text-center items-center justify-center py-4 md:py-6 ${columnGradient}`
+            <p
+              className={`
+                font-poppins text-3xl sm:text-4xl font-bold leading-none
+                ${index === 0 ? "text-white" : "text-primary"}
+              `}
+            >
+              {value}
+            </p>
 
-    return (
-        <div className='w-full grid grid-cols-1 overflow-hidden rounded-2xl border border-gray-100 shadow-lg md:grid-cols-4'>
-            {stats.map((stat, index) => (
-                <div
-                    key={stat.label}
-                    className={`${columnStyles} ${index < stats.length - 1 ? 'border-b md:border-b-0 md:border-r border-gray-200' : ''}`}
-                >
-                    <h1 className='text-4xl font-bold text-primary md:text-5xl'>{stat.value}</h1>
-                    <p className='text-sm text-gray-500 md:text-base'>{stat.label}</p>
-                </div>
-            ))}
-        </div>
-    )
-}
+            <p
+              className={`
+                font-poppins text-sm font-semibold mt-2 leading-snug
+                ${index === 0 ? "text-white/90" : "text-slate-800"}
+              `}
+            >
+              {label}
+            </p>
 
-export default StatsCounter
+            <p
+              className={`
+                font-inter text-xs mt-1
+                ${index === 0 ? "text-white/55" : "text-slate-400"}
+              `}
+            >
+              {sub}
+            </p>
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+};
+
+export default StatsCounter;
