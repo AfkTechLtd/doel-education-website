@@ -2,7 +2,7 @@ import { CalendarClock, Flame } from "lucide-react";
 
 const stats = [
   { icon: Flame, label: "Only 4 slots left this week", highlight: true },
-  { icon: CalendarClock, label: "Next Fall intake deadline: Mar 31", highlight: false },
+  { icon: CalendarClock, label: "Next Fall intake deadline: Sep 1", highlight: false },
 ];
 
 export default function UrgencyBanner() {

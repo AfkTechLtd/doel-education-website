@@ -1,4 +1,5 @@
 import { GraduationCap, CheckCircle2, Globe } from 'lucide-react'
+import Link from 'next/link'
 
 const Hero = () => {
     return (
@@ -20,8 +21,8 @@ const Hero = () => {
                 {/* Buttons */}
 
                 <div className="flex gap-4">
-                    <button className="rounded-xl px-7 py-4 text-white border border-primary bg-primary font-semibold">Apply Now</button>
-                    <button className="rounded-xl px-7 py-4 text-primary border border-primary font-semibold">Explore Universities</button>
+                    <Link href="/consultation" className="rounded-xl px-7 py-4 text-white border border-primary bg-primary font-semibold hover:bg-primary/90 transition-colors duration-200">Apply Now</Link>
+                    <Link href="/study-in-us" className="rounded-xl px-7 py-4 text-primary border border-primary font-semibold hover:bg-primary/5 transition-colors duration-200">Explore Universities</Link>
                 </div>
                 {/* Stats */}
 

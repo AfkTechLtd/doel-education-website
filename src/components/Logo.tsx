@@ -1,23 +1,41 @@
 import Link from "next/link";
+import Image from "next/image";
 
-export default function Logo() {
+type LogoProps = {
+  showName?: boolean;
+  className?: string;
+};
+
+export default function Logo({ showName = true, className = "" }: LogoProps) {
+  const iconMark = (
+    <div className="relative h-24 w-24 shrink-0 overflow-hidden rounded-sm">
+      <Image src="/logo.svg" alt="" fill className="object-cover object-top" />
+    </div>
+  );
+
+  if (showName) {
+    return (
+      <Link href="/" className={`shrink-0 flex flex-col gap-2 ${className}`}>
+        {iconMark}
+        <div className="leading-none">
+          <span className="block font-poppins text-lg font-bold text-primary">
+            Doel
+          </span>
+          <span className="block font-inter text-[10px] uppercase tracking-[0.14em] text-gray-500">
+            Education Consultancy
+          </span>
+        </div>
+      </Link>
+    );
+  }
+
   return (
-    <Link href="/" className="flex items-center gap-2.5 shrink-0 group">
-      <div className="w-9 h-9 rounded-full bg-primary flex items-center justify-center transition-transform duration-200 group-hover:scale-105">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-          <path d="M12 3L2 8l10 5 10-5-10-5Z" fill="white" />
-          <path d="M2 12l10 5 10-5" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-          <path d="M2 16l10 5 10-5" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-        </svg>
-      </div>
-      <div className="flex flex-col leading-tight">
-        <span className="text-[15px] font-bold tracking-wide text-primary font-poppins">
-          DOEL
-        </span>
-        <span className="text-[9px] font-medium tracking-[0.18em] uppercase text-gray-400 font-inter">
-          Education
-        </span>
-      </div>
+    <Link
+      href="/"
+      className={`shrink-0 inline-flex items-center ${className}`}
+      aria-label="Doel Education Consultancy"
+    >
+      {iconMark}
     </Link>
   );
 }

@@ -9,6 +9,7 @@ import {
   Mail,
   MapPin,
   Phone,
+  Clock,
   Twitter,
   Youtube,
   type LucideIcon,
@@ -21,10 +22,7 @@ import {
   type ContactItem,
   type SocialItem,
 } from "@/data/footerData";
-
-const sectionTitleClass = "text-lg font-semibold text-slate-900 font-poppins";
-const linkClass =
-  "font-inter text-slate-600 hover:text-primary transition-colors duration-200";
+import Logo from "./Logo";
 
 const socialIconMap: Record<SocialItem["platform"], LucideIcon> = {
   facebook: Facebook,
@@ -38,51 +36,59 @@ const contactIconMap: Record<ContactItem["type"], LucideIcon> = {
   location: MapPin,
   phone: Phone,
   email: Mail,
+  hours: Clock,
 };
 
 export default function Footer() {
   return (
-    <footer className="mt-20 bg-slate-50 border-t border-slate-200">
-      <div className="h-1 w-full bg-primary" />
-
+    <footer className="bg-white border-t border-gray-100">
+      {/* ── Main grid ─────────────────────────────────────────────── */}
       <div className="max-w-7xl mx-auto px-6 py-14 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-12">
-        <section>
-          <h2 className="text-3xl font-bold text-slate-900 font-poppins tracking-wide">
-            DOEL
-          </h2>
-          <p className="text-slate-600 mt-1 font-inter">
-            Education Consultancy
-          </p>
-          <p className="mt-6 text-slate-600 leading-7 font-inter max-w-xs">
-            Empowering students to achieve their global education dreams through
-            personalized guidance, ethical practices, and comprehensive support.
+        {/* Brand column */}
+        <div>
+          <Logo showName={false} className="" />
+
+          <p className="text-gray-500 font-inter text-sm leading-7">
+            Bangladesh&apos;s trusted study-abroad partner since 2008.
+            We&apos;ve helped over 10,000 students build careers in the United
+            States through honest, personalised guidance.
           </p>
 
-          <div className="mt-7 flex items-center gap-3">
+          {/* Social icons */}
+          <div className="mt-7 flex items-center gap-2">
             {socialItems.map((item) => {
               const Icon = socialIconMap[item.platform];
-
               return (
                 <Link
                   key={item.platform}
                   href={item.href}
                   aria-label={item.label}
-                  className="w-10 h-10 rounded-full border border-slate-300 bg-white text-slate-500 hover:border-primary hover:bg-primary hover:text-white transition-colors duration-200 flex items-center justify-center"
+                  className="w-9 h-9 rounded-full border border-gray-200 text-gray-400 hover:border-primary hover:text-primary transition-colors duration-200 flex items-center justify-center"
                 >
-                  <Icon className="w-4 h-4" strokeWidth={2} aria-hidden="true" />
+                  <Icon
+                    className="w-4 h-4"
+                    strokeWidth={2}
+                    aria-hidden="true"
+                  />
                 </Link>
               );
             })}
           </div>
-        </section>
+        </div>
 
+        {/* Link columns */}
         {footerSections.map((section) => (
           <section key={section.title}>
-            <h3 className={sectionTitleClass}>{section.title}</h3>
-            <ul className="mt-6 space-y-3">
+            <h3 className="text-xs font-semibold uppercase tracking-widest text-gray-400 mb-5 font-inter">
+              {section.title}
+            </h3>
+            <ul className="space-y-3">
               {section.links.map((link) => (
-                <li key={link.href}>
-                  <Link href={link.href} className={linkClass}>
+                <li key={link.label}>
+                  <Link
+                    href={link.href}
+                    className="text-sm font-inter text-gray-500 hover:text-primary transition-colors duration-200"
+                  >
                     {link.label}
                   </Link>
                 </li>
@@ -91,23 +97,27 @@ export default function Footer() {
           </section>
         ))}
 
+        {/* Contact column */}
         <section>
-          <h3 className={sectionTitleClass}>Contact Us</h3>
-          <ul className="mt-6 space-y-4">
+          <h3 className="text-xs font-semibold uppercase tracking-widest text-gray-400 mb-5 font-inter">
+            Contact Us
+          </h3>
+          <ul className="space-y-4">
             {contactItems.map((item) => {
               const Icon = contactIconMap[item.type];
-
+              const isLink = item.href !== "#";
+              const content = (
+                <span className="flex items-start gap-3 text-sm text-gray-500 hover:text-primary transition-colors duration-200">
+                  <Icon
+                    className="w-4 h-4 text-primary/60 shrink-0 mt-0.5"
+                    strokeWidth={1.9}
+                  />
+                  <span className="leading-snug">{item.label}</span>
+                </span>
+              );
               return (
                 <li key={item.type}>
-                  <Link
-                    href={item.href}
-                    className="group flex items-start gap-3 font-inter text-slate-600 hover:text-primary transition-colors duration-200"
-                  >
-                    <Icon className="w-5 h-5 text-primary shrink-0 mt-0.5" strokeWidth={1.9} aria-hidden="true" />
-                    <span className="leading-6 text-slate-600 group-hover:text-primary transition-colors duration-200">
-                      {item.label}
-                    </span>
-                  </Link>
+                  {isLink ? <Link href={item.href}>{content}</Link> : content}
                 </li>
               );
             })}
@@ -115,9 +125,10 @@ export default function Footer() {
         </section>
       </div>
 
-      <div className="border-t border-slate-200">
-        <div className="max-w-7xl mx-auto px-6 py-6 flex flex-col md:flex-row gap-4 md:items-center md:justify-between">
-          <p className="font-inter text-slate-500 text-sm">
+      {/* ── Bottom bar ────────────────────────────────────────────── */}
+      <div className="border-t border-gray-100">
+        <div className="max-w-7xl mx-auto px-6 py-5 flex flex-col md:flex-row gap-4 md:items-center md:justify-between">
+          <p className="font-inter text-gray-400 text-sm">
             &copy; {new Date().getFullYear()} DOEL Education Consultancy. All
             rights reserved.
           </p>
@@ -127,7 +138,7 @@ export default function Footer() {
               <Link
                 key={item.href}
                 href={item.href}
-                className="font-inter text-sm text-slate-500 hover:text-primary transition-colors duration-200"
+                className="font-inter text-sm text-gray-400 hover:text-primary transition-colors duration-200"
               >
                 {item.label}
               </Link>
@@ -136,10 +147,14 @@ export default function Footer() {
             <button
               type="button"
               aria-label="Back to top"
-              className="w-9 h-9 rounded-full bg-primary text-white hover:bg-primary/90 transition-colors duration-200 flex items-center justify-center"
+              className="w-9 h-9 rounded-full border border-gray-200 text-gray-400 hover:border-primary hover:text-primary hover:bg-primary/5 transition-colors duration-200 flex items-center justify-center"
               onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
             >
-              <ArrowUp className="w-4 h-4" strokeWidth={2.2} aria-hidden="true" />
+              <ArrowUp
+                className="w-4 h-4"
+                strokeWidth={2.2}
+                aria-hidden="true"
+              />
             </button>
           </div>
         </div>

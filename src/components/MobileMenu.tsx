@@ -77,7 +77,7 @@ export default function MobileMenu({ isOpen, onToggle }: MobileMenuProps) {
 
           <div className="mt-3 px-4">
             <Link
-              href="/contact"
+              href="/consultation"
               className="flex items-center justify-center w-full py-3 rounded-xl text-sm font-semibold text-white bg-primary transition-all duration-200 hover:brightness-110"
             >
               Get Free Consultation
