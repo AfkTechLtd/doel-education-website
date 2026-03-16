@@ -12,6 +12,7 @@ import {
   ChevronDown,
 } from "lucide-react";
 import { useState } from "react";
+import PopularMajors from "@/components/StudyPopularMajorsSection";
 
 // ─── Data ─────────────────────────────────────────────────────────────────────
 
@@ -150,50 +151,45 @@ function FAQItem({ q, a }: { q: string; a: string }) {
 export default function StudyInUSAPage() {
   return (
     <main className="bg-white overflow-x-hidden">
-
       {/* ── 1. HERO ────────────────────────────────────────────────────────── */}
-    <section className="relative min-h-[88vh] flex items-center overflow-hidden">
+      <section className="relative min-h-[88vh] flex items-center overflow-hidden">
+        {/* Background */}
+        <div className="absolute inset-0">
+          <Image
+            src="/study/hero-campus.png"
+            alt="American university campus"
+            fill
+            priority
+            className="object-cover"
+          />
 
-  {/* Background */}
-  <div className="absolute inset-0">
-    <Image
-      src="/study/hero-campus.png"
-      alt="American university campus"
-      fill
-      priority
-      className="object-cover"
-    />
+          {/* subtle overlay */}
+          <div className="absolute inset-0 bg-primary/60"></div>
+        </div>
 
-    {/* subtle overlay */}
-    <div className="absolute inset-0 bg-primary/60"></div>
-  </div>
+        {/* Content */}
+        <div className="relative max-w-6xl mx-auto px-6 py-24 text-white">
+          <h1 className="text-5xl md:text-6xl font-bold leading-tight max-w-3xl">
+            Study in the United States
+            <span className="text-secondary"> with Expert Guidance</span>
+          </h1>
 
-  {/* Content */}
-  <div className="relative max-w-6xl mx-auto px-6 py-24 text-white">
+          <p className="mt-6 text-lg max-w-xl text-white/90">
+            Find the right universities, scholarships, and career opportunities
+            with guidance from experienced counselors.
+          </p>
 
-    <h1 className="text-5xl md:text-6xl font-bold leading-tight max-w-3xl">
-      Study in the United States
-      <span className="text-secondary"> with Expert Guidance</span>
-    </h1>
+          <div className="mt-8 flex gap-4">
+            <button className="bg-secondary cursor-pointer hover:opacity-90 transition-all text-primary font-semibold px-6 py-3 rounded-md">
+              Start Application
+            </button>
 
-    <p className="mt-6 text-lg max-w-xl text-white/90">
-      Find the right universities, scholarships, and career opportunities
-      with guidance from experienced counselors.
-    </p>
-
-    <div className="mt-8 flex gap-4">
-      <button className="bg-secondary cursor-pointer hover:opacity-90 transition-all text-primary font-semibold px-6 py-3 rounded-md">
-        Start Application
-      </button>
-
-      <button className="border hover:bg-white hover:text-black transition-all cursor-pointer border-white/40 px-6 py-3 rounded-md">
-        Explore Universities
-      </button>
-    </div>
-
-  </div>
-
-</section>
+            <button className="border hover:bg-white hover:text-black transition-all cursor-pointer border-white/40 px-6 py-3 rounded-md">
+              Explore Universities
+            </button>
+          </div>
+        </div>
+      </section>
 
       {/* ── 2. WHY USA ─────────────────────────────────────────────────────── */}
       <section className="py-24 bg-white">
@@ -230,6 +226,8 @@ export default function StudyInUSAPage() {
           </div>
         </div>
       </section>
+
+      <PopularMajors />
 
       {/* ── 3. UNIVERSITIES ────────────────────────────────────────────────── */}
       <section id="universities" className="py-24 bg-primary text-white">
@@ -274,7 +272,9 @@ export default function StudyInUSAPage() {
                   <h3 className="font-poppins font-bold text-gray-900 text-base mb-1">
                     {u.name}
                   </h3>
-                  <p className="font-inter text-xs text-gray-400 mb-4">{u.location}</p>
+                  <p className="font-inter text-xs text-gray-400 mb-4">
+                    {u.location}
+                  </p>
 
                   <div className="flex flex-wrap gap-2 mb-4">
                     {u.fields.map((f) => (
@@ -302,7 +302,6 @@ export default function StudyInUSAPage() {
       {/* ── 4. TESTIMONIALS + FAQ ──────────────────────────────────────────── */}
       <section className="py-24 bg-white">
         <div className="max-w-7xl mx-auto px-6">
-
           {/* Testimonials */}
           <div className="max-w-xl mb-14">
             <p className="font-inter text-xs font-semibold tracking-[0.2em] uppercase text-primary mb-3">
@@ -336,7 +335,9 @@ export default function StudyInUSAPage() {
                     <div className="font-poppins font-semibold text-gray-800 text-sm">
                       {t.name}
                     </div>
-                    <div className="font-inter text-xs text-gray-400 truncate">{t.program}</div>
+                    <div className="font-inter text-xs text-gray-400 truncate">
+                      {t.program}
+                    </div>
                     <div className="font-inter text-[11px] text-primary font-semibold mt-0.5">
                       {t.scholarship}
                     </div>
@@ -356,8 +357,8 @@ export default function StudyInUSAPage() {
                 Everything students ask us.
               </h2>
               <p className="font-inter text-gray-500 text-sm leading-relaxed mb-8">
-                Still have questions? Book a free consultation and get personalised answers for
-                your specific profile and goals.
+                Still have questions? Book a free consultation and get
+                personalised answers for your specific profile and goals.
               </p>
               <Link
                 href="#consultation"
@@ -377,62 +378,60 @@ export default function StudyInUSAPage() {
       </section>
 
       {/* ── CTA ────────────────────────────────────────────────────────────── */}
-      <section id="consultation" className="relative py-28 bg-primary overflow-hidden">
+      <section
+        id="consultation"
+        className="relative py-28 bg-primary overflow-hidden"
+      >
+        {/* Background */}
+        <div className="absolute inset-0">
+          <Image
+            src="/study/cta-bg.png"
+            alt="University campus aerial"
+            fill
+            className="object-cover opacity-15"
+          />
+        </div>
 
-  {/* Background */}
-  <div className="absolute inset-0">
-    <Image
-      src="/study/cta-bg.png"
-      alt="University campus aerial"
-      fill
-      className="object-cover opacity-15"
-    />
-  </div>
+        <div className="relative max-w-3xl mx-auto px-6 text-center">
+          <p className="font-inter text-xs font-semibold tracking-[0.2em] uppercase text-primary mb-5">
+            Start Your Journey
+          </p>
 
-  <div className="relative max-w-3xl mx-auto px-6 text-center">
+          <h2 className="font-poppins text-4xl md:text-5xl font-bold text-white leading-tight mb-6">
+            Ready to study in the <span className="text-secondary">USA?</span>
+          </h2>
 
-    <p className="font-inter text-xs font-semibold tracking-[0.2em] uppercase text-primary mb-5">
-      Start Your Journey
-    </p>
+          <p className="font-inter text-white/70 text-base leading-relaxed mb-12 max-w-xl mx-auto">
+            Book a free 45-minute consultation with a specialist. No sales pitch
+            — just honest advice about your options.
+          </p>
 
-    <h2 className="font-poppins text-4xl md:text-5xl font-bold text-white leading-tight mb-6">
-      Ready to study in the <span className="text-secondary">USA?</span>
-    </h2>
+          {/* Form Card */}
+          <div className="bg-white rounded-2xl p-8 shadow-xl max-w-xl mx-auto">
+            <div className="grid sm:grid-cols-2 gap-4 mb-4">
+              <input
+                type="text"
+                placeholder="Your full name"
+                className="border border-gray-200 rounded-lg px-4 py-3 text-sm outline-none focus:border-primary transition-colors"
+              />
 
-    <p className="font-inter text-white/70 text-base leading-relaxed mb-12 max-w-xl mx-auto">
-      Book a free 45-minute consultation with a specialist. No sales pitch — just honest
-      advice about your options.
-    </p>
+              <input
+                type="tel"
+                placeholder="WhatsApp number"
+                className="border border-gray-200 rounded-lg px-4 py-3 text-sm outline-none focus:border-primary transition-colors"
+              />
+            </div>
 
-    {/* Form Card */}
-    <div className="bg-white rounded-2xl p-8 shadow-xl max-w-xl mx-auto">
+            <button className="w-full bg-primary text-white font-semibold py-4 rounded-lg hover:bg-primary/90 transition-colors">
+              Book My Free Consultation
+            </button>
 
-      <div className="grid sm:grid-cols-2 gap-4 mb-4">
-        <input
-          type="text"
-          placeholder="Your full name"
-          className="border border-gray-200 rounded-lg px-4 py-3 text-sm outline-none focus:border-primary transition-colors"
-        />
-
-        <input
-          type="tel"
-          placeholder="WhatsApp number"
-          className="border border-gray-200 rounded-lg px-4 py-3 text-sm outline-none focus:border-primary transition-colors"
-        />
-      </div>
-
-      <button className="w-full bg-primary text-white font-semibold py-4 rounded-lg hover:bg-primary/90 transition-colors">
-        Book My Free Consultation
-      </button>
-
-      <p className="text-xs text-gray-500 text-center mt-3">
-        No spam. Response within 2 hours during business hours.
-      </p>
-
-    </div>
-  </div>
-</section>
-
+            <p className="text-xs text-gray-500 text-center mt-3">
+              No spam. Response within 2 hours during business hours.
+            </p>
+          </div>
+        </div>
+      </section>
     </main>
   );
 }
