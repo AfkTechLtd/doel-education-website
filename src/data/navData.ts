@@ -2,9 +2,10 @@ const navLinks = [
   { label: "Home", href: "/" },
   { label: "Study in US", href: "/study-in-us" },
   { label: "Services", href: "/services" },
-  { label: "Contact", href: "/contact" },
+  { label: "Success Stories", href: "/about" },
   { label: "Events", href: "/events" },
-  { label: "About", href: "/about" },
+  { label: "Blog", href: "/blog" },
+  { label: "Contact", href: "/contact" },
 ];
 
 export default navLinks;
