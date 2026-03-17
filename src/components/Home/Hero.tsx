@@ -87,6 +87,31 @@ function OrbitRing({ items, diameter, duration, cw = true }: OrbitRingProps) {
 const Hero = () => {
   return (
     <>
+      <style>{`
+        @keyframes orbit-cw  { from { transform: rotate(0deg);   } to { transform: rotate(360deg);  } }
+        @keyframes orbit-ccw { from { transform: rotate(0deg);   } to { transform: rotate(-360deg); } }
+
+        @keyframes fade-up {
+          from { opacity: 0; transform: translateY(28px); }
+          to   { opacity: 1; transform: translateY(0);    }
+        }
+        .fu  { opacity: 0; animation: fade-up .75s ease forwards; }
+        .d1  { animation-delay: .10s; }
+        .d2  { animation-delay: .25s; }
+        .d3  { animation-delay: .40s; }
+        .d4  { animation-delay: .55s; }
+        .d5  { animation-delay: .70s; }
+
+        .stat-pill {
+          background: rgba(255,255,255,0.10);
+          border: 1px solid rgba(255,255,255,0.22);
+          backdrop-filter: blur(10px);
+          -webkit-backdrop-filter: blur(10px);
+          transition: background .2s, transform .2s;
+        }
+        .stat-pill:hover { background: rgba(255,255,255,0.18); transform: translateY(-2px); }
+      `}</style>
+
       {/* ── Full-viewport section ── */}
       <section className="relative w-full min-h-screen flex items-center overflow-hidden">
         {/* ── Background image ── */}
@@ -257,6 +282,7 @@ const Hero = () => {
                   <div
                     className="relative w-96 h-96 -z-10 rounded-full overflow-hidden"
                     style={{
+
                       border: "4px solid rgba(255,255,255,0.35)",
                       boxShadow:
                         "0 0 0 10px rgba(255,255,255,0.06), 0 24px 60px rgba(0,0,0,0.45)",
