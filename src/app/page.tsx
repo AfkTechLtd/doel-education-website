@@ -6,19 +6,34 @@ import Support from "@/components/Home/Support";
 import VisaSupport from "@/components/Home/VisaSupport";
 import VideoTestimonial from "@/components/Home/VideoTestimonial";
 import HomeCTA from "@/components/Home/HomeCTA";
+import ScrollRevealSection from "@/components/common/ScrollRevealSection";
 
 export default function Home() {
   return (
     <main>
-      <div className="mx-auto max-w-7xl md:px-20 px-6 space-y-20">
-        <Hero />
-        <HomeAbout />
-        <StatsCounter />
-        <VideoTestimonial />
-        <Partners />
-        <Support />
-        <VisaSupport />
-        <HomeCTA />
+      <Hero />
+      <div className="mx-auto max-w-7xl md:px-20 2xl:px-6 px-6 space-y-20">
+        <ScrollRevealSection>
+          <HomeAbout />
+        </ScrollRevealSection>
+        <ScrollRevealSection>
+          <StatsCounter />
+        </ScrollRevealSection>
+        <ScrollRevealSection>
+          <VideoTestimonial />
+        </ScrollRevealSection>
+        <ScrollRevealSection>
+          <Partners />
+        </ScrollRevealSection>
+        <ScrollRevealSection>
+          <Support />
+        </ScrollRevealSection>
+        <ScrollRevealSection>
+          <VisaSupport />
+        </ScrollRevealSection>
+        <ScrollRevealSection>
+          <HomeCTA />
+        </ScrollRevealSection>
       </div>
     </main>
   );

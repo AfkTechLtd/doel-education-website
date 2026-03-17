@@ -1,17 +1,106 @@
-import React from "react";
+"use client";
+
+import React, { useEffect, useRef, useState } from "react";
+import AnimatedNumber from "./HomeAnimationNumber";
 
 const stats = [
-  { value: "15+", label: "Years of Experience", sub: "Est. 2008" },
-  { value: "500+", label: "University Partners", sub: "Across 25+ countries" },
-  { value: "10,000+", label: "Students Guided", sub: "And counting" },
-  { value: "98%", label: "Visa Success Rate", sub: "Industry leading" },
+  { value: 15, suffix: "+", label: "Years of Experience", sub: "Est. 2008" },
+  {
+    value: 500,
+    suffix: "+",
+    label: "University Partners",
+    sub: "Across 25+ countries",
+  },
+  { value: 10000, suffix: "+", label: "Students Guided", sub: "And counting" },
+  {
+    value: 98,
+    suffix: "%",
+    label: "Visa Success Rate",
+    sub: "Industry leading",
+  },
 ];
 
+// ── Single animated number ──────────────────────────────────────────────────
+// function AnimatedNumber({
+//   target,
+//   suffix,
+//   duration = 1800,
+//   started,
+// }: {
+//   target: number;
+//   suffix: string;
+//   duration?: number;
+//   started: boolean;
+// }) {
+//   const [display, setDisplay] = useState(0);
+//   const rafRef = useRef<number | null>(null);
+//   const startTs = useRef<number | null>(null);
+
+//   useEffect(() => {
+//     if (!started) return;
+
+//     startTs.current = null;
+
+//     function tick(ts: number) {
+//       if (startTs.current === null) startTs.current = ts;
+//       const elapsed = ts - startTs.current;
+//       const progress = Math.min(elapsed / duration, 1);
+//       const eased = easeOutQuart(progress);
+
+//       setDisplay(Math.floor(eased * target));
+
+//       if (progress < 1) {
+//         rafRef.current = requestAnimationFrame(tick);
+//       } else {
+//         setDisplay(target); // ensure exact final value
+//       }
+//     }
+
+//     rafRef.current = requestAnimationFrame(tick);
+//     return () => {
+//       if (rafRef.current) cancelAnimationFrame(rafRef.current);
+//     };
+//   }, [started, target, duration]);
+
+//   // Format with commas for numbers >= 1000
+//   const formatted =
+//     display >= 1000 ? display.toLocaleString("en-US") : String(display);
+
+//   return (
+//     <>
+//       {formatted}
+//       {suffix}
+//     </>
+//   );
+// }
+
+// ── Section ─────────────────────────────────────────────────────────────────
 const StatsCounter = () => {
+  const [hasStarted, setHasStarted] = useState(false);
+  const sectionRef = useRef<HTMLElement>(null);
+
+  useEffect(() => {
+    const el = sectionRef.current;
+    if (!el) return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setHasStarted(true);
+          observer.disconnect(); // only trigger once
+        }
+      },
+      { threshold: 0.25 }, // start when 25% of the section is visible
+    );
+
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
+
   return (
-    <section className="py-6">
+    <section ref={sectionRef} className="py-6">
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
-        {stats.map(({ value, label, sub }, index) => (
+        {stats.map(({ value, suffix, label, sub }, index) => (
           <div
             key={label}
             className={`
@@ -35,11 +124,16 @@ const StatsCounter = () => {
 
             <p
               className={`
-                font-poppins text-3xl sm:text-4xl font-bold leading-none
+                font-poppins text-3xl sm:text-4xl font-bold leading-none tabular-nums
                 ${index === 0 ? "text-white" : "text-primary"}
               `}
             >
-              {value}
+              <AnimatedNumber
+                target={value}
+                suffix={suffix}
+                duration={1800}
+                started={hasStarted}
+              />
             </p>
 
             <p

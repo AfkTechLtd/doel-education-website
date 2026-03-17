@@ -1,8 +1,38 @@
 "use client";
 
+import { useEffect, useRef, useState } from "react";
+import AnimatedNumber from "./HomeAnimationNumber";
+
+// ── Bottom stats config ──────────────────────────────────────────────────────
+const bottomStats = [
+  { value: 500, suffix: "+", label: "Students placed" },
+  { value: 40, suffix: "+", label: "Partner universities" },
+  { value: 15, suffix: "+", label: "Countries covered" },
+];
+
+// ── Component ────────────────────────────────────────────────────────────────
 const VideoTestimonial = () => {
+  const [started, setStarted] = useState(false);
+  const sectionRef = useRef<HTMLElement>(null);
+
+  useEffect(() => {
+    const el = sectionRef.current;
+    if (!el) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setStarted(true);
+          observer.disconnect();
+        }
+      },
+      { threshold: 0.2 },
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
+
   return (
-    <section className="py-24 overflow-hidden">
+    <section ref={sectionRef} className="py-24 overflow-hidden">
       {/* Section label */}
       <div className="flex items-center gap-3 mb-14">
         <span className="h-px w-10 block bg-secondary" />
@@ -12,7 +42,7 @@ const VideoTestimonial = () => {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
-        {/* Left — video embed */}
+        {/* ── Left — video embed ── */}
         <div className="relative">
           {/* Decorative blocks */}
           <div className="absolute -top-4 -left-4 w-full h-full rounded-3xl bg-primary/8" />
@@ -31,8 +61,8 @@ const VideoTestimonial = () => {
 
           {/* Floating stat card */}
           <div className="absolute -bottom-6 -right-6 rounded-2xl px-5 py-4 shadow-xl border border-white/60 backdrop-blur-sm bg-primary">
-            <p className="text-3xl font-bold text-white font-poppins leading-none">
-              96%
+            <p className="text-3xl font-bold text-white font-poppins leading-none tabular-nums">
+              <AnimatedNumber target={96} suffix="%" started={started} duration={1600} />
             </p>
             <p className="text-xs text-white/70 font-inter mt-1 leading-tight">
               Visa success
@@ -42,7 +72,7 @@ const VideoTestimonial = () => {
           </div>
         </div>
 
-        {/* Right — copy */}
+        {/* ── Right — copy ── */}
         <div className="space-y-8 lg:pl-6">
           <h2 className="text-4xl font-semibold leading-[1.15] tracking-tight font-poppins text-primary">
             Real students.
@@ -84,14 +114,15 @@ const VideoTestimonial = () => {
 
           {/* Stats row */}
           <div className="grid grid-cols-3 gap-4 pt-4 border-t border-slate-100">
-            {[
-              { value: "500+", label: "Students placed" },
-              { value: "40+", label: "Partner universities" },
-              { value: "15+", label: "Countries covered" },
-            ].map(({ value, label }) => (
+            {bottomStats.map(({ value, suffix, label }, i) => (
               <div key={label}>
-                <p className="text-2xl font-bold font-poppins text-primary">
-                  {value}
+                <p className="text-2xl font-bold font-poppins text-primary tabular-nums">
+                  <AnimatedNumber
+                    target={value}
+                    suffix={suffix}
+                    started={started}
+                    duration={1400 + i * 200} // stagger: 1400 / 1600 / 1800ms
+                  />
                 </p>
                 <p className="text-xs text-slate-400 font-inter mt-0.5 leading-snug">
                   {label}
