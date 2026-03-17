@@ -17,7 +17,9 @@ type InquiryModalContextValue = {
   closeModal: () => void;
 };
 
-const InquiryModalContext = createContext<InquiryModalContextValue | null>(null);
+const InquiryModalContext = createContext<InquiryModalContextValue | null>(
+  null,
+);
 
 export function useInquiryModal() {
   const context = useContext(InquiryModalContext);
@@ -27,7 +29,13 @@ export function useInquiryModal() {
   return context;
 }
 
-function InquiryModal({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
+function InquiryModal({
+  isOpen,
+  onClose,
+}: {
+  isOpen: boolean;
+  onClose: () => void;
+}) {
   useEffect(() => {
     if (!isOpen) return;
 
@@ -87,7 +95,9 @@ function InquiryModal({ isOpen, onClose }: { isOpen: boolean; onClose: () => voi
             </button>
 
             <div className="mb-8 pr-10">
-              <h3 className="text-2xl font-bold text-slate-900">Quick Inquiry</h3>
+              <h3 className="text-2xl font-bold text-slate-900">
+                Book a consultation
+              </h3>
               <p className="mt-2 text-gray-500">
                 Fill out the form below and{" "}
                 <span className="font-semibold text-primary">
@@ -98,7 +108,9 @@ function InquiryModal({ isOpen, onClose }: { isOpen: boolean; onClose: () => voi
 
             <form className="grid grid-cols-1 gap-6 md:grid-cols-2">
               <div className="space-y-2">
-                <label className="text-sm font-semibold text-slate-700">Full Name</label>
+                <label className="text-sm font-semibold text-slate-700">
+                  Full Name
+                </label>
                 <input
                   type="text"
                   className="w-full rounded-xl border border-gray-200 px-4 py-3 outline-none transition-all focus:border-primary focus:ring-1 focus:ring-primary"
@@ -107,7 +119,9 @@ function InquiryModal({ isOpen, onClose }: { isOpen: boolean; onClose: () => voi
               </div>
 
               <div className="space-y-2">
-                <label className="text-sm font-semibold text-slate-700">Phone Number</label>
+                <label className="text-sm font-semibold text-slate-700">
+                  Phone Number
+                </label>
                 <input
                   type="text"
                   className="w-full rounded-xl border border-gray-200 px-4 py-3 outline-none transition-all focus:border-primary focus:ring-1 focus:ring-primary"
@@ -116,7 +130,9 @@ function InquiryModal({ isOpen, onClose }: { isOpen: boolean; onClose: () => voi
               </div>
 
               <div className="space-y-2">
-                <label className="text-sm font-semibold text-slate-700">Email</label>
+                <label className="text-sm font-semibold text-slate-700">
+                  Email
+                </label>
                 <input
                   type="email"
                   className="w-full rounded-xl border border-gray-200 px-4 py-3 outline-none transition-all focus:border-primary focus:ring-1 focus:ring-primary"
@@ -125,7 +141,9 @@ function InquiryModal({ isOpen, onClose }: { isOpen: boolean; onClose: () => voi
               </div>
 
               <div className="space-y-2">
-                <label className="text-sm font-semibold text-slate-700">Program Interest</label>
+                <label className="text-sm font-semibold text-slate-700">
+                  Program Interest
+                </label>
                 <select className="w-full rounded-xl border border-gray-200 px-4 py-3 outline-none focus:border-primary">
                   <option>Undergraduate</option>
                   <option>Postgraduate</option>
@@ -134,7 +152,9 @@ function InquiryModal({ isOpen, onClose }: { isOpen: boolean; onClose: () => voi
               </div>
 
               <div className="space-y-2 md:col-span-2">
-                <label className="text-sm font-semibold text-slate-700">Message (Optional)</label>
+                <label className="text-sm font-semibold text-slate-700">
+                  Message (Optional)
+                </label>
                 <textarea
                   className="h-32 w-full rounded-xl border border-gray-200 px-4 py-3 outline-none focus:border-primary"
                   placeholder="Tell us about your goals..."
