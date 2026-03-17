@@ -1,17 +1,25 @@
-import type { ComponentType } from "react";
-import { Users, Globe, ShieldCheck, Award } from "lucide-react";
+import { Globe, Users } from "lucide-react";
 
 interface CardProps {
   content: string;
   heading: string;
-  icon: ComponentType<{ size?: number; className?: string }>;
+  iconAlt: string;
+  iconSrc: string;
 }
 
-const Card = ({ content, heading, icon: IconComponent }: CardProps) => {
+const Card = ({ content, heading, iconAlt, iconSrc }: CardProps) => {
   return (
     <div className="group flex items-start gap-4 rounded-2xl border border-slate-100 bg-white p-5 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:border-primary/20 hover:shadow-md">
-      <div className="flex-shrink-0 rounded-xl bg-primary/8 p-2.5 transition-colors duration-300 group-hover:bg-primary/15">
-        <IconComponent size={20} className="text-primary" />
+      <div className="flex-shrink-0 rounded-xl bg-primary/8 p-2 transition-colors duration-300 group-hover:bg-primary/15">
+        <img
+          src={iconSrc}
+          alt={iconAlt}
+          width={24}
+          height={24}
+          loading="lazy"
+          decoding="async"
+          className="h-6 w-6 transition-transform duration-300 group-hover:-translate-y-0.5 group-hover:scale-110"
+        />
       </div>
       <div>
         <h5 className="text-sm font-semibold text-slate-800 font-poppins">
@@ -28,25 +36,29 @@ const Card = ({ content, heading, icon: IconComponent }: CardProps) => {
 const CARDS = [
   {
     heading: "Personalized Guidance",
-    icon: Users,
+    iconSrc: "/icons/group.png",
+    iconAlt: "Group icon",
     content:
       "One-on-one counseling tailored to your academic and career goals.",
   },
   {
     heading: "Global Network",
-    icon: Globe,
+    iconSrc: "/icons/global.png",
+    iconAlt: "Global icon",
     content:
       "Partnerships with leading universities and institutions worldwide.",
   },
   {
     heading: "Proven Success",
-    icon: Award,
+    iconSrc: "/icons/badge.png",
+    iconAlt: "Badge icon",
     content:
       "98% visa approval rate and thousands of successful student journeys.",
   },
   {
     heading: "Ethical Approach",
-    icon: ShieldCheck,
+    iconSrc: "/icons/success.png",
+    iconAlt: "Success icon",
     content: "Transparent process with clear guidance and no hidden fees.",
   },
 ];

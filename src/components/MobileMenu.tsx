@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import navLinks from "@/data/navData";
+import { useInquiryModal } from "@/components/InquiryModalProvider";
 
 interface MobileMenuProps {
   isOpen: boolean;
@@ -11,6 +12,7 @@ interface MobileMenuProps {
 
 export default function MobileMenu({ isOpen, onToggle }: MobileMenuProps) {
   const pathname = usePathname();
+  const { openModal } = useInquiryModal();
 
   return (
     <>
@@ -76,12 +78,16 @@ export default function MobileMenu({ isOpen, onToggle }: MobileMenuProps) {
           })}
 
           <div className="mt-3 px-4">
-            <Link
-              href="/consultation"
+            <button
+              type="button"
+              onClick={() => {
+                onToggle();
+                openModal();
+              }}
               className="flex items-center justify-center w-full py-3 rounded-xl text-sm font-semibold text-white bg-primary transition-all duration-200 hover:brightness-110"
             >
               Get Free Consultation
-            </Link>
+            </button>
           </div>
         </nav>
       </div>

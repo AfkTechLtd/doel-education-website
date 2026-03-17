@@ -15,6 +15,7 @@ const StatsCounter = () => {
           <div
             key={label}
             className={`
+              group
               relative flex flex-col items-center justify-center text-center
               rounded-2xl px-4 py-8 sm:py-10 overflow-hidden
               border transition-all duration-300 hover:-translate-y-1 hover:shadow-lg
@@ -29,6 +30,7 @@ const StatsCounter = () => {
             <div
               className={`
                 absolute -top-6 -right-6 w-20 h-20 rounded-full opacity-10
+                transition-transform duration-300 group-hover:scale-125 group-hover:rotate-6
                 ${index === 0 ? "bg-white" : "bg-primary"}
               `}
             />

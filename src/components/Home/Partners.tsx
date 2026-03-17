@@ -99,11 +99,11 @@ const Partners = () => {
           {scrollList.map((uni, index) => (
             <div
               key={index}
-              className="flex items-center gap-3.5 mx-3 px-5 py-4 bg-white border border-slate-100 shadow-sm rounded-2xl min-w-[240px] shrink-0 hover:border-primary/20 hover:shadow-md transition-all duration-200"
+              className="group flex items-center gap-3.5 mx-3 px-5 py-4 bg-white border border-slate-100 shadow-sm rounded-2xl min-w-[240px] shrink-0 hover:-translate-y-0.5 hover:border-primary/20 hover:shadow-md transition-all duration-200"
             >
               {/* Logo mark */}
               <div
-                className={`w-11 h-11 rounded-xl flex items-center justify-center font-bold text-xs shrink-0 font-poppins ${uni.color}`}
+                className={`w-11 h-11 rounded-xl flex items-center justify-center font-bold text-xs shrink-0 font-poppins transition-transform duration-300 group-hover:scale-110 ${uni.color}`}
               >
                 {uni.logoText}
               </div>

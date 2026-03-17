@@ -3,12 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import {
-  GraduationCap,
-  Briefcase,
-  DollarSign,
-  Globe,
   ArrowRight,
-  CheckCircle2,
   ChevronDown,
 } from "lucide-react";
 import { useState } from "react";
@@ -18,25 +13,29 @@ import PopularMajors from "@/components/StudyPopularMajorsSection";
 
 const reasons = [
   {
-    icon: GraduationCap,
+    iconSrc: "/icons/graduation-hat.png",
+    iconAlt: "Graduation hat icon",
     title: "World-Class Universities",
     description:
       "Study at MIT, UT Austin, Purdue, and 200+ partner institutions. A US degree carries weight in Dhaka, Dubai, and everywhere in between.",
   },
   {
-    icon: Briefcase,
+    iconSrc: "/icons/briefcase.png",
+    iconAlt: "Briefcase icon",
     title: "OPT & STEM Work Rights",
     description:
       "Work in the US for up to 3 years post-graduation with the STEM OPT extension. Build your career before you return — or stay longer.",
   },
   {
-    icon: DollarSign,
+    iconSrc: "/icons/credit_card.png",
+    iconAlt: "Funding icon",
     title: "Scholarships & Funding",
     description:
       "Fulbright, merit aid, RA/TA positions — we help you find funding that can cover 50–100% of tuition. Most students are surprised by what's available.",
   },
   {
-    icon: Globe,
+    iconSrc: "/icons/global.png",
+    iconAlt: "Global icon",
     title: "Global Recognition",
     description:
       "A US degree opens doors with Fortune 500 companies, international NGOs, and top employers across South Asia and the Gulf.",
@@ -205,14 +204,19 @@ export default function StudyInUSAPage() {
 
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-5">
             {reasons.map((r) => {
-              const Icon = r.icon;
               return (
                 <div
                   key={r.title}
-                  className="p-6 rounded-2xl border border-gray-100 hover:border-primary/20 hover:shadow-lg hover:shadow-primary/5 transition-all duration-300"
+                  className="group p-6 rounded-2xl border border-gray-100 hover:border-primary/20 hover:shadow-lg hover:shadow-primary/5 hover:-translate-y-1 transition-all duration-300"
                 >
-                  <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center mb-5">
-                    <Icon size={20} className="text-primary" />
+                  <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center mb-5 transition-colors duration-300 group-hover:bg-primary/15">
+                    <Image
+                      src={r.iconSrc}
+                      alt={r.iconAlt}
+                      width={20}
+                      height={20}
+                      className="h-5 w-5 transition-transform duration-300 group-hover:scale-110 group-hover:-translate-y-0.5"
+                    />
                   </div>
                   <h3 className="font-poppins font-semibold text-gray-900 text-base mb-3">
                     {r.title}
