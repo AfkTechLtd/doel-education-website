@@ -64,7 +64,7 @@ const SuccessStories = () => {
                         Real Stories. <span className="text-primary italic">Global Success.</span>
                     </motion.h2>
                     <motion.p variants={fadeInUp} className="text-gray-500 max-w-2xl mx-auto text-lg leading-relaxed">
-                        We don't just process applications; we build futures. Join 10,000+ students thriving across the globe.
+                        We don&apos;t  just process applications; we build futures. Join 10,000+ students thriving across the globe.
                     </motion.p>
                 </motion.div>
             </section>
@@ -129,7 +129,7 @@ const SuccessStories = () => {
                                     <GraduationCap size={14} /> {story.university}
                                 </div>
                                 <h3 className="text-2xl font-black text-slate-900 mb-4">{story.name}</h3>
-                                <p className="text-slate-500 italic leading-relaxed mb-6">"{story.quote}"</p>
+                                <p className="text-slate-500 italic leading-relaxed mb-6">&quot;{story.quote}&quot;</p>
                                 <div className="flex items-center gap-4 text-[10px] font-black uppercase text-slate-300">
                                     <span className="flex items-center gap-1"><MapPin size={12} /> {story.subject}</span>
                                     <span>{story.intake}</span>
