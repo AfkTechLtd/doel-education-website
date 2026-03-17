@@ -10,7 +10,7 @@ import HomeCTA from "@/components/Home/HomeCTA";
 export default function Home() {
   return (
     <main>
-      <div className="mx-auto max-w-7xl md:px-0 px-6 space-y-20">
+      <div className="mx-auto max-w-7xl md:px-20 px-6 space-y-20">
         <Hero />
         <HomeAbout />
         <StatsCounter />
