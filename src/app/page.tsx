@@ -20,15 +20,15 @@ export default function Home() {
         <ScrollRevealSection>
           <StatsCounter />
         </ScrollRevealSection>
+      </div>
+        <ScrollRevealSection>
+        <Partners />
+      </ScrollRevealSection>
+      <div className="mx-auto max-w-7xl md:px-20 2xl:px-6 px-6 space-y-16">
         <ScrollRevealSection>
           <VideoTestimonial />
           <HomeTestimonial />
         </ScrollRevealSection>
-      </div>
-      <ScrollRevealSection>
-        <Partners />
-      </ScrollRevealSection>
-      <div className="mx-auto max-w-7xl md:px-20 2xl:px-6 px-6 space-y-16">
         <ScrollRevealSection>
           <Support />
         </ScrollRevealSection>
