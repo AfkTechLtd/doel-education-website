@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 import PopularMajors from "@/components/StudyPopularMajorsSection";
+import CourseBrowser from "@/components/StudyUSFilteredSection";
 
 // ─── Data ─────────────────────────────────────────────────────────────────────
 
@@ -190,6 +191,8 @@ export default function StudyInUSAPage() {
           </div>
         </div>
       </section>
+
+      <CourseBrowser />
 
       {/* ── 2. WHY USA ─────────────────────────────────────────────────────── */}
       <section className="py-24 bg-white">
