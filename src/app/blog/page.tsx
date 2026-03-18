@@ -130,7 +130,7 @@ const BlogPage = () => {
             </section>
 
             {/* MAIN CONTENT LAYOUT */}
-            <section className="max-w-3xl mx-auto px-6 py-10">
+            <section className="max-w-4xl mx-auto px-6 py-10">
                 <div className="flex flex-col lg:flex-row gap-16">
                     {/* New Left Sidebar: Top Picks (Control Panel Replacement) */}
                     {/* <aside className="w-full lg:w-72 space-y-12">
@@ -243,7 +243,7 @@ const BlogPage = () => {
                                 <div className="h-px flex-1 bg-slate-100 ml-8 hidden md:block" />
                             </div>
 
-                            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                                 {cards.map((card, i) => (
                                     <motion.div
                                         key={i}
