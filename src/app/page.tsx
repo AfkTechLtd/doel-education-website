@@ -11,6 +11,7 @@ import ScrollRevealSection from "@/components/common/ScrollRevealSection";
 import StakeHolderTestimonials from "@/components/Home/HomeTestimonial";
 import VisaSuccess from "@/components/Home/VisaSuccessSection";
 import CostCalculator from "@/components/Home/HomeCostCalculator";
+import ApplicationProcess from "@/components/Home/HomeFlowChart";
 
 export default function Home() {
   return (
@@ -28,12 +29,15 @@ export default function Home() {
       <div className="mx-auto max-w-7xl md:px-20 2xl:px-6 px-6 space-y-16">
         <ScrollRevealSection>
           <USPSection />
-          </ScrollRevealSection>
+        </ScrollRevealSection>
         <ScrollRevealSection>
           <VisaSuccess />
         </ScrollRevealSection>
         <ScrollRevealSection>
           <CostCalculator />
+        </ScrollRevealSection>
+         <ScrollRevealSection>
+          <ApplicationProcess />
         </ScrollRevealSection>
         <ScrollRevealSection>
           <VideoTestimonial />
@@ -45,6 +49,7 @@ export default function Home() {
         <ScrollRevealSection>
           <VisaSupport />
         </ScrollRevealSection>
+
         <ScrollRevealSection>
           <HomeCTA />
         </ScrollRevealSection>
