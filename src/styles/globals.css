@@ -43,6 +43,43 @@
   }
 }
 
+ @keyframes infinite-scroll {
+   from { transform: translateX(0); }
+   to   { transform: translateX(-33.333%); }
+ }
+ @theme {
+   --animate-infinite-scroll: infinite-scroll 28s linear infinite;
+ }
+
+ @keyframes orbit-cw  { from { transform: rotate(0deg);   } to { transform: rotate(360deg);  } }
+        @keyframes orbit-ccw { from { transform: rotate(0deg);   } to { transform: rotate(-360deg); } }
+
+        @keyframes fade-up {
+          from { opacity: 0; transform: translateY(28px); }
+          to   { opacity: 1; transform: translateY(0);    }
+        }
+        .fu  { opacity: 0; animation: fade-up .75s ease forwards; }
+        .d1  { animation-delay: .10s; }
+        .d2  { animation-delay: .25s; }
+        .d3  { animation-delay: .40s; }
+        .d4  { animation-delay: .55s; }
+        .d5  { animation-delay: .70s; }
+
+        .stat-pill {
+          background: rgba(255,255,255,0.10);
+          border: 1px solid rgba(255,255,255,0.22);
+          backdrop-filter: blur(10px);
+          -webkit-backdrop-filter: blur(10px);
+          transition: background .2s, transform .2s;
+        }
+        .stat-pill:hover { background: rgba(255,255,255,0.18); transform: translateY(-2px); }
+
+.animate-infinite-scroll {
+  display: flex;
+  width: max-content;
+  animation: scroll 30s linear infinite;
+}
+
 /* Optional: Pause on hover so users can read specific unis */
 .animate-infinite-scroll:hover {
   animation-play-state: paused;

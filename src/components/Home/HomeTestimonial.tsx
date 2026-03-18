@@ -145,7 +145,7 @@ function TestimonialCard({
 }
 
 // ── Section ───────────────────────────────────────────────────────────────────
-const VideoTestimonials = () => {
+const StakeHolderTestimonials = () => {
   const headingRef = useRef(null);
   const inView = useInView(headingRef, { once: true, margin: "-80px" });
 
@@ -161,7 +161,7 @@ const VideoTestimonials = () => {
         >
           <span className="h-px w-8 bg-secondary block" />
           <span className="text-xs font-semibold uppercase tracking-[0.25em] font-inter text-primary">
-            Student Stories
+            Stakeholder Testimonials
           </span>
           <span className="h-px w-8 bg-secondary block" />
         </motion.div>
@@ -172,9 +172,9 @@ const VideoTestimonials = () => {
           animate={inView ? { opacity: 1, y: 0 } : {}}
           transition={{ duration: 0.5, delay: 0.1 }}
         >
-          Explore the{" "}
+          Hear from our.{" "}
           <span className="text-primary relative inline-block">
-            Opportunities
+            Partners
             <motion.span
               className="absolute -bottom-1 left-0 h-[2.5px] bg-secondary rounded-full"
               style={{ width: "100%", originX: 0 }}
@@ -191,7 +191,7 @@ const VideoTestimonials = () => {
           animate={inView ? { opacity: 1 } : {}}
           transition={{ duration: 0.4, delay: 0.2 }}
         >
-          Hear directly from students who made it.
+          Hear directly from our beloved partners.
         </motion.p>
       </div>
 
@@ -226,4 +226,4 @@ const VideoTestimonials = () => {
   );
 };
 
-export default VideoTestimonials;
+export default StakeHolderTestimonials;

@@ -1,15 +1,3 @@
-/**
- * Add to globals.css:
- *
- * @keyframes infinite-scroll {
- *   from { transform: translateX(0); }
- *   to   { transform: translateX(-33.333%); }
- * }
- * @theme {
- *   --animate-infinite-scroll: infinite-scroll 28s linear infinite;
- * }
- */
-
 "use client";
 
 import { useRef } from "react";
@@ -86,7 +74,7 @@ const Partners = () => {
   const inView = useInView(ref, { once: true, margin: "-80px" });
 
   return (
-    <section className="relative bg-primary overflow-hidden py-32">
+    <section className="relative bg-primary overflow-hidden my-16 py-32">
       {/* ── Background texture dots ── */}
       <div
         className="pointer-events-none absolute inset-0 opacity-[0.06]"
