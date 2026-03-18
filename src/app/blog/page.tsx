@@ -130,10 +130,10 @@ const BlogPage = () => {
             </section>
 
             {/* MAIN CONTENT LAYOUT */}
-            <section className="max-w-7xl mx-auto px-6 py-10">
+            <section className="max-w-3xl mx-auto px-6 py-10">
                 <div className="flex flex-col lg:flex-row gap-16">
                     {/* New Left Sidebar: Top Picks (Control Panel Replacement) */}
-                    <aside className="w-full lg:w-72 space-y-12">
+                    {/* <aside className="w-full lg:w-72 space-y-12">
                         <div className="space-y-4">
                             <div className="flex items-center gap-3 text-slate-900 mb-8 pb-4 border-b border-gray-100">
                                 <TrendingUp className="text-primary" size={24} />
@@ -161,7 +161,7 @@ const BlogPage = () => {
                                 ))}
                             </div>
                         </div>
-                    </aside>
+                    </aside> */}
 
                     {/* 03. MAIN CONTENT AREA (The Right Side) */}
                     <div className="flex-1 space-y-16 overflow-hidden">
@@ -199,7 +199,7 @@ const BlogPage = () => {
                                             <span className="inline-block px-4 py-1.5 rounded-full bg-secondary text-white text-[10px] font-black uppercase tracking-widest mb-4">
                                                 Featured Insight
                                             </span>
-                                            <h3 className="text-3xl md:text-5xl font-black text-white max-w-3xl leading-tight mb-8">
+                                            <h3 className="text-3xl md:text-4xl font-black text-white max-w-3xl leading-tight mb-8">
                                                 {cards[currentIndex].title}
                                             </h3>
                                             <div className="flex items-center gap-6">

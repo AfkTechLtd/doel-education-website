@@ -4,6 +4,7 @@ import { motion } from 'framer-motion';
 import { Quote, GraduationCap, MapPin, Linkedin, Twitter, Users, Globe, Award } from 'lucide-react';
 import { easeOut } from 'framer-motion';
 import RollingCounter from '@/components/RollingCounter';
+import StatsCounter from '@/components/Home/StatsCounter';
 const stories = [
     {
         name: "Anika Rahman",
@@ -24,11 +25,11 @@ const stories = [
 ];
 
 const team = [
-    { name: "Michelle Chu", role: "Director of Technology", image: "/team1.jpg" },
-    { name: "Phil Dupertuis", role: "Director of Client Services", image: "/team2.jpg" },
-    { name: "Maria Eades", role: "Director of People & Culture", image: "/team3.jpg" },
-    { name: "Tony Eades", role: "Chief Strategy Officer", image: "/team4.jpg" },
-    { name: "Jason Feller", role: "Business Unit Director", image: "/team5.jpg" },
+    { name: "Michelle Chu", role: "Director of Technology", image: "https://thumbs.dreamstime.com/b/profile-picture-caucasian-male-employee-posing-office-happy-young-worker-look-camera-workplace-headshot-portrait-smiling-190186649.jpg" },
+    { name: "Phil Dupertuis", role: "Director of Client Services", image: "https://static.vecteezy.com/system/resources/thumbnails/058/270/883/small/confident-young-man-posing-with-crossed-arms-in-casual-denim-shirt-png.png" },
+    { name: "Maria Eades", role: "Director of People & Culture", image: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQvCiFg3WKJJD9wl2z94g3-1oEAJ-Baul_GCw&s" },
+    { name: "Tony Eades", role: "Chief Strategy Officer", image: "https://media.istockphoto.com/id/1682296067/photo/happy-studio-portrait-or-professional-man-real-estate-agent-or-asian-businessman-smile-for.webp?s=1024x1024&w=is&k=20&c=y4FFqpMLolCvEqoxlr4oypQqhAL1ta0ojXUnOofQXHk=" },
+    { name: "Jason Feller", role: "Business Unit Director", image: "https://thumbs.dreamstime.com/b/profile-picture-smiling-millennial-asian-girl-isolated-grey-wall-background-look-camera-posing-headshot-portrait-happy-199290330.jpg" },
 ];
 
 // Animation Variants
@@ -70,6 +71,7 @@ const SuccessStories = () => {
             </section>
 
             {/* 02. NEW: Stats Counter Section (Density Fix) */}
+
             <motion.div
                 initial={{ opacity: 0, scale: 0.95 }}
                 whileInView={{ opacity: 1, scale: 1 }}
@@ -77,7 +79,7 @@ const SuccessStories = () => {
                 className="max-w-5xl mx-auto px-6 -mt-12 mb-20 relative z-10"
             >
                 <div className="bg-white rounded-[2.5rem] shadow-2xl shadow-primary/5 border border-slate-50 p-8 grid grid-cols-2 lg:grid-cols-4 gap-8">
-                    {[
+                    {/* {[
                         { label: "Visa Success", val: "98%", icon: <Award className="text-secondary" /> },
                         { label: "Universities", val: "500+", icon: <Globe className="text-primary" /> },
                         { label: "Students", val: "10k+", icon: <Users className="text-primary" /> },
@@ -91,8 +93,15 @@ const SuccessStories = () => {
                             />
                             <div className="text-[10px] uppercase tracking-widest font-bold text-slate-400">{stat.label}</div>
                         </div>
-                    ))}
+                    ))} */}
+
+
                 </div>
+
+                <div>
+                    <StatsCounter />
+                </div>
+
             </motion.div>
 
             {/* 03. Story Grid with Perspective Hover */}
@@ -172,22 +181,36 @@ const SuccessStories = () => {
                             <div className="relative mb-8">
                                 <motion.div
                                     whileHover={{ scale: 1.05 }}
-                                    className="w-36 h-36 md:w-44 md:h-44 rounded-full bg-[radial-gradient(circle_at_center,_#1a4741_0%,_#0f2e2a_100%)] p-1 shadow-2xl relative overflow-hidden"
+                                    className="w-32 h-32 md:w-44 md:h-44 rounded-full bg-[radial-gradient(circle_at_center,_#1a4741_0%,_#0f2e2a_100%)] p-1 shadow-2xl relative overflow-hidden"
                                 >
                                     <div className="w-full h-full rounded-full overflow-hidden relative">
-                                        <div className="w-full h-full bg-slate-200 opacity-40 mix-blend-overlay"></div>
-                                        <div className="absolute inset-0 bg-primary/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-3 z-20">
+                                        {/* ✅ ADDED THE IMAGE TAG HERE */}
+                                        <img
+                                            src={member.image}
+                                            alt={member.name}
+                                            className="w-full h-full object-cover object-top transition-transform duration-500 group-hover:scale-110"
+                                        />
+
+                                        {/* Overlay for Social Icons */}
+                                        <div className="absolute inset-0 bg-primary/40 backdrop-blur-[2px] opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-3 z-20">
                                             <Linkedin size={18} className="text-white hover:text-secondary transition-colors cursor-pointer" />
                                             <Twitter size={18} className="text-white hover:text-secondary transition-colors cursor-pointer" />
                                         </div>
                                     </div>
                                 </motion.div>
-                                <div className="absolute bottom-2 right-2 w-10 h-10 rounded-full bg-secondary border-4 border-white flex items-center justify-center text-white text-[10px] font-black shadow-lg">
+
+                                {/* Country Badge */}
+                                <div className="absolute bottom-2 right-2 w-10 h-10 rounded-full bg-secondary border-4 border-white flex items-center justify-center text-white text-[10px] font-black shadow-lg z-30">
                                     BD
                                 </div>
                             </div>
-                            <h4 className="font-black text-slate-900 text-center uppercase tracking-tighter text-lg leading-none mb-2">{member.name}</h4>
-                            <p className="text-secondary text-[10px] font-black uppercase tracking-[0.15em] text-center">{member.role}</p>
+
+                            <h4 className="font-black text-slate-900 text-center uppercase tracking-tighter text-lg leading-none mb-2">
+                                {member.name}
+                            </h4>
+                            <p className="text-secondary text-[10px] font-black uppercase tracking-[0.15em] text-center">
+                                {member.role}
+                            </p>
                         </motion.div>
                     ))}
                 </motion.div>
