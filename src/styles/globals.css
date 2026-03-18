@@ -43,6 +43,14 @@
   }
 }
 
+ @keyframes infinite-scroll {
+   from { transform: translateX(0); }
+   to   { transform: translateX(-33.333%); }
+ }
+ @theme {
+   --animate-infinite-scroll: infinite-scroll 28s linear infinite;
+ }
+
  @keyframes orbit-cw  { from { transform: rotate(0deg);   } to { transform: rotate(360deg);  } }
         @keyframes orbit-ccw { from { transform: rotate(0deg);   } to { transform: rotate(-360deg); } }
 

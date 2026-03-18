@@ -32,7 +32,7 @@ const VideoTestimonial = () => {
   }, []);
 
   return (
-    <section ref={sectionRef} className="py-24 overflow-hidden">
+    <section ref={sectionRef} className="py-10 overflow-hidden">
       {/* Section label */}
       <div className="flex items-center gap-3 mb-14">
         <span className="h-px w-10 block bg-secondary" />
@@ -73,7 +73,7 @@ const VideoTestimonial = () => {
         </div>
 
         {/* ── Right — copy ── */}
-        <div className="space-y-8 lg:pl-6">
+        <div className="space-y-2 lg:pl-6">
           <h2 className="text-4xl font-semibold leading-[1.15] tracking-tight font-poppins text-primary">
             Real students.
             <br />
@@ -86,10 +86,8 @@ const VideoTestimonial = () => {
             that stays with you at every step.
           </p>
 
-          <div className="w-12 h-0.5 bg-secondary" />
-
           {/* Pull quote */}
-          <blockquote className="space-y-3">
+          <blockquote className="space-y-1">
             <div className="text-4xl font-serif leading-none text-secondary">
               &ldquo;
             </div>
