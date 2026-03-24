@@ -6,20 +6,20 @@ import { easeOut } from 'framer-motion';
 import RollingCounter from '@/components/RollingCounter';
 import StatsCounter from '@/components/Home/StatsCounter';
 const stories = [
+    // {
+    //     name: "Anika Rahman",
+    //     university: "University of Toronto",
+    //     subject: "MSc in Data Science",
+    //     image: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&q=80&w=200",
+    //     quote: "The visa guidance I received was life-changing. I am now pursuing my dream in Canada thanks to the team's tireless support.",
+    //     intake: "Fall 2025"
+    // },
     {
-        name: "Anika Rahman",
-        university: "University of Toronto",
-        subject: "MSc in Data Science",
-        image: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&q=80&w=200",
-        quote: "The visa guidance I received was life-changing. I am now pursuing my dream in Canada thanks to the team's tireless support.",
-        intake: "Fall 2025"
-    },
-    {
-        name: "Samiul Islam",
-        university: "Monash University",
-        subject: "Bachelor of Engineering",
+        name: "Rafiul Islam",
+        university: "University of Central Missouri, USA",
+        subject: "MSc in Computer Science",
         image: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=200",
-        quote: "From SOP writing to final departure, every step was handled with extreme professionalism. Highly recommended!",
+        quote: "I didn't trust any agency at first. But DGS sat with me for two hours on the first meeting,  no fees, no pressure. Just honest answers. That's when I knew these people were different. I landed in Missouri six months later with my I-20, my visa, and a part-time job already lined up.",
         intake: "Spring 2026"
     }
 ];
@@ -62,10 +62,11 @@ const SuccessStories = () => {
                         Our Global Impact
                     </motion.h5>
                     <motion.h2 variants={fadeInUp} className="text-5xl md:text-7xl font-black text-slate-900 tracking-tight mb-6">
-                        Real Stories. <span className="text-primary italic">Global Success.</span>
+                        THEY HAD THE SAME DOUBTS <br />
+                        <span className="text-primary italic"> YOU HAVE RIGHT NOW.</span>
                     </motion.h2>
                     <motion.p variants={fadeInUp} className="text-gray-500 max-w-2xl mx-auto text-lg leading-relaxed">
-                        We don&apos;t  just process applications; we build futures. Join 10,000+ students thriving across the globe.
+                        Discover how we&apos;ve helped hundreds of students secure admissions and visas to top universities worldwide
                     </motion.p>
                 </motion.div>
             </section>
