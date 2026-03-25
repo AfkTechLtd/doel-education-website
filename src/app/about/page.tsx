@@ -6,20 +6,29 @@ import { easeOut } from 'framer-motion';
 import RollingCounter from '@/components/RollingCounter';
 import StatsCounter from '@/components/Home/StatsCounter';
 const stories = [
-    // {
-    //     name: "Anika Rahman",
-    //     university: "University of Toronto",
-    //     subject: "MSc in Data Science",
-    //     image: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&q=80&w=200",
-    //     quote: "The visa guidance I received was life-changing. I am now pursuing my dream in Canada thanks to the team's tireless support.",
-    //     intake: "Fall 2025"
-    // },
+    {
+        name: "Anika Rahman",
+        university: "University of Toronto",
+        subject: "MSc in Data Science",
+        image: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&q=80&w=200",
+        quote: "The visa guidance I received was life-changing. I am now pursuing my dream in Canada thanks to the team's tireless support.",
+        intake: "Fall 2025"
+
+    },
+    {
+        name: "Samiul Islam",
+        university: "Monash University",
+        subject: "Bachelor of Engineering",
+        image: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=200",
+        quote: "From SOP writing to final departure, every step was handled with extreme professionalism. Highly recommended!",
+        intake: "Spring 2026"
+
+    },
     {
         name: "Rafiul Islam",
         university: "University of Central Missouri, USA",
         subject: "MSc in Computer Science",
-        image: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=200",
-        quote: "I didn't trust any agency at first. But DGS sat with me for two hours on the first meeting,  no fees, no pressure. Just honest answers. That's when I knew these people were different. I landed in Missouri six months later with my I-20, my visa, and a part-time job already lined up.",
+        image: "https://thumbs.dreamstime.com/b/indian-man-student-shirt-posed-outdoor-229831859.jpg", quote: "I didn't trust any agency at first. But DGS sat with me for two hours on the first meeting,  no fees, no pressure. Just honest answers. That's when I knew these people were different. I landed in Missouri six months later with my I-20, my visa, and a part-time job already lined up.",
         intake: "Spring 2026"
     }
 ];
