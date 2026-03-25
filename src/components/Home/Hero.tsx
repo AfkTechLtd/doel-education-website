@@ -172,19 +172,28 @@ const Hero = () => {
 
                 {/* Headline */}
                 <div className="fu d2 space-y-4">
-                  <h1 className="font-poppins text-5xl sm:text-6xl lg:text-7xl font-bold leading-[1.03] tracking-tight text-white drop-shadow-md">
-                    Your Gateway
+                  <h1 className="font-poppins text-4xl sm:text-5xl lg:text-6xl font-bold leading-[1.06] tracking-tight text-white drop-shadow-md max-w-2xl">
+                    USA Isn&apos;t Far!
                     <br />
-                    <span style={{ color: "var(--color-secondary,#f5c842)" }}>
-                      to Global
+                    <span className="sm:text-5xl text-3xl" style={{ color: "var(--color-secondary,#f5c842)" }}>
+                      The Right Guidance
+                    </span>{" "}
+                    <span className="sm:text-5xl text-3xl">
+
+                    Just Makes It Closer.
                     </span>
-                    <br />
-                    Education.
                   </h1>
-                  <p className="max-w-md text-base sm:text-lg text-white/70 font-inter leading-relaxed">
-                    Personalized guidance from university shortlisting to visa
-                    success — making your study-abroad journey smoother,
-                    smarter, and stress-free.
+                  <p className="max-w-xl text-sm text-white/80 font-inter leading-relaxed">
+                    Every year, thousands of Bangladeshi professionals put their
+                    US dream on hold, not because they aren&apos;t good enough,
+                    but because they didn&apos;t know who to trust or where to
+                    begin.
+                  </p>
+                  <p className="max-w-xl text-sm text-white/70 font-inter leading-relaxed">
+                    At DGS, we&apos;ve walked this road with hundreds of
+                    students just like you. We know every step, every document,
+                    every question the embassy asks and we&apos;re here so you
+                    never have to figure it out alone.
                   </p>
                 </div>
 

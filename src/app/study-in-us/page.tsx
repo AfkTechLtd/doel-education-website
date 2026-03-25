@@ -10,37 +10,127 @@ import {
   ArrowRight,
   CheckCircle2,
   ChevronDown,
+  BookOpen,
+  FlaskConical,
 } from "lucide-react";
 import { useState } from "react";
+import { motion } from "framer-motion";
 import PopularMajors from "@/components/StudyPopularMajorsSection";
 import CourseBrowser from "@/components/StudyUSFilteredSection";
+
+// ─── Animation variants ────────────────────────────────────────────────────────
+
+const fadeUp = {
+  hidden: { opacity: 0, y: 24 },
+  show: { opacity: 1, y: 0 },
+};
+
+const staggerContainer = {
+  hidden: {},
+  show: { transition: { staggerChildren: 0.1 } },
+};
+
+const staggerFast = {
+  hidden: {},
+  show: { transition: { staggerChildren: 0.07 } },
+};
 
 // ─── Data ─────────────────────────────────────────────────────────────────────
 
 const reasons = [
   {
     icon: GraduationCap,
-    title: "World-Class Universities",
+    title: "Universities That the World Respects",
     description:
-      "Study at MIT, UT Austin, Purdue, and 200+ partner institutions. A US degree carries weight in Dhaka, Dubai, and everywhere in between.",
+      "16 of the top 50 universities in the entire world are in the United States. When your degree says an American university, employers everywhere already know what that means.",
   },
   {
     icon: Briefcase,
-    title: "OPT & STEM Work Rights",
+    title: "Jobs That Actually Exist",
     description:
-      "Work in the US for up to 3 years post-graduation with the STEM OPT extension. Build your career before you return — or stay longer.",
+      "Silicon Valley gets all the attention, but the US is also home to the highest number of Fortune 500 companies on earth. Whatever your field — tech, finance, healthcare, business — the opportunities are real.",
   },
   {
     icon: DollarSign,
-    title: "Scholarships & Funding",
+    title: "Scholarships That Actually Cover Costs",
     description:
-      "Fulbright, merit aid, RA/TA positions — we help you find funding that can cover 50–100% of tuition. Most students are surprised by what's available.",
+      "No country offers more scholarships, assistantships, and financial aid to international students than the US. You just need to know where to look and how to apply.",
   },
   {
     icon: Globe,
-    title: "Global Recognition",
+    title: "A Campus That Looks Like the World",
     description:
-      "A US degree opens doors with Fortune 500 companies, international NGOs, and top employers across South Asia and the Gulf.",
+      "Over 1 million international students study in the US every year. You won&apos;t feel like an outsider. You&apos;ll feel like part of a community that genuinely came from everywhere.",
+  },
+  {
+    icon: FlaskConical,
+    title: "Research That&apos;s Actually Cutting-Edge",
+    description:
+      "US universities don&apos;t just teach you existing knowledge — they&apos;re actively creating new ones. If you want to work alongside faculty leading their fields globally, America is where that happens.",
+  },
+  {
+    icon: BookOpen,
+    title: "Study What You Want, How You Want",
+    description:
+      "The US system is uniquely flexible. You can switch majors, combine disciplines, and build a degree that fits your goals — not a rigid template someone else designed.",
+  },
+];
+
+const degreePrograms = [
+  {
+    degree: "Associate",
+    duration: "2 years",
+    forWhom:
+      "Students who want an affordable entry point and plan to transfer to a 4-year university",
+    cost: "$10,000 – $20,000 / yr",
+  },
+  {
+    degree: "Bachelor\u2019s",
+    duration: "4 years",
+    forWhom:
+      "Those building their first degree and want the full university experience, network, and credential",
+    cost: "$15,000 – $60,000 / yr",
+  },
+  {
+    degree: "Master\u2019s / MBA",
+    duration: "1–2 years",
+    forWhom:
+      "Working professionals ready to accelerate their career and reposition themselves in the job market",
+    cost: "$15,000 – $70,000 / yr",
+  },
+  {
+    degree: "PhD / Doctorate",
+    duration: "4–7 years",
+    forWhom:
+      "Researchers and academics pushing boundaries — many programs come fully funded with stipends",
+    cost: "University-specific",
+  },
+];
+
+const intakes = [
+  {
+    season: "Fall Intake",
+    months: "August / September",
+    description:
+      "The most popular intake. Most programs, most scholarship opportunities, most campus life.",
+    applyWindow: "Apply: November \u2013 March",
+    highlight: true,
+  },
+  {
+    season: "Spring Intake",
+    months: "January / February",
+    description:
+      "A solid second option, especially if you need a few extra months to prepare your documents or test scores.",
+    applyWindow: "Apply: July \u2013 November",
+    highlight: false,
+  },
+  {
+    season: "Summer Intake",
+    months: "May / June",
+    description:
+      "Available at select universities. Great for students who want to get started quickly.",
+    applyWindow: "Apply: August \u2013 February",
+    highlight: false,
   },
 ];
 
@@ -71,20 +161,85 @@ const universities = [
   },
 ];
 
+const admissionRequirements = [
+  {
+    title: "Academic Transcripts",
+    description:
+      "Your grade history from previous institutions, officially translated and attested.",
+  },
+  {
+    title: "Standardized Test Scores",
+    description:
+      "SAT or ACT for undergrad. GRE or GMAT for postgraduate programs. Not all universities require these — but many still do.",
+  },
+  {
+    title: "English Proficiency",
+    description:
+      "IELTS, TOEFL, or PTE Academic. Most Master\u2019s programs require an IELTS of 6.0\u20136.5 or above.",
+  },
+  {
+    title: "Statement of Purpose (SOP)",
+    description:
+      "The most important document in your application. This is where you tell your story: why this university, why this program, why now.",
+  },
+  {
+    title: "Letters of Recommendation",
+    description:
+      "Usually two or three, from academic supervisors or professional managers who can speak to your ability and character.",
+  },
+  {
+    title: "Proof of Finances",
+    description:
+      "A six-month bank statement showing you can support your studies. This is critical for both admission and the visa.",
+  },
+];
+
+const workRights = [
+  {
+    title: "On-Campus Work",
+    description:
+      "As an F-1 student, you can work up to 20 hours per week on campus during the semester and full-time during academic breaks. This is the easiest and most common starting point.",
+  },
+  {
+    title: "CPT \u2014 Curricular Practical Training",
+    description:
+      "CPT allows you to work or intern in a role directly related to your major while you\u2019re still studying. It\u2019s legal, it\u2019s structured, and it builds your US work history from day one.",
+  },
+  {
+    title: "OPT \u2014 Optional Practical Training",
+    description:
+      "After graduation, OPT gives you 12 months of full work authorization in the US. STEM graduates get an additional 24 months on top of that \u2014 a total of 3 years to work, earn, and build your career on American soil.",
+  },
+];
+
+const visaDocuments = [
+  "Valid passport",
+  "I-20 document from your enrolled university",
+  "DS-160 visa application form (completed online)",
+  "SEVIS fee receipt",
+  "Visa application fee receipt",
+  "Six-month bank statement",
+  "Academic transcripts",
+  "Standardized test scores",
+  "English proficiency test scores",
+  "Work experience certificates (if applicable)",
+  "Scholarship or financial aid letter (if applicable)",
+];
+
 const testimonials = [
   {
     initials: "RH",
     name: "Rafiul Hasan",
-    program: "MS Computer Science · UT Dallas",
+    program: "MS Computer Science \u00b7 UT Dallas",
     quote:
-      "EduBridge handled everything — my SOP, visa prep, even accommodation. I landed at JFK with zero stress.",
+      "EduBridge handled everything \u2014 my SOP, visa prep, even accommodation. I landed at JFK with zero stress.",
     scholarship: "Partial TA scholarship",
     color: "#2B5F4A",
   },
   {
     initials: "NK",
     name: "Nusrat Karim",
-    program: "MBA Finance · Indiana University",
+    program: "MBA Finance \u00b7 Indiana University",
     quote:
       "I got a 60% merit scholarship at Indiana. My consultant knew exactly which universities to target for my profile.",
     scholarship: "60% merit scholarship",
@@ -93,7 +248,7 @@ const testimonials = [
   {
     initials: "AS",
     name: "Arif Shahriar",
-    program: "MS Data Science · UNT",
+    program: "MS Data Science \u00b7 UNT",
     quote:
       "The visa mock interviews saved me. After three sessions with my advisor I walked into the embassy completely calm.",
     scholarship: "Graduate assistantship",
@@ -116,7 +271,7 @@ const faqs = [
   },
   {
     q: "What happens after I graduate?",
-    a: "You get 12 months of OPT to work in the US. STEM graduates get an additional 24-month extension — 3 years total of US work experience before needing employer sponsorship.",
+    a: "You get 12 months of OPT to work in the US. STEM graduates get an additional 24-month extension \u2014 3 years total of US work experience before needing employer sponsorship.",
   },
 ];
 
@@ -139,9 +294,14 @@ function FAQItem({ q, a }: { q: string; a: string }) {
         />
       </button>
       {open && (
-        <div className="px-5 pb-5 pt-1 font-inter text-sm text-gray-500 leading-relaxed border-t border-gray-100">
+        <motion.div
+          initial={{ opacity: 0, height: 0 }}
+          animate={{ opacity: 1, height: "auto" }}
+          transition={{ duration: 0.2 }}
+          className="px-5 pb-5 pt-1 font-inter text-sm text-gray-500 leading-relaxed border-t border-gray-100"
+        >
           {a}
-        </div>
+        </motion.div>
       )}
     </div>
   );
@@ -154,7 +314,6 @@ export default function StudyInUSAPage() {
     <main className="bg-white overflow-x-hidden">
       {/* ── 1. HERO ────────────────────────────────────────────────────────── */}
       <section className="relative min-h-[88vh] flex items-center overflow-hidden">
-        {/* Background */}
         <div className="absolute inset-0">
           <Image
             src="/study/hero-campus.png"
@@ -163,33 +322,61 @@ export default function StudyInUSAPage() {
             priority
             className="object-cover"
           />
-
-          {/* subtle overlay */}
-          <div className="absolute inset-0 bg-primary/60"></div>
+          <div className="absolute inset-0 bg-primary/60" />
         </div>
 
-        {/* Content */}
-        <div className="relative max-w-6xl mx-auto px-6 py-24 text-white">
-          <h1 className="text-5xl md:text-6xl font-bold leading-tight max-w-3xl">
-            Study in the United States
-            <span className="text-secondary"> with Expert Guidance</span>
-          </h1>
+        <motion.div
+          className="relative max-w-6xl mx-auto px-6 py-24 text-white"
+          variants={staggerContainer}
+          initial="hidden"
+          animate="show"
+        >
+          <motion.p
+            variants={fadeUp}
+            transition={{ duration: 0.5 }}
+            className="font-inter text-xs font-semibold tracking-[0.2em] uppercase text-secondary mb-4"
+          >
+            Your Complete Guide to Studying in the United States
+          </motion.p>
 
-          <p className="mt-6 text-lg max-w-xl text-white/90">
-            Find the right universities, scholarships, and career opportunities
-            with guidance from experienced counselors.
-          </p>
+          <motion.h1
+            variants={fadeUp}
+            transition={{ duration: 0.55 }}
+            className="text-5xl md:text-6xl font-bold leading-tight max-w-3xl"
+          >
+            The US Isn&apos;t Just a Destination.
+            <span className="text-secondary"> It&apos;s a Decision That Changes Everything.</span>
+          </motion.h1>
 
-          <div className="mt-8 flex gap-4">
-            <button className="bg-secondary cursor-pointer hover:opacity-90 transition-all text-primary font-semibold px-6 py-3 rounded-md">
-              Start Application
-            </button>
+          <motion.p
+            variants={fadeUp}
+            transition={{ duration: 0.55 }}
+            className="mt-6 text-lg max-w-xl text-white/90"
+          >
+            For a Bangladeshi student, choosing to study in America is one of the boldest, most
+            life-defining moves you can make. This page tells you everything &mdash; read it once and
+            you&apos;ll know exactly what studying in the US looks like, costs, and requires.
+          </motion.p>
 
-            <button className="border hover:bg-white hover:text-black transition-all cursor-pointer border-white/40 px-6 py-3 rounded-md">
+          <motion.div
+            variants={fadeUp}
+            transition={{ duration: 0.55 }}
+            className="mt-8 flex gap-4"
+          >
+            <Link
+              href="#consultation"
+              className="bg-secondary cursor-pointer hover:opacity-90 transition-all text-primary font-semibold px-6 py-3 rounded-md"
+            >
+              Book My Free Assessment
+            </Link>
+            <Link
+              href="#universities"
+              className="border hover:bg-white hover:text-black transition-all cursor-pointer border-white/40 px-6 py-3 rounded-md"
+            >
               Explore Universities
-            </button>
-          </div>
-        </div>
+            </Link>
+          </motion.div>
+        </motion.div>
       </section>
 
       <CourseBrowser />
@@ -197,21 +384,39 @@ export default function StudyInUSAPage() {
       {/* ── 2. WHY USA ─────────────────────────────────────────────────────── */}
       <section className="py-24 bg-white">
         <div className="max-w-7xl mx-auto px-6">
-          <div className="max-w-xl mb-14">
+          <motion.div
+            className="max-w-2xl mb-14"
+            variants={fadeUp}
+            initial="hidden"
+            whileInView="show"
+            viewport={{ once: true, amount: 0.3 }}
+            transition={{ duration: 0.5 }}
+          >
             <p className="font-inter text-xs font-semibold tracking-[0.2em] uppercase text-primary mb-3">
               Why Choose the USA
             </p>
             <h2 className="font-poppins text-3xl md:text-4xl font-bold text-gray-900 leading-tight">
-              Why thousands of Bangladeshi students choose the USA every year.
+              Why do so many Bangladeshi students choose America over everywhere else?
             </h2>
-          </div>
+            <p className="font-inter text-gray-500 text-sm leading-relaxed mt-4">
+              Simple. No other country gives you this combination at once.
+            </p>
+          </motion.div>
 
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-5">
+          <motion.div
+            className="grid md:grid-cols-2 lg:grid-cols-3 gap-5"
+            variants={staggerContainer}
+            initial="hidden"
+            whileInView="show"
+            viewport={{ once: true, amount: 0.1 }}
+          >
             {reasons.map((r) => {
               const Icon = r.icon;
               return (
-                <div
+                <motion.div
                   key={r.title}
+                  variants={fadeUp}
+                  transition={{ duration: 0.45 }}
                   className="p-6 rounded-2xl border border-gray-100 hover:border-primary/20 hover:shadow-lg hover:shadow-primary/5 transition-all duration-300"
                 >
                   <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center mb-5">
@@ -223,21 +428,295 @@ export default function StudyInUSAPage() {
                   <p className="font-inter text-gray-500 text-sm leading-relaxed">
                     {r.description}
                   </p>
-                </div>
+                </motion.div>
               );
             })}
-          </div>
+          </motion.div>
         </div>
       </section>
 
       <PopularMajors />
 
-      {/* ── 3. UNIVERSITIES ────────────────────────────────────────────────── */}
+      {/* ── 3. DEGREE PROGRAMS ─────────────────────────────────────────────── */}
+      <section className="py-24 bg-gray-50">
+        <div className="max-w-7xl mx-auto px-6">
+          <motion.div
+            className="max-w-xl mb-14"
+            variants={fadeUp}
+            initial="hidden"
+            whileInView="show"
+            viewport={{ once: true, amount: 0.3 }}
+            transition={{ duration: 0.5 }}
+          >
+            <p className="font-inter text-xs font-semibold tracking-[0.2em] uppercase text-primary mb-3">
+              Programs &amp; Duration
+            </p>
+            <h2 className="font-poppins text-3xl md:text-4xl font-bold text-gray-900 leading-tight">
+              What can you study and for how long?
+            </h2>
+            <p className="font-inter text-gray-500 text-sm leading-relaxed mt-4">
+              US universities offer programs at every level. Here&apos;s a straightforward breakdown so
+              you know what you&apos;re signing up for before you apply.
+            </p>
+          </motion.div>
+
+          <motion.div
+            className="grid md:grid-cols-2 lg:grid-cols-4 gap-5"
+            variants={staggerContainer}
+            initial="hidden"
+            whileInView="show"
+            viewport={{ once: true, amount: 0.1 }}
+          >
+            {degreePrograms.map((d) => (
+              <motion.div
+                key={d.degree}
+                variants={fadeUp}
+                transition={{ duration: 0.45 }}
+                className="p-6 rounded-2xl bg-white border border-gray-100 hover:border-primary/20 hover:shadow-lg hover:shadow-primary/5 transition-all duration-300 flex flex-col"
+              >
+                <div className="mb-4">
+                  <span className="font-inter text-[10px] font-bold uppercase tracking-widest bg-primary/10 text-primary px-3 py-1 rounded-full">
+                    {d.duration}
+                  </span>
+                </div>
+                <h3 className="font-poppins font-bold text-gray-900 text-lg mb-3">{d.degree}</h3>
+                <p className="font-inter text-gray-500 text-sm leading-relaxed flex-1 mb-5">
+                  {d.forWhom}
+                </p>
+                <div className="pt-4 border-t border-gray-100">
+                  <span className="font-inter text-xs font-semibold text-primary">{d.cost}</span>
+                </div>
+              </motion.div>
+            ))}
+          </motion.div>
+
+          <motion.div
+            className="mt-8 p-5 rounded-2xl bg-primary/5 border border-primary/10 flex items-start gap-4"
+            variants={fadeUp}
+            initial="hidden"
+            whileInView="show"
+            viewport={{ once: true, amount: 0.5 }}
+            transition={{ duration: 0.5 }}
+          >
+            <CheckCircle2 size={20} className="text-primary flex-shrink-0 mt-0.5" />
+            <p className="font-inter text-sm text-gray-700 leading-relaxed">
+              <span className="font-semibold text-gray-900">Good to know:</span> After graduation,
+              all students are eligible for up to 12 months of work authorization through OPT. STEM
+              graduates get an additional 24 months, giving you up to{" "}
+              <span className="font-semibold text-primary">3 full years</span> to work in the US
+              after your degree.
+            </p>
+          </motion.div>
+        </div>
+      </section>
+
+      {/* ── 4. INTAKES ─────────────────────────────────────────────────────── */}
+      <section className="py-24 bg-white">
+        <div className="max-w-7xl mx-auto px-6">
+          <motion.div
+            className="max-w-xl mb-14"
+            variants={fadeUp}
+            initial="hidden"
+            whileInView="show"
+            viewport={{ once: true, amount: 0.3 }}
+            transition={{ duration: 0.5 }}
+          >
+            <p className="font-inter text-xs font-semibold tracking-[0.2em] uppercase text-primary mb-3">
+              Intake Windows
+            </p>
+            <h2 className="font-poppins text-3xl md:text-4xl font-bold text-gray-900 leading-tight">
+              When can you start?
+            </h2>
+            <p className="font-inter text-gray-500 text-sm leading-relaxed mt-4">
+              Unlike many countries with one annual intake, US universities give you three entry
+              points every year. Miss one, and you&apos;re not waiting a full year &mdash; just a few months.
+            </p>
+          </motion.div>
+
+          <motion.div
+            className="grid md:grid-cols-3 gap-5"
+            variants={staggerContainer}
+            initial="hidden"
+            whileInView="show"
+            viewport={{ once: true, amount: 0.1 }}
+          >
+            {intakes.map((intake) => (
+              <motion.div
+                key={intake.season}
+                variants={fadeUp}
+                transition={{ duration: 0.45 }}
+                className={`p-6 rounded-2xl border transition-all duration-300 ${
+                  intake.highlight
+                    ? "bg-primary text-white border-primary"
+                    : "bg-white border-gray-100 hover:border-primary/20 hover:shadow-lg hover:shadow-primary/5"
+                }`}
+              >
+                <h3
+                  className={`font-poppins font-bold text-lg mb-1 ${
+                    intake.highlight ? "text-white" : "text-gray-900"
+                  }`}
+                >
+                  {intake.season}
+                </h3>
+                <p
+                  className={`font-inter text-xs font-semibold mb-4 ${
+                    intake.highlight ? "text-secondary" : "text-primary"
+                  }`}
+                >
+                  {intake.months}
+                </p>
+                <p
+                  className={`font-inter text-sm leading-relaxed mb-5 ${
+                    intake.highlight ? "text-white/80" : "text-gray-500"
+                  }`}
+                >
+                  {intake.description}
+                </p>
+                <div
+                  className={`pt-4 border-t text-xs font-inter font-semibold ${
+                    intake.highlight
+                      ? "border-white/20 text-white/70"
+                      : "border-gray-100 text-gray-400"
+                  }`}
+                >
+                  {intake.applyWindow}
+                </div>
+              </motion.div>
+            ))}
+          </motion.div>
+
+          <motion.div
+            className="mt-8 p-5 rounded-2xl bg-secondary/10 border border-secondary/20 flex items-start gap-4"
+            variants={fadeUp}
+            initial="hidden"
+            whileInView="show"
+            viewport={{ once: true, amount: 0.5 }}
+            transition={{ duration: 0.5 }}
+          >
+            <CheckCircle2 size={20} className="text-secondary flex-shrink-0 mt-0.5" />
+            <p className="font-inter text-sm text-gray-700 leading-relaxed">
+              <span className="font-semibold text-gray-900">Plan ahead:</span> Start your
+              preparation{" "}
+              <span className="font-semibold text-primary">8&ndash;9 months</span> before your
+              intended intake. That&apos;s not a suggestion &mdash; it&apos;s a necessity if you want to give
+              your application the time it deserves.
+            </p>
+          </motion.div>
+        </div>
+      </section>
+
+      {/* ── 5. COST BREAKDOWN ──────────────────────────────────────────────── */}
+      <section className="py-24 bg-gray-50">
+        <div className="max-w-7xl mx-auto px-6">
+          <div className="grid lg:grid-cols-2 gap-16 items-center">
+            <motion.div
+              variants={fadeUp}
+              initial="hidden"
+              whileInView="show"
+              viewport={{ once: true, amount: 0.3 }}
+              transition={{ duration: 0.5 }}
+            >
+              <p className="font-inter text-xs font-semibold tracking-[0.2em] uppercase text-primary mb-3">
+                Costs &amp; Finances
+              </p>
+              <h2 className="font-poppins text-3xl md:text-4xl font-bold text-gray-900 leading-tight mb-4">
+                Let&apos;s talk about money.
+              </h2>
+              <p className="font-inter text-gray-500 text-sm leading-relaxed">
+                Cost is the question everyone has and nobody wants to ask out loud. So let&apos;s just
+                put it all on the table.
+              </p>
+            </motion.div>
+
+            <motion.div
+              className="space-y-4"
+              variants={staggerContainer}
+              initial="hidden"
+              whileInView="show"
+              viewport={{ once: true, amount: 0.1 }}
+            >
+              <motion.div
+                variants={fadeUp}
+                transition={{ duration: 0.45 }}
+                className="p-6 rounded-2xl bg-white border border-gray-100"
+              >
+                <h3 className="font-poppins font-semibold text-gray-900 mb-2">Tuition Fees</h3>
+                <p className="font-inter text-sm text-gray-500 leading-relaxed">
+                  Annual tuition ranges from{" "}
+                  <span className="font-semibold text-gray-800">$10,000 to $75,000</span> depending
+                  on the university and program. Most Bangladeshi students end up somewhere in the{" "}
+                  <span className="font-semibold text-primary">$15,000&ndash;$25,000 range</span>{" "}
+                  with the right university selection.
+                </p>
+              </motion.div>
+
+              <motion.div
+                variants={fadeUp}
+                transition={{ duration: 0.45 }}
+                className="p-6 rounded-2xl bg-white border border-gray-100"
+              >
+                <h3 className="font-poppins font-semibold text-gray-900 mb-2">Living Expenses</h3>
+                <p className="font-inter text-sm text-gray-500 leading-relaxed">
+                  Rent, food, transport, utilities cost between{" "}
+                  <span className="font-semibold text-gray-800">$8,000 and $20,000</span> per year
+                  depending on which city you&apos;re in. New York and San Francisco sit at the top.
+                  Smaller university towns are significantly more affordable.
+                </p>
+              </motion.div>
+
+              <motion.div
+                variants={fadeUp}
+                transition={{ duration: 0.45 }}
+                className="p-6 rounded-2xl bg-white border border-primary/20"
+              >
+                <h3 className="font-poppins font-semibold text-gray-900 mb-2">
+                  Scholarships &amp; Aid
+                </h3>
+                <p className="font-inter text-sm text-gray-500 leading-relaxed">
+                  This is where most students leave money on the table. US universities offer merit
+                  scholarships, need-based aid, graduate assistantships, and research funding. The
+                  right application &mdash; to the right university &mdash; can{" "}
+                  <span className="font-semibold text-primary">
+                    reduce your total cost dramatically
+                  </span>
+                  .
+                </p>
+              </motion.div>
+            </motion.div>
+          </div>
+
+          <motion.div
+            className="mt-10 p-5 rounded-2xl bg-primary/5 border border-primary/10 flex items-start gap-4"
+            variants={fadeUp}
+            initial="hidden"
+            whileInView="show"
+            viewport={{ once: true, amount: 0.5 }}
+            transition={{ duration: 0.5 }}
+          >
+            <CheckCircle2 size={20} className="text-primary flex-shrink-0 mt-0.5" />
+            <p className="font-inter text-sm text-gray-700 leading-relaxed">
+              Use our free{" "}
+              <span className="font-semibold text-primary">Study Abroad Calculator</span> to get a
+              personalized cost estimate based on your destination city, program, and lifestyle. No
+              guesswork.
+            </p>
+          </motion.div>
+        </div>
+      </section>
+
+      {/* ── 6. UNIVERSITIES ────────────────────────────────────────────────── */}
       <section id="universities" className="py-24 bg-primary text-white">
         <div className="max-w-7xl mx-auto px-6">
-          <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-14">
+          <motion.div
+            className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-14"
+            variants={fadeUp}
+            initial="hidden"
+            whileInView="show"
+            viewport={{ once: true, amount: 0.3 }}
+            transition={{ duration: 0.5 }}
+          >
             <div className="max-w-xl">
-              <p className="font-inter text-xs font-semibold tracking-[0.2em] uppercase text-white mb-3">
+              <p className="font-inter text-xs font-semibold tracking-[0.2em] uppercase text-secondary mb-3">
                 Our University Network
               </p>
               <h2 className="font-poppins text-3xl md:text-4xl font-bold text-white leading-tight">
@@ -246,16 +725,24 @@ export default function StudyInUSAPage() {
             </div>
             <Link
               href="#consultation"
-              className="font-inter text-sm font-semibold text-primary flex items-center gap-2 hover:gap-3 transition-all flex-shrink-0"
+              className="font-inter text-sm font-semibold text-secondary flex items-center gap-2 hover:gap-3 transition-all flex-shrink-0"
             >
               See all universities <ArrowRight size={14} />
             </Link>
-          </div>
+          </motion.div>
 
-          <div className="grid md:grid-cols-3 gap-6">
+          <motion.div
+            className="grid md:grid-cols-3 gap-6"
+            variants={staggerContainer}
+            initial="hidden"
+            whileInView="show"
+            viewport={{ once: true, amount: 0.1 }}
+          >
             {universities.map((u) => (
-              <div
+              <motion.div
                 key={u.name}
+                variants={fadeUp}
+                transition={{ duration: 0.45 }}
                 className="rounded-2xl bg-white border border-gray-100 overflow-hidden hover:shadow-xl hover:shadow-gray-100/80 transition-all duration-300 group"
               >
                 <div className="relative h-48 overflow-hidden">
@@ -272,12 +759,8 @@ export default function StudyInUSAPage() {
                 </div>
 
                 <div className="p-5">
-                  <h3 className="font-poppins font-bold text-gray-900 text-base mb-1">
-                    {u.name}
-                  </h3>
-                  <p className="font-inter text-xs text-gray-400 mb-4">
-                    {u.location}
-                  </p>
+                  <h3 className="font-poppins font-bold text-gray-900 text-base mb-1">{u.name}</h3>
+                  <p className="font-inter text-xs text-gray-400 mb-4">{u.location}</p>
 
                   <div className="flex flex-wrap gap-2 mb-4">
                     {u.fields.map((f) => (
@@ -296,30 +779,224 @@ export default function StudyInUSAPage() {
                     </span>
                   </div>
                 </div>
-              </div>
+              </motion.div>
             ))}
+          </motion.div>
+        </div>
+      </section>
+
+      {/* ── 7. ADMISSION REQUIREMENTS ──────────────────────────────────────── */}
+      <section className="py-24 bg-white">
+        <div className="max-w-7xl mx-auto px-6">
+          <motion.div
+            className="max-w-xl mb-14"
+            variants={fadeUp}
+            initial="hidden"
+            whileInView="show"
+            viewport={{ once: true, amount: 0.3 }}
+            transition={{ duration: 0.5 }}
+          >
+            <p className="font-inter text-xs font-semibold tracking-[0.2em] uppercase text-primary mb-3">
+              Admission Requirements
+            </p>
+            <h2 className="font-poppins text-3xl md:text-4xl font-bold text-gray-900 leading-tight">
+              What do US universities actually look for?
+            </h2>
+            <p className="font-inter text-gray-500 text-sm leading-relaxed mt-4">
+              Getting into a US university isn&apos;t just about grades. It&apos;s about presenting yourself
+              &mdash; your academics, your story, and your goals &mdash; as a complete picture.
+              Here&apos;s what most universities will ask for:
+            </p>
+          </motion.div>
+
+          <motion.div
+            className="grid md:grid-cols-2 lg:grid-cols-3 gap-5"
+            variants={staggerContainer}
+            initial="hidden"
+            whileInView="show"
+            viewport={{ once: true, amount: 0.1 }}
+          >
+            {admissionRequirements.map((req, i) => (
+              <motion.div
+                key={req.title}
+                variants={fadeUp}
+                transition={{ duration: 0.45 }}
+                className="p-6 rounded-2xl border border-gray-100 hover:border-primary/20 hover:shadow-lg hover:shadow-primary/5 transition-all duration-300"
+              >
+                <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center mb-4">
+                  <span className="font-poppins font-bold text-primary text-sm">
+                    {String(i + 1).padStart(2, "0")}
+                  </span>
+                </div>
+                <h3 className="font-poppins font-semibold text-gray-900 text-base mb-3">
+                  {req.title}
+                </h3>
+                <p className="font-inter text-gray-500 text-sm leading-relaxed">
+                  {req.description}
+                </p>
+              </motion.div>
+            ))}
+          </motion.div>
+        </div>
+      </section>
+
+      {/* ── 8. WORK RIGHTS ─────────────────────────────────────────────────── */}
+      <section className="py-24 bg-gray-50">
+        <div className="max-w-7xl mx-auto px-6">
+          <div className="grid lg:grid-cols-2 gap-16 items-start">
+            <motion.div
+              variants={fadeUp}
+              initial="hidden"
+              whileInView="show"
+              viewport={{ once: true, amount: 0.3 }}
+              transition={{ duration: 0.5 }}
+            >
+              <p className="font-inter text-xs font-semibold tracking-[0.2em] uppercase text-primary mb-3">
+                Work While You Study
+              </p>
+              <h2 className="font-poppins text-3xl md:text-4xl font-bold text-gray-900 leading-tight mb-4">
+                Can you work while studying in the US?
+              </h2>
+              <p className="font-inter text-gray-500 text-sm leading-relaxed mb-8">
+                Yes &mdash; and it&apos;s more structured than most people realize. Here&apos;s exactly
+                what&apos;s allowed.
+              </p>
+
+              <div className="p-5 rounded-2xl bg-primary text-white">
+                <p className="font-inter text-xs font-semibold uppercase tracking-wider text-secondary mb-2">
+                  Our Commitment
+                </p>
+                <p className="font-inter text-sm text-white/85 leading-relaxed">
+                  DGS guides every student through CPT eligibility, OPT application, and work
+                  authorization, so you don&apos;t leave the US empty-handed after your degree.
+                </p>
+              </div>
+            </motion.div>
+
+            <motion.div
+              className="space-y-4"
+              variants={staggerContainer}
+              initial="hidden"
+              whileInView="show"
+              viewport={{ once: true, amount: 0.1 }}
+            >
+              {workRights.map((w, i) => (
+                <motion.div
+                  key={w.title}
+                  variants={fadeUp}
+                  transition={{ duration: 0.45 }}
+                  className="p-6 rounded-2xl bg-white border border-gray-100 hover:border-primary/20 hover:shadow-lg hover:shadow-primary/5 transition-all duration-300"
+                >
+                  <div className="flex items-start gap-4">
+                    <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
+                      <span className="font-poppins font-bold text-primary text-sm">
+                        {String(i + 1).padStart(2, "0")}
+                      </span>
+                    </div>
+                    <div>
+                      <h3 className="font-poppins font-semibold text-gray-900 text-base mb-2">
+                        {w.title}
+                      </h3>
+                      <p className="font-inter text-gray-500 text-sm leading-relaxed">
+                        {w.description}
+                      </p>
+                    </div>
+                  </div>
+                </motion.div>
+              ))}
+            </motion.div>
           </div>
         </div>
       </section>
 
-      {/* ── 4. TESTIMONIALS + FAQ ──────────────────────────────────────────── */}
+      {/* ── 9. VISA SECTION ────────────────────────────────────────────────── */}
       <section className="py-24 bg-white">
         <div className="max-w-7xl mx-auto px-6">
-          {/* Testimonials */}
-          <div className="max-w-xl mb-14">
+          <div className="grid lg:grid-cols-2 gap-16 items-start">
+            <motion.div
+              variants={fadeUp}
+              initial="hidden"
+              whileInView="show"
+              viewport={{ once: true, amount: 0.3 }}
+              transition={{ duration: 0.5 }}
+            >
+              <p className="font-inter text-xs font-semibold tracking-[0.2em] uppercase text-primary mb-3">
+                F-1 Student Visa
+              </p>
+              <h2 className="font-poppins text-3xl md:text-4xl font-bold text-gray-900 leading-tight mb-4">
+                Your US Student Visa: what you&apos;ll need.
+              </h2>
+              <p className="font-inter text-gray-500 text-sm leading-relaxed mb-8">
+                The F-1 student visa is what makes everything official. Here&apos;s exactly what goes
+                into your application.
+              </p>
+
+              <div className="p-5 rounded-2xl bg-primary text-white">
+                <p className="font-inter text-xs font-semibold uppercase tracking-wider text-secondary mb-2">
+                  We Handle It With You
+                </p>
+                <p className="font-inter text-sm text-white/85 leading-relaxed">
+                  DGS prepares every single one of these documents with you. You don&apos;t walk into
+                  the embassy unprepared. You walk in ready.
+                </p>
+              </div>
+            </motion.div>
+
+            <motion.div
+              className="grid sm:grid-cols-2 gap-3"
+              variants={staggerFast}
+              initial="hidden"
+              whileInView="show"
+              viewport={{ once: true, amount: 0.1 }}
+            >
+              {visaDocuments.map((doc) => (
+                <motion.div
+                  key={doc}
+                  variants={fadeUp}
+                  transition={{ duration: 0.35 }}
+                  className="flex items-start gap-3 p-4 rounded-xl border border-gray-100 hover:border-primary/20 transition-all"
+                >
+                  <CheckCircle2 size={16} className="text-primary flex-shrink-0 mt-0.5" />
+                  <span className="font-inter text-sm text-gray-700">{doc}</span>
+                </motion.div>
+              ))}
+            </motion.div>
+          </div>
+        </div>
+      </section>
+
+      {/* ── 10. TESTIMONIALS + FAQ ─────────────────────────────────────────── */}
+      <section className="py-24 bg-gray-50">
+        <div className="max-w-7xl mx-auto px-6">
+          <motion.div
+            className="max-w-xl mb-14"
+            variants={fadeUp}
+            initial="hidden"
+            whileInView="show"
+            viewport={{ once: true, amount: 0.3 }}
+            transition={{ duration: 0.5 }}
+          >
             <p className="font-inter text-xs font-semibold tracking-[0.2em] uppercase text-primary mb-3">
               Student Stories
             </p>
             <h2 className="font-poppins text-3xl md:text-4xl font-bold text-gray-900 leading-tight">
               Bangladeshis thriving in the USA.
             </h2>
-          </div>
+          </motion.div>
 
-          <div className="grid md:grid-cols-3 gap-6 mb-24">
+          <motion.div
+            className="grid md:grid-cols-3 gap-6 mb-24"
+            variants={staggerContainer}
+            initial="hidden"
+            whileInView="show"
+            viewport={{ once: true, amount: 0.1 }}
+          >
             {testimonials.map((t) => (
-              <div
+              <motion.div
                 key={t.name}
-                className="p-6 rounded-2xl border border-gray-100 hover:shadow-lg hover:shadow-gray-100 transition-all"
+                variants={fadeUp}
+                transition={{ duration: 0.45 }}
+                className="p-6 rounded-2xl border border-gray-100 bg-white hover:shadow-lg hover:shadow-gray-100 transition-all"
               >
                 <div className="font-poppins text-4xl text-primary font-bold leading-none mb-4">
                   &ldquo;
@@ -335,57 +1012,64 @@ export default function StudyInUSAPage() {
                     {t.initials}
                   </div>
                   <div className="min-w-0">
-                    <div className="font-poppins font-semibold text-gray-800 text-sm">
-                      {t.name}
-                    </div>
-                    <div className="font-inter text-xs text-gray-400 truncate">
-                      {t.program}
-                    </div>
+                    <div className="font-poppins font-semibold text-gray-800 text-sm">{t.name}</div>
+                    <div className="font-inter text-xs text-gray-400 truncate">{t.program}</div>
                     <div className="font-inter text-[11px] text-primary font-semibold mt-0.5">
                       {t.scholarship}
                     </div>
                   </div>
                 </div>
-              </div>
+              </motion.div>
             ))}
-          </div>
+          </motion.div>
 
           {/* FAQ */}
           <div className="grid lg:grid-cols-2 gap-16 items-start">
-            <div>
+            <motion.div
+              variants={fadeUp}
+              initial="hidden"
+              whileInView="show"
+              viewport={{ once: true, amount: 0.3 }}
+              transition={{ duration: 0.5 }}
+            >
               <p className="font-inter text-xs font-semibold tracking-[0.2em] uppercase text-primary mb-3">
                 Common Questions
               </p>
               <h2 className="font-poppins text-3xl font-bold text-gray-900 leading-tight mb-4">
-                Everything students ask us.
+                Still have questions? That&apos;s exactly what we&apos;re here for.
               </h2>
               <p className="font-inter text-gray-500 text-sm leading-relaxed mb-8">
-                Still have questions? Book a free consultation and get
-                personalised answers for your specific profile and goals.
+                Everything above is a guide. But your situation is specific: your grades, your
+                budget, your timeline, your goals. The best next step isn&apos;t more reading &mdash;
+                it&apos;s a real conversation.
               </p>
               <Link
                 href="#consultation"
                 className="inline-flex items-center gap-2 bg-primary text-white font-inter font-semibold text-sm px-7 py-3.5 rounded-xl hover:bg-primary/90 transition-colors"
               >
-                Book Free Call <ArrowRight size={15} />
+                Book My Free Assessment <ArrowRight size={15} />
               </Link>
-            </div>
+            </motion.div>
 
-            <div className="space-y-3">
+            <motion.div
+              className="space-y-3"
+              variants={staggerFast}
+              initial="hidden"
+              whileInView="show"
+              viewport={{ once: true, amount: 0.1 }}
+            >
               {faqs.map((f) => (
-                <FAQItem key={f.q} q={f.q} a={f.a} />
+                <motion.div key={f.q} variants={fadeUp} transition={{ duration: 0.35 }}>
+                  <FAQItem q={f.q} a={f.a} />
+                </motion.div>
               ))}
-            </div>
+            </motion.div>
           </div>
         </div>
       </section>
 
       {/* ── CTA ────────────────────────────────────────────────────────────── */}
-      <section
-        id="consultation"
-        className="relative py-28 bg-primary overflow-hidden"
-      >
-        {/* Background */}
+      <section id="consultation" className="relative py-28 bg-primary overflow-hidden">
         <div className="absolute inset-0">
           <Image
             src="/study/cta-bg.png"
@@ -395,29 +1079,50 @@ export default function StudyInUSAPage() {
           />
         </div>
 
-        <div className="relative max-w-3xl mx-auto px-6 text-center">
-          <p className="font-inter text-xs font-semibold tracking-[0.2em] uppercase text-primary mb-5">
+        <motion.div
+          className="relative max-w-3xl mx-auto px-6 text-center"
+          variants={staggerContainer}
+          initial="hidden"
+          whileInView="show"
+          viewport={{ once: true, amount: 0.3 }}
+        >
+          <motion.p
+            variants={fadeUp}
+            transition={{ duration: 0.5 }}
+            className="font-inter text-xs font-semibold tracking-[0.2em] uppercase text-secondary mb-5"
+          >
             Start Your Journey
-          </p>
+          </motion.p>
 
-          <h2 className="font-poppins text-4xl md:text-5xl font-bold text-white leading-tight mb-6">
+          <motion.h2
+            variants={fadeUp}
+            transition={{ duration: 0.5 }}
+            className="font-poppins text-4xl md:text-5xl font-bold text-white leading-tight mb-6"
+          >
             Ready to study in the <span className="text-secondary">USA?</span>
-          </h2>
+          </motion.h2>
 
-          <p className="font-inter text-white/70 text-base leading-relaxed mb-12 max-w-xl mx-auto">
-            Book a free 45-minute consultation with a specialist. No sales pitch
-            — just honest advice about your options.
-          </p>
+          <motion.p
+            variants={fadeUp}
+            transition={{ duration: 0.5 }}
+            className="font-inter text-white/70 text-base leading-relaxed mb-12 max-w-xl mx-auto"
+          >
+            Book a free assessment with a DGS counselor. We&apos;ll look at your profile, tell you
+            exactly where you stand, and map out what your US journey looks like. No sales pitch
+            &mdash; just honest advice about your options.
+          </motion.p>
 
-          {/* Form Card */}
-          <div className="bg-white rounded-2xl p-8 shadow-xl max-w-xl mx-auto">
+          <motion.div
+            variants={fadeUp}
+            transition={{ duration: 0.5 }}
+            className="bg-white rounded-2xl p-8 shadow-xl max-w-xl mx-auto"
+          >
             <div className="grid sm:grid-cols-2 gap-4 mb-4">
               <input
                 type="text"
                 placeholder="Your full name"
                 className="border border-gray-200 rounded-lg px-4 py-3 text-sm outline-none focus:border-primary transition-colors"
               />
-
               <input
                 type="tel"
                 placeholder="WhatsApp number"
@@ -426,14 +1131,14 @@ export default function StudyInUSAPage() {
             </div>
 
             <button className="w-full bg-primary text-white font-semibold py-4 rounded-lg hover:bg-primary/90 transition-colors">
-              Book My Free Consultation
+              Book My Free Assessment &rarr;
             </button>
 
             <p className="text-xs text-gray-500 text-center mt-3">
               No spam. Response within 2 hours during business hours.
             </p>
-          </div>
-        </div>
+          </motion.div>
+        </motion.div>
       </section>
     </main>
   );
