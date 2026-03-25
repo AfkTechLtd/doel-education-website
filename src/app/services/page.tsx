@@ -1,13 +1,13 @@
-import ServicesGrid from "@/components/services/ServicesGrid";
-import VisaPrep from "@/components/services/VisaPrep";
-import ServicePackages from "@/components/services/ServicePackages";
+import ServicesHero from "@/components/services/ServicesHero";
+import ServicesSupport from "@/components/services/ServicesSupport";
+import ServicesJourney from "@/components/services/ServicesJourney";
 
 export default function ServicesPage() {
   return (
     <main className="bg-white overflow-x-hidden">
-      <ServicesGrid />
-      <VisaPrep />
-      <ServicePackages />
+      <ServicesHero />
+      <ServicesSupport />
+      <ServicesJourney />
     </main>
   );
 }
