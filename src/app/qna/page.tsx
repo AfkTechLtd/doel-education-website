@@ -2,8 +2,26 @@
 
 import { useState } from "react";
 import { ChevronDown } from "lucide-react";
-import { AnimatePresence, motion } from "framer-motion";
-import ScrollRevealSection from "@/components/common/ScrollRevealSection";
+import { AnimatePresence, easeInOut, motion } from "framer-motion";
+import HeroSection, {
+  HeroContent,
+  HeroSubTitle,
+  HeroTitle,
+  HeroTopTitle,
+} from "@/components/common/HeroSection";
+
+const fadeInUp = {
+  hidden: { opacity: 0, y: 30 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.6, ease: easeInOut } },
+};
+
+const staggerContainer = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: { staggerChildren: 0.15 },
+  },
+};
 
 const faqs = [
   {
@@ -131,31 +149,34 @@ export default function QnaPage() {
 
   return (
     <main className="min-h-screen overflow-x-hidden bg-[#fcfdfd]">
-      <section className="bg-[radial-gradient(circle_at_top_right,_#f0f9ff_0%,_transparent_55%)] pb-16 pt-10 md:pb-24">
-        <div className="mx-auto max-w-7xl px-4 md:px-6">
-          <ScrollRevealSection>
-            <div className="relative overflow-hidden rounded-[2rem] border border-slate-800/60 bg-gradient-to-br from-slate-950 via-[#0d2d2b] to-primary px-7 py-12 shadow-2xl md:px-12 md:py-16">
-              <div className="absolute -right-28 -top-28 h-64 w-64 rounded-full bg-secondary/20 blur-3xl" />
-              <div className="absolute -bottom-24 -left-20 h-56 w-56 rounded-full bg-white/10 blur-3xl" />
+      <HeroSection minHeightClassName="min-h-[62vh]" imageAlt="Q&A hero">
+        <motion.div
+          initial="hidden"
+          animate="visible"
+          variants={staggerContainer}
+          className="relative z-10"
+        >
+          <motion.div variants={fadeInUp}>
+            <HeroTopTitle className="mb-4">Q&amp;A</HeroTopTitle>
+          </motion.div>
 
-              <div className="relative z-10">
-                <p className="mb-4 font-inter text-xs font-semibold uppercase tracking-[0.22em] text-secondary">
-                  Q&A
-                </p>
-                <h1 className="max-w-4xl font-poppins text-4xl font-bold leading-tight text-white md:text-6xl">
-                  Questions Students Ask Us Every Day
-                </h1>
-                <p className="mt-5 max-w-2xl font-inter text-base leading-relaxed text-white/80 md:text-lg">
-                  Honest answers about admissions, visas, scholarships, and
-                  career outcomes so you can plan your journey with confidence.
-                </p>
-              </div>
-            </div>
-          </ScrollRevealSection>
-        </div>
-      </section>
+          <HeroContent>
+            <motion.div variants={fadeInUp}>
+              <HeroTitle className="max-w-4xl md:text-6xl">
+                Questions Students Ask Us Every Day
+              </HeroTitle>
+            </motion.div>
+            <motion.div variants={fadeInUp}>
+              <HeroSubTitle className="max-w-2xl text-base md:text-lg text-white/85">
+                Honest answers about admissions, visas, scholarships, and career
+                outcomes so you can plan your journey with confidence.
+              </HeroSubTitle>
+            </motion.div>
+          </HeroContent>
+        </motion.div>
+      </HeroSection>
 
-      <section className="mx-auto max-w-7xl px-6 pb-20 md:px-20 md:pb-24 2xl:px-6">
+      <section className="mx-auto max-w-7xl px-6 pb-20 md:px-20 md:pb-24 lg:mt-20 mt-14 2xl:px-6">
         <div className="space-y-4 md:hidden">
           {faqs.map((item) => (
             <FaqCard

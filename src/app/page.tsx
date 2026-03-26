@@ -24,7 +24,7 @@ export default function Home() {
         </ScrollRevealSection>
       </div>
       <ScrollRevealSection>
-          <Partners />
+        <Partners />
       </ScrollRevealSection>
       <div className="mx-auto max-w-7xl md:px-20 2xl:px-6 px-6 space-y-16">
         <ScrollRevealSection>
@@ -36,7 +36,7 @@ export default function Home() {
         <ScrollRevealSection>
           <CostCalculator />
         </ScrollRevealSection>
-         <ScrollRevealSection>
+        <ScrollRevealSection>
           <ApplicationProcess />
         </ScrollRevealSection>
         <ScrollRevealSection>
