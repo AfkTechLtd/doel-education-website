@@ -1,18 +1,16 @@
 "use client";
 
-import type { EventType } from "./UpcomingEventsGrid";
+import type { EventFilter } from "./UpcomingEventsGrid";
 
 export const EVENT_CHIPS = [
   "All",
-  "Webinar",
-  "Visa Session",
-  "Seminar",
-  "Workshop",
-] as const satisfies EventType[];
+  "Past Events",
+  "Upcoming Events",
+] as const satisfies EventFilter[];
 
 interface Props {
-  active: EventType;
-  onSelect: (chip: EventType) => void;
+  active: EventFilter;
+  onSelect: (chip: EventFilter) => void;
   totalCount: number;
 }
 
@@ -22,42 +20,42 @@ export default function EventTypeChips({
   totalCount,
 }: Props) {
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-8 md:px-14 py-6 md:py-8">
-      <div
-        className="flex items-center gap-2 overflow-x-auto pb-1"
-        style={{
-          scrollbarWidth: "none", // Firefox
-          msOverflowStyle: "none", // IE 10+
-        }}
-      >
-        <style>
-          {`
-            ::-webkit-scrollbar {
-              display: none; /* Chrome, Safari */
-            }
-          `}
-        </style>
+    <div className="mx-auto max-w-7xl px-4 py-6 sm:px-8 md:px-14 md:py-8">
+      <div className="rounded-[28px] border border-slate-200 bg-[linear-gradient(180deg,#ffffff_0%,#f8fafc_100%)] p-4 shadow-sm sm:p-5">
+        <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+          <div>
+            <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-slate-400">
+              Browse by timeline
+            </p>
+            <p className="mt-2 max-w-xl text-sm leading-relaxed text-slate-500">
+              Switch between upcoming sessions and past event recaps without leaving the page.
+            </p>
+          </div>
 
-        {EVENT_CHIPS.map((chip) => {
-          const isActive = active === chip;
-          return (
-            <button
-              key={chip}
-              onClick={() => onSelect(chip)}
-              className={`
-                relative shrink-0 px-4 sm:px-5 py-2 rounded-full text-sm font-semibold
-                border transition-all duration-200
-                ${
-                  isActive
-                    ? "bg-primary text-white border-primary shadow-lg"
-                    : "bg-white text-gray-600 border-gray-200 hover:border-primary/40 hover:text-primary"
-                }
-              `}
-            >
-              {chip}
-            </button>
-          );
-        })}
+          <div className="flex flex-wrap items-center gap-2">
+            {EVENT_CHIPS.map((chip) => {
+              const isActive = active === chip;
+
+              return (
+                <button
+                  key={chip}
+                  onClick={() => onSelect(chip)}
+                  className={`rounded-full border px-4 py-2 text-sm font-semibold transition-all duration-200 ${
+                    isActive
+                      ? "border-primary bg-primary text-white shadow-lg shadow-primary/15"
+                      : "border-slate-200 bg-white text-slate-600 hover:border-primary/30 hover:text-primary"
+                  }`}
+                >
+                  {chip}
+                </button>
+              );
+            })}
+
+            <span className="inline-flex items-center rounded-full border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-500">
+              {totalCount} showing
+            </span>
+          </div>
+        </div>
       </div>
     </div>
   );

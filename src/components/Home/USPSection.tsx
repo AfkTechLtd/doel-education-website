@@ -3,7 +3,7 @@
 import { useRef } from "react";
 import { motion, useInView } from "framer-motion";
 import { Check, X, Sparkles, Briefcase, GraduationCap, ArrowRight } from "lucide-react";
-import Link from "next/link";
+import InquiryTriggerButton from "@/components/common/InquiryTriggerButton";
 
 // ─── Comparison data from PDF ──────────────────────────────────────────────────
 
@@ -301,13 +301,12 @@ export default function USPSection() {
 
           {/* CTA */}
           <div className="relative px-7 pb-7 pt-2">
-            <Link
-              href="/consultation"
+            <InquiryTriggerButton
               className="flex items-center justify-center gap-2 w-full rounded-xl bg-secondary text-slate-900 font-poppins font-bold text-sm py-3.5 transition-all duration-200 hover:brightness-110 hover:-translate-y-0.5"
             >
               Get Started with DGS
               <ArrowRight size={15} />
-            </Link>
+            </InquiryTriggerButton>
           </div>
         </motion.div>
       </div>
