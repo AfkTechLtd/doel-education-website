@@ -10,14 +10,14 @@ import HomeCTA from "@/components/Home/HomeCTA";
 import ScrollRevealSection from "@/components/common/ScrollRevealSection";
 import StakeHolderTestimonials from "@/components/Home/HomeTestimonial";
 import VisaSuccess from "@/components/Home/VisaSuccessSection";
-import CostCalculator from "@/components/Home/HomeCostCalculator";
+import HomeCostCalculator from "@/components/Home/HomeCostCalculator";
 import ApplicationProcess from "@/components/Home/HomeFlowChart";
 
 export default function Home() {
   return (
     <main>
       <Hero />
-      <div className="mx-auto max-w-7xl md:px-20 2xl:px-6 px-6 space-y-16">
+      <div className="mx-auto max-w-7xl md:px-20 2xl:px-6 px-6">
         <ScrollRevealSection>
           <HomeAbout />
           <StatsCounter />
@@ -26,7 +26,7 @@ export default function Home() {
       <ScrollRevealSection>
         <Partners />
       </ScrollRevealSection>
-      <div className="mx-auto max-w-7xl md:px-20 2xl:px-6 px-6 space-y-16">
+      <div className="mx-auto max-w-7xl md:px-20 2xl:px-6 px-6">
         <ScrollRevealSection>
           <USPSection />
         </ScrollRevealSection>
@@ -34,7 +34,7 @@ export default function Home() {
           <VisaSuccess />
         </ScrollRevealSection>
         <ScrollRevealSection>
-          <CostCalculator />
+          <HomeCostCalculator />
         </ScrollRevealSection>
         <ScrollRevealSection>
           <ApplicationProcess />
@@ -49,7 +49,6 @@ export default function Home() {
         <ScrollRevealSection>
           <VisaSupport />
         </ScrollRevealSection>
-
         <ScrollRevealSection>
           <HomeCTA />
         </ScrollRevealSection>

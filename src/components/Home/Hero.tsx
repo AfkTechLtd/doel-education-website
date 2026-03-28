@@ -62,7 +62,7 @@ function OrbitRing({ items, diameter, duration, cw = true }: OrbitRingProps) {
               style={{
                 width: 130,
                 background: "#ffffff",
-                opacity:".8",
+                opacity:".95",
                 border: "1px solid rgba(0,0,0,0.08)",
               }}
             >
@@ -212,7 +212,7 @@ const Hero = () => {
                 </div>
               </div>
 
-              {/* RIGHT — orbit */}
+              {/* RIGHT  orbit */}
               <div className="fu d5 order-1 md:order-2 flex items-center justify-center md:justify-end">
                 <div
                   className="relative flex items-center justify-center"

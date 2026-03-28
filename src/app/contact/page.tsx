@@ -145,7 +145,7 @@ const Contact = () => {
                 </div>
                 <div className="space-y-2">
                   <p className="text-slate-600 font-medium text-sm flex justify-between">
-                    <span>Sat — Thu:</span>
+                    <span>Sat Thu:</span>
                     <span className="text-slate-900 font-bold">
                       10:00 AM - 7:00 PM
                     </span>

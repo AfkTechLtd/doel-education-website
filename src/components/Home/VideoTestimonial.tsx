@@ -32,7 +32,7 @@ const VideoTestimonial = () => {
   }, []);
 
   return (
-    <section ref={sectionRef} className="py-10 overflow-hidden">
+    <section ref={sectionRef} className="py-16 sm:py-20 lg:py-24 overflow-hidden">
       {/* Section label */}
       <div className="flex items-center gap-3 mb-14">
         <span className="h-px w-10 block bg-secondary" />
@@ -42,7 +42,7 @@ const VideoTestimonial = () => {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
-        {/* ── Left — video embed ── */}
+        {/* ── Left  video embed ── */}
         <div className="relative">
           {/* Decorative blocks */}
           <div className="absolute -top-4 -left-4 w-full h-full rounded-3xl bg-primary/8" />
@@ -62,7 +62,12 @@ const VideoTestimonial = () => {
           {/* Floating stat card */}
           <div className="absolute -bottom-6 -right-6 rounded-2xl px-5 py-4 shadow-xl border border-white/60 backdrop-blur-sm bg-primary">
             <p className="text-3xl font-bold text-white font-poppins leading-none tabular-nums">
-              <AnimatedNumber target={96} suffix="%" started={started} duration={1600} />
+              <AnimatedNumber
+                target={96}
+                suffix="%"
+                started={started}
+                duration={1600}
+              />
             </p>
             <p className="text-xs text-white/70 font-inter mt-1 leading-tight">
               Visa success
@@ -72,7 +77,7 @@ const VideoTestimonial = () => {
           </div>
         </div>
 
-        {/* ── Right — copy ── */}
+        {/* ── Right  copy ── */}
         <div className="space-y-2 lg:pl-6">
           <h2 className="text-4xl font-semibold leading-[1.15] tracking-tight font-poppins text-primary">
             Real students.
@@ -82,7 +87,7 @@ const VideoTestimonial = () => {
 
           <p className="text-base leading-relaxed text-slate-500 font-inter max-w-md">
             Discover how we&apos;ve helped hundreds of students secure
-            admissions and visas to top universities worldwide — with guidance
+            admissions and visas to top universities worldwide with guidance
             that stays with you at every step.
           </p>
 
@@ -104,7 +109,7 @@ const VideoTestimonial = () => {
                   Rafiq Hossain
                 </p>
                 <p className="text-xs text-slate-400 font-inter">
-                  University of Texas — Fall 2024
+                  University of Texas Fall 2024
                 </p>
               </div>
             </footer>

@@ -9,7 +9,12 @@ import {
 
 type EventMode = "Online" | "In-Person" | "Hybrid";
 
-export type EventType = "All" | "Webinar" | "Visa Session" | "Seminar" | "Workshop";
+export type EventType =
+  | "All"
+  | "Webinar"
+  | "Visa Session"
+  | "Seminar"
+  | "Workshop";
 
 export interface EventItem {
   id: number;
@@ -42,7 +47,7 @@ export const events: EventItem[] = [
     id: 2,
     type: "Seminar",
     typeColor: "slate",
-    title: "Choosing Between MS and MBA — Which Path is Right for You?",
+    title: "Choosing Between MS and MBA  Which Path is Right for You?",
     date: "5 April 2025",
     time: "4:00 PM BST",
     mode: "In-Person",
@@ -55,7 +60,7 @@ export const events: EventItem[] = [
     id: 3,
     type: "Workshop",
     typeColor: "amber",
-    title: "SOP Writing Clinic — Live Feedback on Your Draft",
+    title: "SOP Writing Clinic  Live Feedback on Your Draft",
     date: "12 April 2025",
     time: "5:00 PM BST",
     mode: "Hybrid",
@@ -75,7 +80,7 @@ export const events: EventItem[] = [
     location: "Zoom",
     audience: "Engineering & tech students",
     description:
-      "Everything about CPT, OPT, and the 3-year STEM extension — explained plainly with real examples.",
+      "Everything about CPT, OPT, and the 3-year STEM extension  explained plainly with real examples.",
   },
   {
     id: 5,
@@ -88,13 +93,13 @@ export const events: EventItem[] = [
     location: "Doel Dhaka Office",
     audience: "All levels",
     description:
-      "Fulbright, merit aid, RA/TA positions — mapped to real university deadlines for the 2026 intake cycle.",
+      "Fulbright, merit aid, RA/TA positions  mapped to real university deadlines for the 2026 intake cycle.",
   },
   {
     id: 6,
     type: "Workshop",
     typeColor: "amber",
-    title: "GRE Zero to Target Score — A Study Plan That Works",
+    title: "GRE Zero to Target Score  A Study Plan That Works",
     date: "3 May 2025",
     time: "5:30 PM BST",
     mode: "Online",
@@ -155,14 +160,14 @@ export default function UpcomingEventsGrid({ filter }: Props) {
                   key={ev.id}
                   className="group flex flex-col bg-white rounded-lg border border-gray-200 shadow-lg hover:shadow-xl transition-shadow duration-300 overflow-hidden"
                 >
-                  {/* Top accent bar — color-coded by type */}
+                  {/* Top accent bar  color-coded by type */}
                   <div
                     className={`h-1 w-full ${
                       ev.typeColor === "teal"
                         ? "bg-primary"
                         : ev.typeColor === "amber"
-                        ? "bg-secondary"
-                        : "bg-slate-300"
+                          ? "bg-secondary"
+                          : "bg-slate-300"
                     }`}
                   />
 
@@ -172,10 +177,12 @@ export default function UpcomingEventsGrid({ filter }: Props) {
                       <span
                         className={`inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-widest px-2.5 py-1 rounded-full ${colors.chip}`}
                       >
-                        <span className={`w-1.5 h-1.5 rounded-full ${colors.dot}`} />
+                        <span
+                          className={`w-1.5 h-1.5 rounded-full ${colors.dot}`}
+                        />
                         {ev.type}
                       </span>
-                      {/* Editorial number — faint, purely decorative */}
+                      {/* Editorial number  faint, purely decorative */}
                       <span className="text-sm font-semibold text-gray-200 select-none">
                         {String(idx + 1).padStart(2, "0")}
                       </span>
@@ -194,7 +201,10 @@ export default function UpcomingEventsGrid({ filter }: Props) {
                     {/* Meta */}
                     <div className="space-y-1.5 mb-4 pt-3 border-t border-gray-100">
                       <div className="flex items-center gap-2 text-sm text-gray-500">
-                        <CalendarDays size={13} className="text-primary shrink-0" />
+                        <CalendarDays
+                          size={13}
+                          className="text-primary shrink-0"
+                        />
                         {ev.date}
                       </div>
                       <div className="flex items-center gap-2 text-sm text-gray-500">
@@ -203,7 +213,9 @@ export default function UpcomingEventsGrid({ filter }: Props) {
                       </div>
                       <div className="flex items-center gap-2 text-sm text-gray-500">
                         <ModeIcon mode={ev.mode} />
-                        <span>{ev.mode} · {ev.location}</span>
+                        <span>
+                          {ev.mode} · {ev.location}
+                        </span>
                       </div>
                     </div>
 

@@ -1,15 +1,9 @@
 import Link from "next/link";
-import {
-  ArrowRight,
-  CalendarDays,
-  Clock3,
-  Users,
-  Wifi,
-} from "lucide-react";
+import { ArrowRight, CalendarDays, Clock3, Users, Wifi } from "lucide-react";
 
 const featured = {
   type: "Webinar",
-  title: "US Graduate Admissions 2026 — Everything You Need to Know",
+  title: "US Graduate Admissions 2026  Everything You Need to Know",
   date: "Saturday, 22 March 2025",
   time: "7:00 PM – 9:00 PM BST",
   mode: "Online (Zoom)",
@@ -29,7 +23,7 @@ const featured = {
 export default function FeaturedEvent() {
   return (
     <section className="max-w-7xl mx-auto px-4 sm:px-8 md:px-14 py-10 md:py-12">
-      {/* Section label — matches site pattern */}
+      {/* Section label  matches site pattern */}
       <div className="flex items-center gap-4 mb-6">
         <p className="text-secondary font-bold tracking-widest uppercase text-sm shrink-0">
           Next Up
@@ -37,7 +31,7 @@ export default function FeaturedEvent() {
         <div className="flex-1 h-px bg-gray-200" />
       </div>
 
-      {/* Card — site card pattern: border border-gray-200 shadow-lg rounded-lg */}
+      {/* Card  site card pattern: border border-gray-200 shadow-lg rounded-lg */}
       <div className="relative overflow-hidden rounded-lg border border-gray-200 shadow-lg bg-white">
         {/* Left accent strip on desktop */}
         <div className="hidden md:block absolute left-0 top-0 bottom-0 w-1 bg-primary" />
@@ -45,7 +39,6 @@ export default function FeaturedEvent() {
         <div className="md:hidden h-1 w-full bg-primary" />
 
         <div className="grid grid-cols-1 lg:grid-cols-[1fr_280px]">
-
           {/* ── Main content ── */}
           <div className="p-5 sm:p-8 md:p-10 md:pl-12">
             {/* Type badge */}
@@ -57,7 +50,7 @@ export default function FeaturedEvent() {
               <span className="text-sm text-gray-500">Featured Event</span>
             </div>
 
-            {/* Title — site heading scale */}
+            {/* Title  site heading scale */}
             <h2 className="text-2xl md:text-3xl font-semibold font-inter text-slate-900 leading-snug max-w-2xl mb-4">
               {featured.title}
             </h2>
@@ -127,7 +120,9 @@ export default function FeaturedEvent() {
               </p>
               <div className="flex items-center gap-2 mb-2">
                 <Users size={15} className="text-primary shrink-0" />
-                <span className={`text-sm font-semibold ${featured.seatsLow ? "text-red-500" : "text-gray-900"}`}>
+                <span
+                  className={`text-sm font-semibold ${featured.seatsLow ? "text-red-500" : "text-gray-900"}`}
+                >
                   {featured.seats}
                 </span>
               </div>

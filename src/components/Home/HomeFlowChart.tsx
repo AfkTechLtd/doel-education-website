@@ -3,25 +3,63 @@
 import { useRef } from "react";
 import { motion, useInView } from "framer-motion";
 import {
-  BookOpen, Building2, Award, Mail, CreditCard,
-  FileCheck, Stethoscope, CalendarCheck, Fingerprint, CheckCircle2,
+  Compass,
+  School,
+  BadgeDollarSign,
+  MailOpen,
+  Receipt,
+  ScrollText,
+  Stethoscope,
+  ClipboardList,
+  Fingerprint,
+  Stamp,
   ChevronDown,
 } from "lucide-react";
 
 const steps = [
-  { n: "01", label: "Select a Course",                     icon: BookOpen,      color: "#e07b54" },
-  { n: "02", label: "Apply to a University",               icon: Building2,     color: "#7b9cce" },
-  { n: "03", label: "Apply for Scholarship",               icon: Award,         color: "#d16abf" },
-  { n: "04", label: "Receive the Offer Letter",            icon: Mail,          color: "#c97dbf" },
-  { n: "05", label: "Pay Tuition Fee & Receive Receipt",   icon: CreditCard,    color: "#4db8a0" },
-  { n: "06", label: "Receive LOA (Letter of Acceptance)",  icon: FileCheck,     color: "#4db8a0" },
-  { n: "07", label: "Schedule IME (Medical Examination)",  icon: Stethoscope,   color: "#b87bc8" },
-  { n: "08", label: "Prepare for Visa Filing",             icon: CalendarCheck, color: "#9fbe45" },
-  { n: "09", label: "Biometrics & Interview",              icon: Fingerprint,   color: "#e06060" },
-  { n: "10", label: "Visa Outcome",                        icon: CheckCircle2,  color: "#4a7dbf" },
+  { n: "01", label: "Select a Course", icon: Compass, color: "#e07b54" },
+  {
+    n: "02",
+    label: "Apply to a University",
+    icon: School,
+    color: "#7b9cce",
+  },
+  { n: "03", label: "Apply for Scholarship", icon: BadgeDollarSign, color: "#d16abf" },
+  { n: "04", label: "Receive the Offer Letter", icon: MailOpen, color: "#c97dbf" },
+  {
+    n: "05",
+    label: "Pay Tuition Fee & Receive Receipt",
+    icon: Receipt,
+    color: "#4db8a0",
+  },
+  {
+    n: "06",
+    label: "Receive LOA (Letter of Acceptance)",
+    icon: ScrollText,
+    color: "#4db8a0",
+  },
+  {
+    n: "07",
+    label: "Schedule IME (Medical Examination)",
+    icon: Stethoscope,
+    color: "#b87bc8",
+  },
+  {
+    n: "08",
+    label: "Prepare for Visa Filing",
+    icon: ClipboardList,
+    color: "#9fbe45",
+  },
+  {
+    n: "09",
+    label: "Biometrics & Interview",
+    icon: Fingerprint,
+    color: "#e06060",
+  },
+  { n: "10", label: "Visa Outcome", icon: Stamp, color: "#4a7dbf" },
 ];
 
-const row1 = steps.slice(0, 5);   // 01–05 → left to right
+const row1 = steps.slice(0, 5); // 01–05 → left to right
 const row2 = [...steps.slice(5, 10)].reverse(); // visually: 10,09,08,07,06 → left to right on screen = right-to-left flow
 
 // ── Arrow connector (SVG) ─────────────────────────────────────────────────────
@@ -45,10 +83,24 @@ function Arrow({
       animate={inView ? { opacity: 1 } : {}}
       transition={{ duration: 0.35, delay }}
     >
-      <svg width="64" height="22" viewBox="0 0 64 22" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <svg
+        width="64"
+        height="22"
+        viewBox="0 0 64 22"
+        fill="none"
+        xmlns="http://www.w3.org/2000/svg"
+      >
         {dir === "right" ? (
           <>
-            <line x1="2" y1="11" x2="52" y2="11" stroke={color} strokeWidth="2.5" strokeOpacity="0.55" />
+            <line
+              x1="2"
+              y1="11"
+              x2="52"
+              y2="11"
+              stroke={color}
+              strokeWidth="2.5"
+              strokeOpacity="0.55"
+            />
             {/* Arrowhead pointing right */}
             <polyline
               points="44,4 58,11 44,18"
@@ -62,7 +114,15 @@ function Arrow({
           </>
         ) : (
           <>
-            <line x1="12" y1="11" x2="62" y2="11" stroke={color} strokeWidth="2.5" strokeOpacity="0.55" />
+            <line
+              x1="12"
+              y1="11"
+              x2="62"
+              y2="11"
+              stroke={color}
+              strokeWidth="2.5"
+              strokeOpacity="0.55"
+            />
             {/* Arrowhead pointing left */}
             <polyline
               points="20,4 6,11 20,18"
@@ -145,7 +205,11 @@ function TurnConnector({ inView }: { inView: boolean }) {
     >
       <div className="flex flex-col items-center gap-0.5">
         <div className="w-[2.5px] h-10 rounded-full bg-slate-300" />
-        <ChevronDown size={22} strokeWidth={2.5} className="text-slate-400 -mt-2" />
+        <ChevronDown
+          size={22}
+          strokeWidth={2.5}
+          className="text-slate-400 -mt-2"
+        />
       </div>
     </motion.div>
   );
@@ -157,7 +221,7 @@ export default function ApplicationProcess() {
   const inView = useInView(ref, { once: true, margin: "-80px" });
 
   return (
-    <section className="py-20 overflow-x-hidden" ref={ref}>
+    <section className="py-16 sm:py-20 lg:py-24 overflow-x-hidden" ref={ref}>
       {/* Header */}
       <div className="text-center mb-16">
         <motion.div
@@ -198,14 +262,14 @@ export default function ApplicationProcess() {
           animate={inView ? { opacity: 1 } : {}}
           transition={{ duration: 0.4, delay: 0.2 }}
         >
-          10 clear steps from choosing your course all the way to your visa outcome.
+          10 clear steps from choosing your course all the way to your visa
+          outcome.
         </motion.p>
       </div>
 
       {/* ── Desktop: snake layout ── */}
       <div className="hidden lg:block">
-
-        {/* Row 1 — 01→02→03→04→05 (left to right, arrows point RIGHT) */}
+        {/* Row 1  01→02→03→04→05 (left to right, arrows point RIGHT) */}
         <div className="flex items-start justify-center gap-0 px-4">
           {row1.map((step, i) => (
             <div key={step.n} className="flex items-start">
@@ -226,14 +290,14 @@ export default function ApplicationProcess() {
         <TurnConnector inView={inView} />
 
         {/*
-          Row 2 visual layout: 10 — 09 — 08 — 07 — 06
+          Row 2 visual layout: 10  09  08  07  06
           (right-to-left flow, so step 06 is on the far RIGHT, step 10 on the far LEFT)
           row2 array = [10,09,08,07,06] (reversed above)
           Arrows between pairs: 10→09, 09→08, 08→07, 07→06
           Each arrow points LEFT (toward the next step which is to the right in the array
           but to the right on screen = direction of flow which is rightward toward 06).
           
-          Wait — flow is: 05 finishes (top-right), turns down, then goes RIGHT-TO-LEFT:
+          Wait  flow is: 05 finishes (top-right), turns down, then goes RIGHT-TO-LEFT:
           06 is under 05 (far right), 10 is far left.
           So on screen: 10 | 09 | 08 | 07 | 06
           The flow direction is 06→07→08→09→10, i.e. RIGHT→LEFT on screen.

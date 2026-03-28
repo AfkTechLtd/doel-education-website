@@ -4,7 +4,8 @@ import Link from "next/link";
 
 const HomeCTA = () => {
   return (
-    <section className="relative overflow-hidden rounded-3xl my-8 bg-primary">
+    <section className="py-16 sm:py-20 lg:py-24">
+    <div className="relative overflow-hidden rounded-3xl bg-primary">
       {/* Subtle dot grid texture */}
       <div
         className="absolute inset-0 opacity-10"
@@ -15,7 +16,7 @@ const HomeCTA = () => {
         }}
       />
 
-      {/* Warm secondary glow — bottom right */}
+      {/* Warm secondary glow  bottom right */}
       <div className="absolute bottom-0 right-0 w-96 h-96 rounded-full blur-3xl opacity-20 pointer-events-none bg-secondary" />
 
       {/* Top accent line */}
@@ -23,7 +24,7 @@ const HomeCTA = () => {
 
       <div className="relative px-8 py-16 sm:px-14 sm:py-20">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-          {/* Left — main copy */}
+          {/* Left  main copy */}
           <div className="space-y-6">
             <div className="flex items-center gap-3">
               <span className="h-px w-8 block bg-secondary" />
@@ -42,7 +43,7 @@ const HomeCTA = () => {
 
             <p className="text-white/70 text-base leading-relaxed font-inter max-w-sm">
               Book a 1-on-1 session with our expert counselors and get a
-              tailored roadmap — from shortlisting universities to visa
+              tailored roadmap from shortlisting universities to visa
               preparation.
             </p>
 
@@ -66,7 +67,7 @@ const HomeCTA = () => {
             </ul>
           </div>
 
-          {/* Right — CTA card */}
+          {/* Right  CTA card */}
           <div className="md:block hidden">
             <div className="rounded-2xl p-8 sm:p-10 space-y-7 bg-white/7 border border-white/12">
               {/* Free session badge */}
@@ -143,6 +144,7 @@ const HomeCTA = () => {
           </div>
         </div>
       </div>
+    </div>
     </section>
   );
 };

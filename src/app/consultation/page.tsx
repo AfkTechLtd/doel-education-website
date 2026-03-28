@@ -6,7 +6,7 @@ import WhatsAppCTA from "@/components/consultation/WhatsAppCTA";
 import FAQStrip from "@/components/consultation/FAQStrip";
 
 export const metadata = {
-  title: "Free Consultation — Doel Education",
+  title: "Free Consultation  Doel Education",
   description:
     "Book your free 30-minute consultation with a Doel Education advisor and take the first step toward studying in the US.",
 };
@@ -14,7 +14,7 @@ export const metadata = {
 export default function ConsultationPage() {
   return (
     <main>
-      {/* Full-bleed hero — no horizontal padding */}
+      {/* Full-bleed hero  no horizontal padding */}
       <HeroSection />
 
       {/* All remaining sections use the same px-10 md:px-15 pattern as the home page */}

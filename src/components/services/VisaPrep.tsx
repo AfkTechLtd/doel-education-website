@@ -32,7 +32,7 @@ export default function VisaPrep() {
             Visa & Pre-Departure
           </h5>
           <h2 className="text-4xl md:text-5xl font-bold text-slate-900 mb-5">
-            Embassy prep to arrival — we stay with you
+            Embassy prep to arrival we stay with you
           </h2>
           <p className="text-gray-500 max-w-2xl mx-auto text-lg">
             A US student visa is not hard if you prepare correctly. We walk
