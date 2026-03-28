@@ -1,5 +1,6 @@
-import Link from "next/link";
 import { GraduationCap, CheckCircle2, Globe, ArrowRight } from "lucide-react";
+import PrimaryButton from "@/components/common/PrimaryButton";
+import OutlineButton from "@/components/common/OutlineButton";
 
 type University = {
   name: string;
@@ -87,20 +88,6 @@ const Hero = () => {
   return (
     <>
       <style>{`
-        @keyframes orbit-cw  { from { transform: rotate(0deg);   } to { transform: rotate(360deg);  } }
-        @keyframes orbit-ccw { from { transform: rotate(0deg);   } to { transform: rotate(-360deg); } }
-
-        @keyframes fade-up {
-          from { opacity: 0; transform: translateY(28px); }
-          to   { opacity: 1; transform: translateY(0);    }
-        }
-        .fu  { opacity: 0; animation: fade-up .75s ease forwards; }
-        .d1  { animation-delay: .10s; }
-        .d2  { animation-delay: .25s; }
-        .d3  { animation-delay: .40s; }
-        .d4  { animation-delay: .55s; }
-        .d5  { animation-delay: .70s; }
-
         .stat-pill {
           background: rgba(255,255,255,0.10);
           border: 1px solid rgba(255,255,255,0.22);
@@ -193,28 +180,15 @@ const Hero = () => {
 
                 {/* CTAs */}
                 <div className="fu d3 flex flex-col sm:flex-row gap-3">
-                  <Link
+                  <PrimaryButton
                     href="/consultation"
-                    className="inline-flex items-center justify-center gap-2 rounded-2xl px-8 py-4 text-sm font-bold font-inter transition-all duration-200 hover:-translate-y-0.5 hover:brightness-110 shadow-lg"
-                    style={{
-                      backgroundColor: "var(--color-secondary,#f5c842)",
-                      color: "#1a1a1a",
-                    }}
+                    rightIcon={<ArrowRight size={16} />}
                   >
                     Book a Free Session
-                    <ArrowRight size={16} />
-                  </Link>
-                  <Link
-                    href="/universities"
-                    className="inline-flex items-center justify-center gap-2 rounded-2xl px-8 py-4 text-sm font-semibold text-white font-inter transition-all duration-200 hover:-translate-y-0.5"
-                    style={{
-                      border: "1.5px solid rgba(255,255,255,0.35)",
-                      background: "rgba(255,255,255,0.08)",
-                      backdropFilter: "blur(8px)",
-                    }}
-                  >
+                  </PrimaryButton>
+                  <OutlineButton href="/universities">
                     Explore Universities
-                  </Link>
+                  </OutlineButton>
                 </div>
 
                 {/* Stats */}

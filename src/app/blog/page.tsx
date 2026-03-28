@@ -17,6 +17,7 @@ import {
     ChevronRight,
     ChevronLeft
 } from 'lucide-react';
+import HeroSection, { HeroContent, HeroSubTitle, HeroTitle, HeroTopTitle } from "@/components/common/HeroSection";
 
 const topPicks = [
     {
@@ -95,37 +96,49 @@ const BlogPage = () => {
         <div className="bg-[#fcfdfd] min-h-screen font-sans selection:bg-primary/10">
 
             {/* 01. ELITE HERO SECTION */}
-            <section className="relative pt-24 pb-10 bg-[radial-gradient(circle_at_top_right,_#f0f9ff_0%,_transparent_50%)] overflow-hidden">
+            <HeroSection align="left" minHeightClassName="min-h-[56vh]">
                 <motion.div
                     initial="hidden"
                     animate="visible"
                     variants={staggerContainer}
-                    className="max-w-7xl mx-auto px-6 text-center relative z-10"
+                    className="relative z-10"
                 >
-                    <motion.h5 variants={fadeInUp} className="text-secondary font-bold tracking-[0.3em] uppercase text-xs mb-4">
-                        Learning Hub
-                    </motion.h5>
-                    <motion.h2 variants={fadeInUp} className="text-5xl md:text-7xl font-black text-slate-900 tracking-tight mb-6">
-                        Expert Insights. <span className="text-primary italic font-serif">Global Impact.</span>
-                    </motion.h2>
-                    <motion.p variants={fadeInUp} className="text-gray-500 max-w-2xl mx-auto text-lg leading-relaxed mb-10">
-                        Explore our latest research and guides on navigating international education and career success.
-                    </motion.p>
-
-                    {/* Integrated Search */}
-                    <motion.div variants={fadeInUp} className="max-w-xl mx-auto flex gap-4 p-2 bg-white rounded-full shadow-2xl shadow-primary/5 border border-slate-100 focus-within:ring-2 focus-within:ring-primary/10 transition-all">
-                        <div className="pl-6 flex items-center text-slate-400">
-                            <Search size={20} />
-                        </div>
-                        <input
-                            type="text"
-                            placeholder="Search articles..."
-                            className="w-full pr-4 py-3 outline-none text-slate-800 bg-transparent placeholder:text-slate-300"
-                        />
-                        <button className="bg-secondary hover:bg-secondary/90 transition-all text-white font-bold px-8 py-3 rounded-full active:scale-95 shadow-lg shadow-secondary/20">
-                            Search
-                        </button>
+                    <motion.div variants={fadeInUp}>
+                        <HeroTopTitle className="mb-4">Learning Hub</HeroTopTitle>
                     </motion.div>
+                    <HeroContent>
+                        <motion.div variants={fadeInUp}>
+                            <HeroTitle className="text-5xl md:text-6xl mb-6 max-w-3xl">
+                                Expert Insights. <span className="text-secondary">Global Impact.</span>
+                            </HeroTitle>
+                        </motion.div>
+                        <motion.div variants={fadeInUp}>
+                            <HeroSubTitle className="max-w-2xl text-lg text-white/85">
+                                Explore our latest research and guides on navigating international education and career success.
+                            </HeroSubTitle>
+                        </motion.div>
+                    </HeroContent>
+                </motion.div>
+            </HeroSection>
+
+            <section className="max-w-7xl mx-auto px-6 pt-8 pb-2">
+                <motion.div
+                    initial="hidden"
+                    animate="visible"
+                    variants={fadeInUp}
+                    className="max-w-xl flex gap-4 p-2 bg-white rounded-full shadow-2xl shadow-primary/5 border border-slate-100 focus-within:ring-2 focus-within:ring-primary/10 transition-all"
+                >
+                    <div className="pl-6 flex items-center text-slate-400">
+                        <Search size={20} />
+                    </div>
+                    <input
+                        type="text"
+                        placeholder="Search articles..."
+                        className="w-full pr-4 py-3 outline-none text-slate-800 bg-transparent placeholder:text-slate-300"
+                    />
+                    <button className="bg-secondary hover:bg-secondary/90 transition-all text-white font-bold px-8 py-3 rounded-full active:scale-95 shadow-lg shadow-secondary/20">
+                        Search
+                    </button>
                 </motion.div>
             </section>
 
