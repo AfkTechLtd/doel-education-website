@@ -1,77 +1,34 @@
 "use client";
 
-const stats = [
-  {
-    icon: Users,
-    value: "1,200+",
-    label: "Total Attendees",
-    sub: "across all sessions",
-  },
-  {
-    icon: Mic2,
-    value: "35",
-    label: "Sessions in 2025",
-    sub: "online & in-person",
-  },
-  {
-    icon: MapPinned,
-    value: "12",
-    label: "Cities Reached",
-    sub: "across Bangladesh",
-  },
-  {
-    icon: Star,
-    value: "4.9",
-    label: "Avg. Rating",
-    sub: "from post-event surveys",
-  },
-];
+import { MapPinned, Mic2, Star, Users } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import AnimatedNumber from "@/components/Home/HomeAnimationNumber";
 
 const stats = [
   {
+    icon: Users,
     value: 1200,
     suffix: "+",
     label: "Event Attendees",
     sub: "Across webinars and seminars",
   },
   {
-    number: "01",
-    title: "Fall 2025 US Admissions Masterclass",
-    date: "Jan 18, 2025",
-    attendees: "340 attendees",
-    outcome:
-      "Students left with a personalised 6-university shortlist framework.",
-  },
-  {
-    number: "02",
-    title: "Visa Interview Prep  Live Mock Session",
-    date: "Feb 8, 2025",
-    attendees: "215 attendees",
-    outcome:
-      "92% of participants reported higher confidence before their embassy appointment.",
-  },
-  {
-    number: "03",
-    title: "Scholarship Deep-Dive: Fulbright & Beyond",
-    date: "Mar 1, 2025",
-    attendees: "180 attendees",
-    outcome:
-      "Covered 14 funding sources specific to Bangladeshi graduate applicants.",
+    icon: Mic2,
     value: 35,
     suffix: "",
     label: "Sessions Hosted",
     sub: "Online and in-person",
   },
   {
+    icon: MapPinned,
     value: 12,
     suffix: "",
     label: "Cities Reached",
     sub: "Across Bangladesh",
   },
   {
-    value: 4,
+    icon: Star,
+    value: 5,
     suffix: "/5",
     label: "Average Rating",
     sub: "Based on post-event feedback",
@@ -126,7 +83,7 @@ export default function EventHighlights() {
         </div>
 
         <div className="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-4">
-          {stats.map(({ value, suffix, label, sub }, index) => (
+          {stats.map(({ icon: Icon, value, suffix, label, sub }, index) => (
             <div
               key={label}
               className={`relative flex flex-col items-center justify-center overflow-hidden rounded-2xl border px-4 py-8 text-center transition-all duration-300 hover:-translate-y-1 hover:shadow-lg sm:py-10 ${
@@ -139,6 +96,11 @@ export default function EventHighlights() {
                 className={`absolute -right-6 -top-6 h-20 w-20 rounded-full opacity-10 ${
                   index === 0 ? "bg-white" : "bg-primary"
                 }`}
+              />
+
+              <Icon
+                size={18}
+                className={`mb-3 ${index === 0 ? "text-white/90" : "text-primary"}`}
               />
 
               <p
