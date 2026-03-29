@@ -17,23 +17,6 @@ interface PillButtonProps {
   style?: CSSProperties;
 }
 
-/*************  ✨ Windsurf Command ⭐  *************/
-/**
- * A pill button component with a glassmorphism effect.
- *
- * @param {ReactNode} [children] - The content of the button.
- * @param {boolean} [isLink=true] - Whether the button is a link or not.
- * @param {string} [href="/consultation"] - The href of the link if isLink is true.
- * @param {string} [label="Get Free Consultation"] - The label of the button.
- * @param {MouseEventHandler<HTMLButtonElement>} [onClick] - The click handler of the button.
- * @param {"button" | "submit" | "reset"} [type="button"] - The type of the button.
- * @param {boolean} [disabled=false] - Whether the button is disabled or not.
- * @param {ReactNode} [leftIcon] - The left icon of the button.
- * @param {ReactNode} [rightIcon] - The right icon of the button.
- * @param {string} [wrapperClassName="hidden md:block shrink-0"] - The class name of the wrapper element.
- * @param {string} [className] - The class name of the button.
-
-/*******  ee80cb4b-ac1c-4f90-9326-4f626e55e68d  *******/
 export default function PillButton({
   children,
   isLink = true,

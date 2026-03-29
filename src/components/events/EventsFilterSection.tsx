@@ -2,13 +2,15 @@
 
 import { useState } from "react";
 import EventTypeChips from "./EventTypeChips";
-import UpcomingEventsGrid, { events, type EventType } from "./UpcomingEventsGrid";
+import UpcomingEventsGrid, { events, type EventFilter } from "./UpcomingEventsGrid";
 
 export default function EventsFilterSection() {
-  const [active, setActive] = useState<EventType>("All");
+  const [active, setActive] = useState<EventFilter>("All");
 
   const visibleCount =
-    active === "All" ? events.length : events.filter((e) => e.type === active).length;
+    active === "All"
+      ? events.length
+      : events.filter((event) => event.status === active).length;
 
   return (
     <>

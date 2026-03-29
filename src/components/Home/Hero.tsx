@@ -1,6 +1,9 @@
+"use client";
+
 import { GraduationCap, CheckCircle2, Globe, ArrowRight } from "lucide-react";
 import PrimaryButton from "@/components/common/PrimaryButton";
 import OutlineButton from "@/components/common/OutlineButton";
+import { useInquiryModal } from "@/components/common/InquiryModalProvider";
 
 type University = {
   name: string;
@@ -85,6 +88,8 @@ function OrbitRing({ items, diameter, duration, cw = true }: OrbitRingProps) {
 }
 
 const Hero = () => {
+  const { openModal } = useInquiryModal();
+
   return (
     <>
       <style>{`
@@ -181,7 +186,8 @@ const Hero = () => {
                 {/* CTAs */}
                 <div className="fu d3 flex flex-col sm:flex-row gap-3">
                   <PrimaryButton
-                    href="/consultation"
+                    isLink={false}
+                    onClick={openModal}
                     rightIcon={<ArrowRight size={16} />}
                   >
                     Book a Free Session

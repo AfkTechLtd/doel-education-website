@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import InquiryTriggerButton from "@/components/common/InquiryTriggerButton";
 
 const HomeCTA = () => {
   return (
@@ -105,13 +106,12 @@ const HomeCTA = () => {
 
               {/* CTA buttons */}
               <div className="space-y-3">
-                <Link
-                  href="/consultation"
+                <InquiryTriggerButton
                   className="w-full flex items-center justify-center gap-2 rounded-xl py-3.5 text-sm font-semibold font-inter transition-all duration-200 hover:opacity-90 hover:-translate-y-px bg-secondary text-primary"
                 >
                   Book Free Consultation
                   <span className="text-base">→</span>
-                </Link>
+                </InquiryTriggerButton>
 
                 <Link
                   href="/services"
@@ -127,13 +127,12 @@ const HomeCTA = () => {
             </div>
           </div>
           <div className="md:hidden block space-y-3">
-            <Link
-              href="/consultation"
+            <InquiryTriggerButton
               className="w-full flex items-center justify-center gap-2 rounded-xl py-3.5 text-sm font-semibold font-inter transition-all duration-200 hover:opacity-90 hover:-translate-y-px bg-secondary text-primary"
             >
               Book Free Consultation
               <span className="text-base">→</span>
-            </Link>
+            </InquiryTriggerButton>
 
             <Link
               href="/services"
