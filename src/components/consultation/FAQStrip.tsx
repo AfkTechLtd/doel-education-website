@@ -6,7 +6,7 @@ import { ChevronDown } from "lucide-react";
 const faqs = [
   {
     q: "Is the consultation really free?",
-    a: "Yes — 100% free, no strings attached. We believe every student deserves honest guidance before committing to anything.",
+    a: "Yes  100% free, no strings attached. We believe every student deserves honest guidance before committing to anything.",
   },
   {
     q: "Who will I be speaking with?",

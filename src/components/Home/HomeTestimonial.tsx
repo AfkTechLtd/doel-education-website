@@ -7,7 +7,7 @@ import { FreeMode } from "swiper/modules";
 import "swiper/css";
 import { Play } from "lucide-react";
 
-// ── Data — replace with real Shorts URLs ─────────────────────────────────────
+// ── Data  replace with real Shorts URLs ─────────────────────────────────────
 const testimonials = [
   {
     id: 1,
@@ -36,7 +36,7 @@ const testimonials = [
   {
     id: 4,
     shortsUrl: "https://youtube.com/shorts/WIUXJw2q7YE?si=AvTBCAoi6oiv3xqA",
-    caption: "Best decision —",
+    caption: "Best decision ",
     highlight: "NYU",
     name: "Rifat Hossain",
     tag: "BS Economics · 2023",
@@ -73,12 +73,12 @@ function TestimonialCard({
       }}
       className="group w-full"
     >
-      {/* Portrait shell — 9:16 */}
+      {/* Portrait shell  9:16 */}
       <div
         className="relative w-full overflow-hidden rounded-2xl shadow-xl border border-slate-100"
         style={{ aspectRatio: "9/16" }}
       >
-        {/* iframe — switches src on play */}
+        {/* iframe  switches src on play */}
         <iframe
           key={playing ? "play" : "preview"}
           className="absolute inset-0 w-full h-full scale-[1.02]"
@@ -89,7 +89,7 @@ function TestimonialCard({
           loading="lazy"
         />
 
-        {/* Overlays — hidden once playing */}
+        {/* Overlays  hidden once playing */}
         {!playing && (
           <>
             {/* Click capture + gradient overlays */}
@@ -150,7 +150,7 @@ const StakeHolderTestimonials = () => {
   const inView = useInView(headingRef, { once: true, margin: "-80px" });
 
   return (
-    <section className="py-20 overflow-hidden">
+    <section className="py-16 sm:py-20 lg:py-24 overflow-hidden">
       {/* Header */}
       <div ref={headingRef} className="text-center mb-14">
         <motion.div

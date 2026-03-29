@@ -1,14 +1,14 @@
 const testimonials = [
   {
     name: "Tasnim Akter",
-    intake: "Fall 2024 — University of Texas",
+    intake: "Fall 2024  University of Texas",
     text: "I came in with zero idea where to start. In 30 minutes my advisor laid out exactly which schools fit my GPA and budget. That one session saved me months of confusion.",
     initials: "TA",
   },
   {
     name: "Rafiul Hasan",
-    intake: "Spring 2025 — Arizona State University",
-    text: "I was scared the process was too complicated. The consultant broke it down step by step. Honest, no pressure — just real guidance. I applied to 3 schools and got into 2.",
+    intake: "Spring 2025  Arizona State University",
+    text: "I was scared the process was too complicated. The consultant broke it down step by step. Honest, no pressure  just real guidance. I applied to 3 schools and got into 2.",
     initials: "RH",
   },
 ];

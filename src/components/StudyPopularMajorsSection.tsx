@@ -284,7 +284,7 @@ export default function PopularMajors() {
             <p className="font-inter text-slate-500 text-sm leading-relaxed mt-4 max-w-lg">
               Based on 2024 Open Doors data and our placement history with
               Bangladeshi students. Admission rates, funding availability, and
-              OPT eligibility — all in one view.
+              OPT eligibility all in one view.
             </p>
           </div>
 

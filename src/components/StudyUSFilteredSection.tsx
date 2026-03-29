@@ -1,7 +1,16 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import { Search, X, MapPin, Clock, GraduationCap, BookOpen, ChevronDown, SlidersHorizontal } from "lucide-react";
+import {
+  Search,
+  X,
+  MapPin,
+  Clock,
+  GraduationCap,
+  BookOpen,
+  ChevronDown,
+  SlidersHorizontal,
+} from "lucide-react";
 
 // ─── Types ─────────────────────────────────────────────────────────────────
 type StudyLevel = "Undergraduate" | "Graduate" | "Doctorate";
@@ -367,13 +376,19 @@ const INTAKES: Intake[] = ["Fall 2025", "Spring 2026", "Fall 2026"];
 const BADGE: Record<string, { bg: string; text: string }> = {
   "Top Ranked": { bg: "#EDE9FE", text: "#5B21B6" },
   "High Demand": { bg: "#FEF3C7", text: "#92400E" },
-  "Best Value":  { bg: "#D1FAE5", text: "#065F46" },
-  "Creative":    { bg: "#FCE7F3", text: "#9D174D" },
+  "Best Value": { bg: "#D1FAE5", text: "#065F46" },
+  Creative: { bg: "#FCE7F3", text: "#9D174D" },
 };
 
 // ─── Sub-components ────────────────────────────────────────────────────────
 
-function FilterChip({ label, onRemove }: { label: string; onRemove: () => void }) {
+function FilterChip({
+  label,
+  onRemove,
+}: {
+  label: string;
+  onRemove: () => void;
+}) {
   return (
     <span
       className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold cursor-pointer transition-opacity hover:opacity-80"
@@ -388,9 +403,7 @@ function FilterChip({ label, onRemove }: { label: string; onRemove: () => void }
 function CourseCard({ course }: { course: Course }) {
   const badge = course.highlight ? BADGE[course.highlight] : null;
   return (
-    <div
-      className="flex flex-col sm:flex-row gap-0 rounded-2xl overflow-hidden border border-slate-100 bg-white hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200 cursor-pointer group"
-    >
+    <div className="flex flex-col sm:flex-row gap-0 rounded-2xl overflow-hidden border border-slate-100 bg-white hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200 cursor-pointer group">
       {/* Left accent bar */}
       <div
         className="w-full sm:w-1.5 h-1.5 sm:h-auto flex-shrink-0 rounded-t-2xl sm:rounded-l-2xl sm:rounded-tr-none"
@@ -414,7 +427,10 @@ function CourseCard({ course }: { course: Course }) {
             </h3>
             {/* University + location */}
             <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-0.5">
-              <span className="text-xs font-semibold" style={{ color: facultyColor(course.faculty) }}>
+              <span
+                className="text-xs font-semibold"
+                style={{ color: facultyColor(course.faculty) }}
+              >
                 {course.university}
               </span>
               <span className="flex items-center gap-1 text-xs text-slate-400">
@@ -435,7 +451,10 @@ function CourseCard({ course }: { course: Course }) {
 
         {/* Meta row */}
         <div className="mt-4 flex flex-wrap gap-2">
-          <MetaPill icon={<GraduationCap size={12} />} label={course.studyLevel} />
+          <MetaPill
+            icon={<GraduationCap size={12} />}
+            label={course.studyLevel}
+          />
           <MetaPill icon={<Clock size={12} />} label={course.duration} />
           <MetaPill icon={<BookOpen size={12} />} label={course.intake} />
           <MetaPill
@@ -449,12 +468,19 @@ function CourseCard({ course }: { course: Course }) {
       {/* Right: ranking + CTA */}
       <div className="flex sm:flex-col items-center sm:items-end justify-between sm:justify-center gap-3 px-5 py-4 sm:border-l border-t sm:border-t-0 border-slate-100 sm:min-w-[148px]">
         <div className="text-right">
-          <p className="text-[10px] text-slate-400 font-medium uppercase tracking-wider">QS Ranking</p>
-          <p className="text-xs font-bold text-slate-700 mt-0.5">{course.ranking}</p>
+          <p className="text-[10px] text-slate-400 font-medium uppercase tracking-wider">
+            QS Ranking
+          </p>
+          <p className="text-xs font-bold text-slate-700 mt-0.5">
+            {course.ranking}
+          </p>
         </div>
         <button
           className="px-4 py-2 rounded-xl text-xs font-bold transition-all duration-200 hover:opacity-90 active:scale-95"
-          style={{ backgroundColor: facultyColor(course.faculty) + "18", color: facultyColor(course.faculty) }}
+          style={{
+            backgroundColor: facultyColor(course.faculty) + "18",
+            color: facultyColor(course.faculty),
+          }}
         >
           View Details
         </button>
@@ -463,7 +489,15 @@ function CourseCard({ course }: { course: Course }) {
   );
 }
 
-function MetaPill({ icon, label, muted = true }: { icon: React.ReactNode; label: string; muted?: boolean }) {
+function MetaPill({
+  icon,
+  label,
+  muted = true,
+}: {
+  icon: React.ReactNode;
+  label: string;
+  muted?: boolean;
+}) {
   return (
     <span
       className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium"
@@ -480,13 +514,13 @@ function MetaPill({ icon, label, muted = true }: { icon: React.ReactNode; label:
 
 function facultyColor(faculty: string): string {
   const map: Record<string, string> = {
-    "Business & Management":  "#1a3c5e",
-    "Computer Science & IT":  "#2563eb",
-    "Engineering":            "#7c3aed",
-    "Health & Medicine":      "#059669",
-    "Law & Social Sciences":  "#d97706",
-    "Natural Sciences":       "#0891b2",
-    "Arts & Humanities":      "#db2777",
+    "Business & Management": "#1a3c5e",
+    "Computer Science & IT": "#2563eb",
+    Engineering: "#7c3aed",
+    "Health & Medicine": "#059669",
+    "Law & Social Sciences": "#d97706",
+    "Natural Sciences": "#0891b2",
+    "Arts & Humanities": "#db2777",
   };
   return map[faculty] ?? "#1a3c5e";
 }
@@ -505,7 +539,7 @@ export default function CourseBrowser() {
 
   const allStates = useMemo(
     () => Array.from(new Set(COURSES.map((c) => c.state))).sort(),
-    []
+    [],
   );
 
   // Active filter chips (for display)
@@ -529,10 +563,14 @@ export default function CourseBrowser() {
 
   const filtered = useMemo(() => {
     return COURSES.filter((c) => {
-      if (activeFaculty !== "All Courses" && c.faculty !== activeFaculty) return false;
-      if (selectedLevels.length && !selectedLevels.includes(c.studyLevel)) return false;
-      if (selectedIntakes.length && !selectedIntakes.includes(c.intake)) return false;
-      if (selectedStates.length && !selectedStates.includes(c.state)) return false;
+      if (activeFaculty !== "All Courses" && c.faculty !== activeFaculty)
+        return false;
+      if (selectedLevels.length && !selectedLevels.includes(c.studyLevel))
+        return false;
+      if (selectedIntakes.length && !selectedIntakes.includes(c.intake))
+        return false;
+      if (selectedStates.length && !selectedStates.includes(c.state))
+        return false;
       if (query) {
         const q = query.toLowerCase();
         return (
@@ -554,13 +592,21 @@ export default function CourseBrowser() {
   };
 
   // Toggle helpers
-  const toggleLevel  = (l: StudyLevel) => setSelectedLevels((p) => p.includes(l) ? p.filter((x) => x !== l) : [...p, l]);
-  const toggleIntake = (i: Intake)     => setSelectedIntakes((p) => p.includes(i) ? p.filter((x) => x !== i) : [...p, i]);
-  const toggleState  = (s: string)     => setSelectedStates((p) => p.includes(s) ? p.filter((x) => x !== s) : [...p, s]);
+  const toggleLevel = (l: StudyLevel) =>
+    setSelectedLevels((p) =>
+      p.includes(l) ? p.filter((x) => x !== l) : [...p, l],
+    );
+  const toggleIntake = (i: Intake) =>
+    setSelectedIntakes((p) =>
+      p.includes(i) ? p.filter((x) => x !== i) : [...p, i],
+    );
+  const toggleState = (s: string) =>
+    setSelectedStates((p) =>
+      p.includes(s) ? p.filter((x) => x !== s) : [...p, s],
+    );
 
   return (
     <section className="py-16 px-4 max-w-7xl mx-auto">
-
       {/* ── Section Header ── */}
       <div className="mb-10">
         <div className="flex items-center gap-3 mb-3">
@@ -578,16 +624,16 @@ export default function CourseBrowser() {
               className="absolute -bottom-1 left-0 h-[2.5px] rounded-full bg-secondary"
               style={{ width: "100%" }}
             />
-          </span>
-          {" "}in the USA
+          </span>{" "}
+          in the USA
         </h2>
         <p className="mt-3 text-sm text-slate-400 max-w-lg">
-          Browse programs from America&apos;s top-ranked universities — filtered by faculty, level, intake, and state.
+          Browse programs from America&apos;s top-ranked universities filtered
+          by faculty, level, intake, and state.
         </p>
       </div>
 
       <div className="flex gap-6 items-start">
-
         {/* ════════════════════════════
             LEFT SIDEBAR (desktop)
             ════════════════════════════ */}
@@ -596,7 +642,10 @@ export default function CourseBrowser() {
             <div className="flex items-center justify-between mb-4">
               <span className="text-sm font-bold text-slate-700">Filters</span>
               {activeChips.length > 0 && (
-                <button onClick={resetAll} className="text-xs text-primary hover:underline">
+                <button
+                  onClick={resetAll}
+                  className="text-xs text-primary hover:underline"
+                >
                   Reset all
                 </button>
               )}
@@ -606,7 +655,11 @@ export default function CourseBrowser() {
             {activeChips.length > 0 && (
               <div className="flex flex-wrap gap-1.5 mb-4 pb-4 border-b border-slate-100">
                 {activeChips.map((chip) => (
-                  <FilterChip key={chip.label} label={chip.label} onRemove={chip.clear} />
+                  <FilterChip
+                    key={chip.label}
+                    label={chip.label}
+                    onRemove={chip.clear}
+                  />
                 ))}
               </div>
             )}
@@ -642,7 +695,6 @@ export default function CourseBrowser() {
             MAIN CONTENT
             ════════════════════════════ */}
         <div className="flex-1 min-w-0">
-
           {/* Search bar */}
           <div className="relative mb-5">
             <Search
@@ -680,16 +732,36 @@ export default function CourseBrowser() {
               )}
             </button>
             {activeChips.map((chip) => (
-              <FilterChip key={chip.label} label={chip.label} onRemove={chip.clear} />
+              <FilterChip
+                key={chip.label}
+                label={chip.label}
+                onRemove={chip.clear}
+              />
             ))}
           </div>
 
           {/* Mobile filter panel */}
           {showMobileFilters && (
             <div className="lg:hidden bg-white rounded-2xl border border-slate-100 shadow-sm p-4 mb-4">
-              <FilterSection title="Study Level" items={STUDY_LEVELS} selected={selectedLevels} onToggle={toggleLevel as (v: string) => void} />
-              <FilterSection title="Intake" items={INTAKES} selected={selectedIntakes} onToggle={toggleIntake as (v: string) => void} />
-              <FilterSection title="State" items={allStates} selected={selectedStates} onToggle={toggleState} collapsible />
+              <FilterSection
+                title="Study Level"
+                items={STUDY_LEVELS}
+                selected={selectedLevels}
+                onToggle={toggleLevel as (v: string) => void}
+              />
+              <FilterSection
+                title="Intake"
+                items={INTAKES}
+                selected={selectedIntakes}
+                onToggle={toggleIntake as (v: string) => void}
+              />
+              <FilterSection
+                title="State"
+                items={allStates}
+                selected={selectedStates}
+                onToggle={toggleState}
+                collapsible
+              />
             </div>
           )}
 
@@ -707,8 +779,10 @@ export default function CourseBrowser() {
                   style={
                     activeFaculty === f
                       ? {
-                          backgroundColor: f === "All Courses" ? "#1a3c5e" : facultyColor(f),
-                          borderColor: f === "All Courses" ? "#1a3c5e" : facultyColor(f),
+                          backgroundColor:
+                            f === "All Courses" ? "#1a3c5e" : facultyColor(f),
+                          borderColor:
+                            f === "All Courses" ? "#1a3c5e" : facultyColor(f),
                           color: "#fff",
                         }
                       : {
@@ -729,7 +803,8 @@ export default function CourseBrowser() {
             <h3 className="font-poppins font-bold text-slate-800 text-lg">
               Available Courses{" "}
               <span className="text-sm font-normal text-slate-400">
-                ({filtered.length} result{filtered.length !== 1 ? "s" : ""} found)
+                ({filtered.length} result{filtered.length !== 1 ? "s" : ""}{" "}
+                found)
               </span>
             </h3>
           </div>
@@ -744,8 +819,13 @@ export default function CourseBrowser() {
           ) : (
             <div className="text-center py-16 text-slate-400">
               <BookOpen size={36} className="mx-auto mb-3 opacity-30" />
-              <p className="text-sm font-medium">No courses match your filters.</p>
-              <button onClick={resetAll} className="mt-3 text-xs text-primary hover:underline">
+              <p className="text-sm font-medium">
+                No courses match your filters.
+              </p>
+              <button
+                onClick={resetAll}
+                className="mt-3 text-xs text-primary hover:underline"
+              >
                 Clear all filters
               </button>
             </div>
@@ -779,7 +859,9 @@ function FilterSection({
         onClick={() => setOpen((p) => !p)}
         className="w-full flex items-center justify-between mb-2.5 group"
       >
-        <span className="text-xs font-bold text-slate-600 uppercase tracking-wider">{title}</span>
+        <span className="text-xs font-bold text-slate-600 uppercase tracking-wider">
+          {title}
+        </span>
         <ChevronDown
           size={13}
           className={`text-slate-400 transition-transform duration-200 ${open ? "rotate-180" : ""}`}
@@ -804,7 +886,13 @@ function FilterSection({
               >
                 {checked && (
                   <svg width="9" height="7" viewBox="0 0 9 7" fill="none">
-                    <path d="M1 3.5L3.5 6L8 1" stroke="#fff" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                    <path
+                      d="M1 3.5L3.5 6L8 1"
+                      stroke="#fff"
+                      strokeWidth="1.5"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
                   </svg>
                 )}
               </span>

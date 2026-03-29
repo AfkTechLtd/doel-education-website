@@ -47,14 +47,13 @@ const CARDS = [
   {
     heading: "Ethical, Student-First Advice",
     icon: Award,
-    content:
-      "We recommend what's right for you, not what's easier for us.",
+    content: "We recommend what's right for you, not what's easier for us.",
   },
 ];
 
 const HomeAbout = () => {
   return (
-    <section className="py-20 md:py-24">
+    <section className="py-16 sm:py-20 lg:py-24">
       <div className="grid items-center gap-14 md:grid-cols-[1fr_1.3fr]">
         {/* ── LEFT: Visual panel ── */}
         <div className="relative mx-auto w-full max-w-sm md:max-w-full">
@@ -70,7 +69,7 @@ const HomeAbout = () => {
             />
           </div>
 
-          {/* Floating chip — bottom left */}
+          {/* Floating chip  bottom left */}
           <div className="absolute -bottom-5 left-5 flex items-center gap-3 rounded-2xl bg-white px-4 py-3 shadow-xl border border-slate-100">
             <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-primary/10">
               <Users size={16} className="text-primary" />
@@ -85,7 +84,7 @@ const HomeAbout = () => {
             </div>
           </div>
 
-          {/* Floating chip — top right */}
+          {/* Floating chip  top right */}
           <div className="absolute -top-5 right-5 flex items-center gap-3 rounded-2xl bg-primary px-4 py-3 shadow-xl">
             <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-white/15">
               <Globe size={16} className="text-white" />
@@ -117,9 +116,9 @@ const HomeAbout = () => {
               WHO WE ARE
             </h2>
             <p className="max-w-2xl text-sm sm:text-base leading-relaxed text-slate-500 font-inter">
-              DGS is a Dhaka-based Master&apos;s program study abroad consultancy with
-              one focus: helping Bangladeshi students build a life and career
-              in the United States.
+              DGS is a Dhaka-based Master&apos;s program study abroad
+              consultancy with one focus: helping Bangladeshi students build a
+              life and career in the United States.
             </p>
             <p className="max-w-2xl text-sm  leading-relaxed text-slate-500 font-inter">
               We are officially authorized by internationally ranked US
@@ -127,8 +126,8 @@ const HomeAbout = () => {
               their Master&apos;s programs. No middlemen. No guesswork.
             </p>
             <p className="max-w-2xl text-sm  leading-relaxed text-slate-500 font-inter">
-              From your first free assessment to the day you land in America,
-              we handle everything, so you don&apos;t have to figure it out alone.
+              From your first free assessment to the day you land in America, we
+              handle everything, so you don&apos;t have to figure it out alone.
             </p>
           </div>
 

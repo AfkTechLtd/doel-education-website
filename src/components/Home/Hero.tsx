@@ -7,19 +7,18 @@ import { useInquiryModal } from "@/components/common/InquiryModalProvider";
 
 type University = {
   name: string;
-  abbr: string;
-  color: string;
+  logo: string;
 };
 
 const universities: University[] = [
-  { name: "Harvard University", abbr: "H", color: "#A51C30" },
-  { name: "MIT", abbr: "MIT", color: "#A31F34" },
-  { name: "Stanford University", abbr: "S", color: "#8C1515" },
-  { name: "Yale University", abbr: "Y", color: "#00356B" },
-  { name: "Columbia University", abbr: "CU", color: "#003087" },
-  { name: "NYU", abbr: "NYU", color: "#57068C" },
-  { name: "UCLA", abbr: "UCLA", color: "#2774AE" },
-  { name: "University of Michigan", abbr: "UM", color: "#00274C" },
+  { name: "Harvard University", logo: "/home/unis/harvard.svg" },
+  { name: "MIT", logo: "/home/unis/mit.svg" },
+  { name: "Stanford University", logo: "/home/unis/stanford.svg" },
+  { name: "Yale University", logo: "/home/unis/yale.svg" },
+  { name: "Columbia University", logo: "/home/unis/columbia.svg" },
+  { name: "NYU", logo: "/home/unis/nyu.svg" },
+  { name: "UCLA", logo: "/home/unis/ucla.svg" },
+  { name: "University of Michigan", logo: "/home/unis/umich.svg" },
 ];
 
 const innerRing = universities.slice(0, 4);
@@ -49,8 +48,8 @@ function OrbitRing({ items, diameter, duration, cw = true }: OrbitRingProps) {
       {items.map((uni, i) => {
         const angle = (i / items.length) * 360;
         const rad = (angle * Math.PI) / 180;
-        const cx = r + r * Math.sin(rad) - 56;
-        const cy = r - r * Math.cos(rad) - 22;
+        const cx = r + r * Math.sin(rad) - 65;
+        const cy = r - r * Math.cos(rad) - 26;
         return (
           <div
             key={uni.name}
@@ -62,22 +61,22 @@ function OrbitRing({ items, diameter, duration, cw = true }: OrbitRingProps) {
             }}
           >
             <div
-              className="flex items-center gap-2 rounded-xl px-3 py-2 shadow-lg"
+              className="flex items-center gap-2 rounded-xl px-2.5 py-2 shadow-md"
               style={{
-                width: 118,
-                background: "rgba(255,255,255,0.13)",
-                border: "1px solid rgba(255,255,255,0.28)",
-                backdropFilter: "blur(14px)",
-                WebkitBackdropFilter: "blur(14px)",
+                width: 130,
+                background: "#ffffff",
+                opacity:".95",
+                border: "1px solid rgba(0,0,0,0.08)",
               }}
             >
-              <div
-                className="flex-shrink-0 w-7 h-7 rounded-lg flex items-center justify-center text-white font-black"
-                style={{ backgroundColor: uni.color, fontSize: "8px" }}
-              >
-                {uni.abbr}
+              <div className="flex-shrink-0 w-8 h-8 rounded-lg bg-gray-50 border border-gray-100 flex items-center justify-center overflow-hidden">
+                <img
+                  src={uni.logo}
+                  alt={uni.name}
+                  style={{ width: 28, height: 28, objectFit: "contain" }}
+                />
               </div>
-              <span className="text-[9px] font-semibold text-white leading-tight line-clamp-2">
+              <span className="text-[8.5px] font-semibold text-gray-800 leading-tight line-clamp-2">
                 {uni.name}
               </span>
             </div>
@@ -104,9 +103,9 @@ const Hero = () => {
         .stat-pill:hover { background: rgba(255,255,255,0.18); transform: translateY(-2px); }
       `}</style>
 
-      {/* ── Full-viewport section ── */}
+      {/* Full-viewport section */}
       <section className="relative w-full min-h-screen flex items-center overflow-hidden">
-        {/* ── Background image ── */}
+        {/* Background image */}
         <img
           src="/study/hero-campus.png"
           alt=""
@@ -115,7 +114,7 @@ const Hero = () => {
           style={{ zIndex: 0 }}
         />
 
-        {/* ── Primary colour overlay ── */}
+        {/* Primary colour overlay */}
         <div
           className="absolute inset-0"
           style={{
@@ -125,7 +124,7 @@ const Hero = () => {
           }}
         />
 
-        {/* ── Bottom vignette ── */}
+        {/* Bottom vignette */}
         <div
           className="absolute inset-x-0 bottom-0 h-48 pointer-events-none"
           style={{
@@ -135,31 +134,24 @@ const Hero = () => {
           }}
         />
 
-        {/* ── Content ── */}
+        {/* Content */}
         <div className="relative w-full" style={{ zIndex: 10 }}>
-          {/* Use your existing container class — adjust if yours differs */}
           <div className="mx-auto max-w-7xl px-6 lg:px-12">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-10 items-center py-20 md:py-0 md:min-h-screen">
               {/* LEFT */}
               <div className="space-y-8 order-2 md:order-1">
                 {/* Eyebrow */}
-                <div className="fu d1 flex items-center gap-3">
+                <div className="flex items-center gap-3">
                   <div
-                    className="flex items-center gap-2 rounded-full px-4 py-1.5"
+                    className="inline-flex items-center gap-2 rounded-full px-3.5 py-1.5"
                     style={{
-                      background: "rgba(255,255,255,0.12)",
-                      border: "1px solid rgba(255,255,255,0.25)",
-                      backdropFilter: "blur(8px)",
+                      border: "0.5px solid rgba(255,255,255,0.35)",
                     }}
                   >
-                    <span className="h-1.5 w-1.5 rounded-full bg-secondary animate-pulse" />
-                    <span className="text-xs font-semibold tracking-widest uppercase font-inter text-white/90">
+                    <span className="text-xs font-semibold tracking-widest uppercase font-inter text-white/70">
                       Est. 2008
                     </span>
                   </div>
-                  <span className="hidden sm:block text-xs text-white/50 font-inter">
-                    16 years of excellence
-                  </span>
                 </div>
 
                 {/* Headline */}
@@ -226,7 +218,7 @@ const Hero = () => {
                 </div>
               </div>
 
-              {/* RIGHT — orbit */}
+              {/* RIGHT  orbit */}
               <div className="fu d5 order-1 md:order-2 flex items-center justify-center md:justify-end">
                 <div
                   className="relative flex items-center justify-center"

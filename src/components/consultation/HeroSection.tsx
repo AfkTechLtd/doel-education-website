@@ -13,7 +13,7 @@ export default function HeroSection() {
           priority
           className="object-cover"
         />
-        {/* Primary overlay — same as study-in-us */}
+        {/* Primary overlay  same as study-in-us */}
         <div className="absolute inset-0 bg-primary/65" />
       </div>
 
@@ -28,7 +28,7 @@ export default function HeroSection() {
         </h1>
         <p className="mt-6 text-lg max-w-xl text-white/85 font-semibold">
           Get a straight answer on which US universities fit your profile,
-          budget, and timeline — in a single 30-minute session.
+          budget, and timeline in a single 30-minute session.
         </p>
       </div>
     </section>

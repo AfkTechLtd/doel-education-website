@@ -10,7 +10,14 @@ import {
 type EventMode = "Online" | "In-Person" | "Hybrid";
 type EventCategory = "Webinar" | "Visa Session" | "Seminar" | "Workshop";
 
-export type EventFilter = "All" | "Past Events" | "Upcoming Events";
+export type EventType =
+  | "All"
+  | "Webinar"
+  | "Visa Session"
+  | "Seminar"
+  | "Workshop";
+
+export type EventFilter = "All" | "Upcoming Events" | "Past Events";
 
 export interface EventItem {
   id: number;

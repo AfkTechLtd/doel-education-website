@@ -9,14 +9,15 @@ import InquiryTriggerButton from "@/components/common/InquiryTriggerButton";
 
 const rows: {
   label: string;
-  other: string | null;   // null = not provided / doesn't exist
+  other: string | null; // null = not provided / doesn't exist
   dgs: string;
-  exclusive?: boolean;    // highlight badge on DGS side
+  exclusive?: boolean; // highlight badge on DGS side
 }[] = [
   {
     label: "University Destinations",
     other: "10–15 countries, scattered focus",
     dgs: "USA focused only",
+    exclusive: true,
   },
   {
     label: "University Authorization",
@@ -25,25 +26,15 @@ const rows: {
     exclusive: true,
   },
   {
-    label: "I-20 Guarantee",
-    other: null,
-    dgs: "Guaranteed in writing",
-    exclusive: true,
-  },
-  {
     label: "Visa Preparation",
     other: "One generic mock session",
     dgs: "Multiple rounds, real embassy questions",
+    exclusive: true,
   },
   {
     label: "Post-Visa Support",
     other: "File closed after visa approval",
     dgs: "Full support until you settle in America",
-  },
-  {
-    label: "Airport Pickup",
-    other: null,
-    dgs: "Arranged before you land",
     exclusive: true,
   },
   {
@@ -53,49 +44,73 @@ const rows: {
     exclusive: true,
   },
   {
-    label: "Global SIM Card",
-    other: null,
-    dgs: "Ready on arrival",
-  },
-  {
-    label: "Health Insurance",
-    other: null,
-    dgs: "Active from day one",
-  },
-  {
-    label: "Bank Account Support",
-    other: null,
-    dgs: "Full guidance included",
-  },
-  {
-    label: "Part-Time Job Assistance",
-    other: null,
-    dgs: "Legal opportunities arranged",
-  },
-  {
-    label: "Internship Placement",
-    other: null,
-    dgs: "Connected before you graduate",
-  },
-  {
-    label: "Job Within 6 Months",
-    other: null,
-    dgs: "CPT & work authorization guidance included",
-  },
-  {
     label: "Free Assessment",
     other: "Paid consultation",
     dgs: "100% free, no obligation",
+    exclusive: true,
   },
   {
     label: "Transparent Pricing",
     other: "Hidden fees at every stage",
     dgs: "One fee, zero surprises",
+    exclusive: true,
+  },
+  {
+    label: "I-20 Guarantee",
+    other: null,
+    dgs: "Guaranteed in writing",
+    exclusive: true,
+  },
+
+  {
+    label: "Airport Pickup",
+    other: null,
+    dgs: "Arranged before you land",
+
+    exclusive: true,
+  },
+
+  {
+    label: "Global SIM Card",
+    other: null,
+    dgs: "Ready on arrival",
+    exclusive: true,
+  },
+  {
+    label: "Health Insurance",
+    other: null,
+    dgs: "Active from day one",
+    exclusive: true,
+  },
+  {
+    label: "Bank Account Support",
+    other: null,
+    dgs: "Full guidance included",
+    exclusive: true,
+  },
+  {
+    label: "Part-Time Job Assistance",
+    other: null,
+    dgs: "Legal opportunities arranged",
+    exclusive: true,
+  },
+  {
+    label: "Internship Placement",
+    other: null,
+    dgs: "Connected before you graduate",
+    exclusive: true,
+  },
+  {
+    label: "Job Within 6 Months",
+    other: null,
+    dgs: "CPT & work authorization guidance included",
+    exclusive: true,
   },
   {
     label: "Departure Gift",
     other: null,
     dgs: "Because you deserve a proper send-off",
+    exclusive: true,
   },
 ];
 
@@ -104,7 +119,7 @@ export default function USPSection() {
   const inView = useInView(ref, { once: true, margin: "-80px" });
 
   return (
-    <section className="py-20">
+    <section className="py-16 sm:py-20 lg:py-24">
       {/* ── Header ─────────────────────────────────────────────────────────── */}
       <div ref={ref} className="text-center mb-14">
         <motion.div

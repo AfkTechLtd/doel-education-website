@@ -1,29 +1,34 @@
 "use client";
 
+import { MapPinned, Mic2, Star, Users } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import AnimatedNumber from "@/components/Home/HomeAnimationNumber";
 
 const stats = [
   {
+    icon: Users,
     value: 1200,
     suffix: "+",
     label: "Event Attendees",
     sub: "Across webinars and seminars",
   },
   {
+    icon: Mic2,
     value: 35,
     suffix: "",
     label: "Sessions Hosted",
     sub: "Online and in-person",
   },
   {
+    icon: MapPinned,
     value: 12,
     suffix: "",
     label: "Cities Reached",
     sub: "Across Bangladesh",
   },
   {
-    value: 4,
+    icon: Star,
+    value: 5,
     suffix: "/5",
     label: "Average Rating",
     sub: "Based on post-event feedback",
@@ -78,7 +83,7 @@ export default function EventHighlights() {
         </div>
 
         <div className="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-4">
-          {stats.map(({ value, suffix, label, sub }, index) => (
+          {stats.map(({ icon: Icon, value, suffix, label, sub }, index) => (
             <div
               key={label}
               className={`relative flex flex-col items-center justify-center overflow-hidden rounded-2xl border px-4 py-8 text-center transition-all duration-300 hover:-translate-y-1 hover:shadow-lg sm:py-10 ${
@@ -91,6 +96,11 @@ export default function EventHighlights() {
                 className={`absolute -right-6 -top-6 h-20 w-20 rounded-full opacity-10 ${
                   index === 0 ? "bg-white" : "bg-primary"
                 }`}
+              />
+
+              <Icon
+                size={18}
+                className={`mb-3 ${index === 0 ? "text-white/90" : "text-primary"}`}
               />
 
               <p
