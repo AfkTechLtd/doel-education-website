@@ -17,22 +17,48 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import PopularMajors from "@/components/StudyPopularMajorsSection";
 import CourseBrowser from "@/components/StudyUSFilteredSection";
+import HeroSection, {
+  HeroContent,
+  HeroCTAs,
+  HeroSubTitle,
+  HeroTitle,
+  HeroTopTitle,
+} from "@/components/common/HeroSection";
+import PrimaryButton from "@/components/common/PrimaryButton";
+import OutlineButton from "@/components/common/OutlineButton";
 
 // ─── Animation variants ────────────────────────────────────────────────────────
 
-const fadeUp = {
+const fadeInUp = {
   hidden: { opacity: 0, y: 24 },
-  show: { opacity: 1, y: 0 },
+  show: { opacity: 1, y: 0, transition: { duration: 0.6 } },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.6 } },
 };
 
+const fadeUp = fadeInUp;
+
 const staggerContainer = {
-  hidden: {},
-  show: { transition: { staggerChildren: 0.1 } },
+  hidden: { opacity: 0 },
+  show: {
+    opacity: 1,
+    transition: { staggerChildren: 0.15 },
+  },
+  visible: {
+    opacity: 1,
+    transition: { staggerChildren: 0.15 },
+  },
 };
 
 const staggerFast = {
-  hidden: {},
-  show: { transition: { staggerChildren: 0.07 } },
+  hidden: { opacity: 0 },
+  show: {
+    opacity: 1,
+    transition: { staggerChildren: 0.07 },
+  },
+  visible: {
+    opacity: 1,
+    transition: { staggerChildren: 0.07 },
+  },
 };
 
 // ─── Data ─────────────────────────────────────────────────────────────────────
@@ -313,71 +339,57 @@ export default function StudyInUSAPage() {
   return (
     <main className="bg-white overflow-x-hidden">
       {/* ── 1. HERO ────────────────────────────────────────────────────────── */}
-      <section className="relative min-h-[88vh] flex items-center overflow-hidden">
-        <div className="absolute inset-0">
-          <Image
-            src="/study/hero-campus.png"
-            alt="American university campus"
-            fill
-            priority
-            className="object-cover"
-          />
-          <div className="absolute inset-0 bg-primary/60" />
-        </div>
-
+      <HeroSection
+        align="left"
+        imageSrc="/study/hero-campus.png"
+        imageAlt="American university campus"
+        minHeightClassName="min-h-[88vh]"
+      >
         <motion.div
-          className="relative max-w-6xl mx-auto px-6 py-24 text-white"
+          className="relative py-24 text-white"
           variants={staggerContainer}
           initial="hidden"
-          animate="show"
+          animate="visible"
         >
-          <motion.p
-            variants={fadeUp}
-            transition={{ duration: 0.5 }}
-            className="font-inter text-xs font-semibold tracking-[0.2em] uppercase text-secondary mb-4"
-          >
-            Your Complete Guide to Studying in the United States
-          </motion.p>
-
-          <motion.h1
-            variants={fadeUp}
-            transition={{ duration: 0.55 }}
-            className="text-5xl md:text-6xl font-bold leading-tight max-w-3xl"
-          >
-            The US Isn&apos;t Just a Destination.
-            <span className="text-secondary"> It&apos;s a Decision That Changes Everything.</span>
-          </motion.h1>
-
-          <motion.p
-            variants={fadeUp}
-            transition={{ duration: 0.55 }}
-            className="mt-6 text-lg max-w-xl text-white/90"
-          >
-            For a Bangladeshi student, choosing to study in America is one of the boldest, most
-            life-defining moves you can make. This page tells you everything &mdash; read it once and
-            you&apos;ll know exactly what studying in the US looks like, costs, and requires.
-          </motion.p>
-
-          <motion.div
-            variants={fadeUp}
-            transition={{ duration: 0.55 }}
-            className="mt-8 flex gap-4"
-          >
-            <Link
-              href="#consultation"
-              className="bg-secondary cursor-pointer hover:opacity-90 transition-all text-primary font-semibold px-6 py-3 rounded-md"
-            >
-              Book My Free Assessment
-            </Link>
-            <Link
-              href="#universities"
-              className="border hover:bg-white hover:text-black transition-all cursor-pointer border-white/40 px-6 py-3 rounded-md"
-            >
-              Explore Universities
-            </Link>
+          <motion.div variants={fadeInUp} className="mb-5">
+            <HeroTopTitle>
+              Your Complete Guide to Studying in the United States
+            </HeroTopTitle>
           </motion.div>
+
+          <HeroContent>
+            <motion.div variants={fadeInUp}>
+              <HeroTitle className="text-3xl sm:text-4xl lg:text-5xl">
+                The US Isn&apos;t Just a Destination.
+                <span className="text-secondary">
+                  {" "}
+                  It&apos;s a Decision That Changes Everything.
+                </span>
+              </HeroTitle>
+            </motion.div>
+
+            <motion.div variants={fadeInUp}>
+              <HeroSubTitle>
+                For a Bangladeshi student, choosing to study in America is one
+                of the boldest, most life-defining moves you can make. This page
+                tells you everything - read it once and you&apos;ll know exactly
+                what studying in the US looks like, costs, and requires.
+              </HeroSubTitle>
+            </motion.div>
+
+            <motion.div variants={fadeInUp}>
+              <HeroCTAs className="mt-8">
+                <PrimaryButton href="#consultation">
+                  Book My Free Assessment
+                </PrimaryButton>
+                <OutlineButton href="#universities">
+                  Explore Universities
+                </OutlineButton>
+              </HeroCTAs>
+            </motion.div>
+          </HeroContent>
         </motion.div>
-      </section>
+      </HeroSection>
 
       <CourseBrowser />
 
@@ -396,7 +408,8 @@ export default function StudyInUSAPage() {
               Why Choose the USA
             </p>
             <h2 className="font-poppins text-3xl md:text-4xl font-bold text-gray-900 leading-tight">
-              Why do so many Bangladeshi students choose America over everywhere else?
+              Why do so many Bangladeshi students choose America over everywhere
+              else?
             </h2>
             <p className="font-inter text-gray-500 text-sm leading-relaxed mt-4">
               Simple. No other country gives you this combination at once.
@@ -455,8 +468,9 @@ export default function StudyInUSAPage() {
               What can you study and for how long?
             </h2>
             <p className="font-inter text-gray-500 text-sm leading-relaxed mt-4">
-              US universities offer programs at every level. Here&apos;s a straightforward breakdown so
-              you know what you&apos;re signing up for before you apply.
+              US universities offer programs at every level. Here&apos;s a
+              straightforward breakdown so you know what you&apos;re signing up
+              for before you apply.
             </p>
           </motion.div>
 
@@ -479,12 +493,16 @@ export default function StudyInUSAPage() {
                     {d.duration}
                   </span>
                 </div>
-                <h3 className="font-poppins font-bold text-gray-900 text-lg mb-3">{d.degree}</h3>
+                <h3 className="font-poppins font-bold text-gray-900 text-lg mb-3">
+                  {d.degree}
+                </h3>
                 <p className="font-inter text-gray-500 text-sm leading-relaxed flex-1 mb-5">
                   {d.forWhom}
                 </p>
                 <div className="pt-4 border-t border-gray-100">
-                  <span className="font-inter text-xs font-semibold text-primary">{d.cost}</span>
+                  <span className="font-inter text-xs font-semibold text-primary">
+                    {d.cost}
+                  </span>
                 </div>
               </motion.div>
             ))}
@@ -498,13 +516,17 @@ export default function StudyInUSAPage() {
             viewport={{ once: true, amount: 0.5 }}
             transition={{ duration: 0.5 }}
           >
-            <CheckCircle2 size={20} className="text-primary flex-shrink-0 mt-0.5" />
+            <CheckCircle2
+              size={20}
+              className="text-primary flex-shrink-0 mt-0.5"
+            />
             <p className="font-inter text-sm text-gray-700 leading-relaxed">
-              <span className="font-semibold text-gray-900">Good to know:</span> After graduation,
-              all students are eligible for up to 12 months of work authorization through OPT. STEM
-              graduates get an additional 24 months, giving you up to{" "}
-              <span className="font-semibold text-primary">3 full years</span> to work in the US
-              after your degree.
+              <span className="font-semibold text-gray-900">Good to know:</span>{" "}
+              After graduation, all students are eligible for up to 12 months of
+              work authorization through OPT. STEM graduates get an additional
+              24 months, giving you up to{" "}
+              <span className="font-semibold text-primary">3 full years</span>{" "}
+              to work in the US after your degree.
             </p>
           </motion.div>
         </div>
@@ -528,8 +550,9 @@ export default function StudyInUSAPage() {
               When can you start?
             </h2>
             <p className="font-inter text-gray-500 text-sm leading-relaxed mt-4">
-              Unlike many countries with one annual intake, US universities give you three entry
-              points every year. Miss one, and you&apos;re not waiting a full year &mdash; just a few months.
+              Unlike many countries with one annual intake, US universities give
+              you three entry points every year. Miss one, and you&apos;re not
+              waiting a full year &mdash; just a few months.
             </p>
           </motion.div>
 
@@ -593,13 +616,19 @@ export default function StudyInUSAPage() {
             viewport={{ once: true, amount: 0.5 }}
             transition={{ duration: 0.5 }}
           >
-            <CheckCircle2 size={20} className="text-secondary flex-shrink-0 mt-0.5" />
+            <CheckCircle2
+              size={20}
+              className="text-secondary flex-shrink-0 mt-0.5"
+            />
             <p className="font-inter text-sm text-gray-700 leading-relaxed">
-              <span className="font-semibold text-gray-900">Plan ahead:</span> Start your
-              preparation{" "}
-              <span className="font-semibold text-primary">8&ndash;9 months</span> before your
-              intended intake. That&apos;s not a suggestion &mdash; it&apos;s a necessity if you want to give
-              your application the time it deserves.
+              <span className="font-semibold text-gray-900">Plan ahead:</span>{" "}
+              Start your preparation{" "}
+              <span className="font-semibold text-primary">
+                8&ndash;9 months
+              </span>{" "}
+              before your intended intake. That&apos;s not a suggestion &mdash;
+              it&apos;s a necessity if you want to give your application the
+              time it deserves.
             </p>
           </motion.div>
         </div>
@@ -623,8 +652,8 @@ export default function StudyInUSAPage() {
                 Let&apos;s talk about money.
               </h2>
               <p className="font-inter text-gray-500 text-sm leading-relaxed">
-                Cost is the question everyone has and nobody wants to ask out loud. So let&apos;s just
-                put it all on the table.
+                Cost is the question everyone has and nobody wants to ask out
+                loud. So let&apos;s just put it all on the table.
               </p>
             </motion.div>
 
@@ -640,12 +669,19 @@ export default function StudyInUSAPage() {
                 transition={{ duration: 0.45 }}
                 className="p-6 rounded-2xl bg-white border border-gray-100"
               >
-                <h3 className="font-poppins font-semibold text-gray-900 mb-2">Tuition Fees</h3>
+                <h3 className="font-poppins font-semibold text-gray-900 mb-2">
+                  Tuition Fees
+                </h3>
                 <p className="font-inter text-sm text-gray-500 leading-relaxed">
                   Annual tuition ranges from{" "}
-                  <span className="font-semibold text-gray-800">$10,000 to $75,000</span> depending
-                  on the university and program. Most Bangladeshi students end up somewhere in the{" "}
-                  <span className="font-semibold text-primary">$15,000&ndash;$25,000 range</span>{" "}
+                  <span className="font-semibold text-gray-800">
+                    $10,000 to $75,000
+                  </span>{" "}
+                  depending on the university and program. Most Bangladeshi
+                  students end up somewhere in the{" "}
+                  <span className="font-semibold text-primary">
+                    $15,000&ndash;$25,000 range
+                  </span>{" "}
                   with the right university selection.
                 </p>
               </motion.div>
@@ -655,12 +691,17 @@ export default function StudyInUSAPage() {
                 transition={{ duration: 0.45 }}
                 className="p-6 rounded-2xl bg-white border border-gray-100"
               >
-                <h3 className="font-poppins font-semibold text-gray-900 mb-2">Living Expenses</h3>
+                <h3 className="font-poppins font-semibold text-gray-900 mb-2">
+                  Living Expenses
+                </h3>
                 <p className="font-inter text-sm text-gray-500 leading-relaxed">
                   Rent, food, transport, utilities cost between{" "}
-                  <span className="font-semibold text-gray-800">$8,000 and $20,000</span> per year
-                  depending on which city you&apos;re in. New York and San Francisco sit at the top.
-                  Smaller university towns are significantly more affordable.
+                  <span className="font-semibold text-gray-800">
+                    $8,000 and $20,000
+                  </span>{" "}
+                  per year depending on which city you&apos;re in. New York and
+                  San Francisco sit at the top. Smaller university towns are
+                  significantly more affordable.
                 </p>
               </motion.div>
 
@@ -673,9 +714,10 @@ export default function StudyInUSAPage() {
                   Scholarships &amp; Aid
                 </h3>
                 <p className="font-inter text-sm text-gray-500 leading-relaxed">
-                  This is where most students leave money on the table. US universities offer merit
-                  scholarships, need-based aid, graduate assistantships, and research funding. The
-                  right application &mdash; to the right university &mdash; can{" "}
+                  This is where most students leave money on the table. US
+                  universities offer merit scholarships, need-based aid,
+                  graduate assistantships, and research funding. The right
+                  application &mdash; to the right university &mdash; can{" "}
                   <span className="font-semibold text-primary">
                     reduce your total cost dramatically
                   </span>
@@ -693,12 +735,17 @@ export default function StudyInUSAPage() {
             viewport={{ once: true, amount: 0.5 }}
             transition={{ duration: 0.5 }}
           >
-            <CheckCircle2 size={20} className="text-primary flex-shrink-0 mt-0.5" />
+            <CheckCircle2
+              size={20}
+              className="text-primary flex-shrink-0 mt-0.5"
+            />
             <p className="font-inter text-sm text-gray-700 leading-relaxed">
               Use our free{" "}
-              <span className="font-semibold text-primary">Study Abroad Calculator</span> to get a
-              personalized cost estimate based on your destination city, program, and lifestyle. No
-              guesswork.
+              <span className="font-semibold text-primary">
+                Study Abroad Calculator
+              </span>{" "}
+              to get a personalized cost estimate based on your destination
+              city, program, and lifestyle. No guesswork.
             </p>
           </motion.div>
         </div>
@@ -759,8 +806,12 @@ export default function StudyInUSAPage() {
                 </div>
 
                 <div className="p-5">
-                  <h3 className="font-poppins font-bold text-gray-900 text-base mb-1">{u.name}</h3>
-                  <p className="font-inter text-xs text-gray-400 mb-4">{u.location}</p>
+                  <h3 className="font-poppins font-bold text-gray-900 text-base mb-1">
+                    {u.name}
+                  </h3>
+                  <p className="font-inter text-xs text-gray-400 mb-4">
+                    {u.location}
+                  </p>
 
                   <div className="flex flex-wrap gap-2 mb-4">
                     {u.fields.map((f) => (
@@ -803,9 +854,10 @@ export default function StudyInUSAPage() {
               What do US universities actually look for?
             </h2>
             <p className="font-inter text-gray-500 text-sm leading-relaxed mt-4">
-              Getting into a US university isn&apos;t just about grades. It&apos;s about presenting yourself
-              &mdash; your academics, your story, and your goals &mdash; as a complete picture.
-              Here&apos;s what most universities will ask for:
+              Getting into a US university isn&apos;t just about grades.
+              It&apos;s about presenting yourself &mdash; your academics, your
+              story, and your goals &mdash; as a complete picture. Here&apos;s
+              what most universities will ask for:
             </p>
           </motion.div>
 
@@ -858,8 +910,8 @@ export default function StudyInUSAPage() {
                 Can you work while studying in the US?
               </h2>
               <p className="font-inter text-gray-500 text-sm leading-relaxed mb-8">
-                Yes &mdash; and it&apos;s more structured than most people realize. Here&apos;s exactly
-                what&apos;s allowed.
+                Yes &mdash; and it&apos;s more structured than most people
+                realize. Here&apos;s exactly what&apos;s allowed.
               </p>
 
               <div className="p-5 rounded-2xl bg-primary text-white">
@@ -867,8 +919,9 @@ export default function StudyInUSAPage() {
                   Our Commitment
                 </p>
                 <p className="font-inter text-sm text-white/85 leading-relaxed">
-                  DGS guides every student through CPT eligibility, OPT application, and work
-                  authorization, so you don&apos;t leave the US empty-handed after your degree.
+                  DGS guides every student through CPT eligibility, OPT
+                  application, and work authorization, so you don&apos;t leave
+                  the US empty-handed after your degree.
                 </p>
               </div>
             </motion.div>
@@ -927,8 +980,8 @@ export default function StudyInUSAPage() {
                 Your US Student Visa: what you&apos;ll need.
               </h2>
               <p className="font-inter text-gray-500 text-sm leading-relaxed mb-8">
-                The F-1 student visa is what makes everything official. Here&apos;s exactly what goes
-                into your application.
+                The F-1 student visa is what makes everything official.
+                Here&apos;s exactly what goes into your application.
               </p>
 
               <div className="p-5 rounded-2xl bg-primary text-white">
@@ -936,8 +989,9 @@ export default function StudyInUSAPage() {
                   We Handle It With You
                 </p>
                 <p className="font-inter text-sm text-white/85 leading-relaxed">
-                  DGS prepares every single one of these documents with you. You don&apos;t walk into
-                  the embassy unprepared. You walk in ready.
+                  DGS prepares every single one of these documents with you. You
+                  don&apos;t walk into the embassy unprepared. You walk in
+                  ready.
                 </p>
               </div>
             </motion.div>
@@ -956,8 +1010,13 @@ export default function StudyInUSAPage() {
                   transition={{ duration: 0.35 }}
                   className="flex items-start gap-3 p-4 rounded-xl border border-gray-100 hover:border-primary/20 transition-all"
                 >
-                  <CheckCircle2 size={16} className="text-primary flex-shrink-0 mt-0.5" />
-                  <span className="font-inter text-sm text-gray-700">{doc}</span>
+                  <CheckCircle2
+                    size={16}
+                    className="text-primary flex-shrink-0 mt-0.5"
+                  />
+                  <span className="font-inter text-sm text-gray-700">
+                    {doc}
+                  </span>
                 </motion.div>
               ))}
             </motion.div>
@@ -1012,8 +1071,12 @@ export default function StudyInUSAPage() {
                     {t.initials}
                   </div>
                   <div className="min-w-0">
-                    <div className="font-poppins font-semibold text-gray-800 text-sm">{t.name}</div>
-                    <div className="font-inter text-xs text-gray-400 truncate">{t.program}</div>
+                    <div className="font-poppins font-semibold text-gray-800 text-sm">
+                      {t.name}
+                    </div>
+                    <div className="font-inter text-xs text-gray-400 truncate">
+                      {t.program}
+                    </div>
                     <div className="font-inter text-[11px] text-primary font-semibold mt-0.5">
                       {t.scholarship}
                     </div>
@@ -1036,12 +1099,14 @@ export default function StudyInUSAPage() {
                 Common Questions
               </p>
               <h2 className="font-poppins text-3xl font-bold text-gray-900 leading-tight mb-4">
-                Still have questions? That&apos;s exactly what we&apos;re here for.
+                Still have questions? That&apos;s exactly what we&apos;re here
+                for.
               </h2>
               <p className="font-inter text-gray-500 text-sm leading-relaxed mb-8">
-                Everything above is a guide. But your situation is specific: your grades, your
-                budget, your timeline, your goals. The best next step isn&apos;t more reading &mdash;
-                it&apos;s a real conversation.
+                Everything above is a guide. But your situation is specific:
+                your grades, your budget, your timeline, your goals. The best
+                next step isn&apos;t more reading &mdash; it&apos;s a real
+                conversation.
               </p>
               <Link
                 href="#consultation"
@@ -1059,7 +1124,11 @@ export default function StudyInUSAPage() {
               viewport={{ once: true, amount: 0.1 }}
             >
               {faqs.map((f) => (
-                <motion.div key={f.q} variants={fadeUp} transition={{ duration: 0.35 }}>
+                <motion.div
+                  key={f.q}
+                  variants={fadeUp}
+                  transition={{ duration: 0.35 }}
+                >
                   <FAQItem q={f.q} a={f.a} />
                 </motion.div>
               ))}
@@ -1069,7 +1138,10 @@ export default function StudyInUSAPage() {
       </section>
 
       {/* ── CTA ────────────────────────────────────────────────────────────── */}
-      <section id="consultation" className="relative py-28 bg-primary overflow-hidden">
+      <section
+        id="consultation"
+        className="relative py-28 bg-primary overflow-hidden"
+      >
         <div className="absolute inset-0">
           <Image
             src="/study/cta-bg.png"
@@ -1107,9 +1179,10 @@ export default function StudyInUSAPage() {
             transition={{ duration: 0.5 }}
             className="font-inter text-white/70 text-base leading-relaxed mb-12 max-w-xl mx-auto"
           >
-            Book a free assessment with a DGS counselor. We&apos;ll look at your profile, tell you
-            exactly where you stand, and map out what your US journey looks like. No sales pitch
-            &mdash; just honest advice about your options.
+            Book a free assessment with a DGS counselor. We&apos;ll look at your
+            profile, tell you exactly where you stand, and map out what your US
+            journey looks like. No sales pitch &mdash; just honest advice about
+            your options.
           </motion.p>
 
           <motion.div

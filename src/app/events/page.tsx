@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
 import EventsHero from "@/components/events/EventsHero";
-import FeaturedEvent from "@/components/events/FeaturedEvent";
 import EventsFilterSection from "@/components/events/EventsFilterSection";
 import EventHighlights from "@/components/events/EventHighlights";
+import EventsGallery from "@/components/events/EventsGallery";
 
 export const metadata: Metadata = {
   title: "Events & Webinars — Doel Education",
@@ -14,9 +14,9 @@ export default function EventsPage() {
   return (
     <main className="bg-white overflow-x-hidden pb-20">
       <EventsHero />
-      <FeaturedEvent />
       <EventsFilterSection />
       <EventHighlights />
+      <EventsGallery />
     </main>
   );
 }

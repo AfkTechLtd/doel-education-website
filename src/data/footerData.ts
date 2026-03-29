@@ -26,7 +26,6 @@ export const footerSections: FooterSection[] = [
     links: [
       { label: "Home", href: "/" },
       { label: "Study in the US", href: "/study-in-us" },
-      { label: "Book Consultation", href: "/consultation" },
       { label: "Contact Us", href: "/contact" },
     ],
   },
