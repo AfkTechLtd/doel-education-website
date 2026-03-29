@@ -98,7 +98,7 @@ const StatsCounter = () => {
   }, []);
 
   return (
-    <section ref={sectionRef} className="py-6">
+    <section ref={sectionRef} className="py-16 sm:py-20 lg:py-24">
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
         {stats.map(({ value, suffix, label, sub }, index) => (
           <div

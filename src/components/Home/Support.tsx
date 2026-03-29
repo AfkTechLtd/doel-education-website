@@ -55,7 +55,7 @@ const services = [
 
 const Support = () => {
     return (
-        <section className="py-20">
+        <section className="py-16 sm:py-20 lg:py-24">
             <div className="max-w-7xl mx-auto px-6">
 
                 {/* Header Section */}

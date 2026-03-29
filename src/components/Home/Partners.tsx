@@ -2,62 +2,48 @@
 
 import { useRef } from "react";
 import { motion, useInView } from "framer-motion";
+import Image from "next/image";
 
 const universities = [
   {
-    name: "University of Oxford",
-    location: "Oxford, UK",
-    logoText: "Ox",
-    color: "#002147",
+    name: "Harvard University",
+    location: "Cambridge, MA",
+    logo: "/home/unis/harvard.svg",
   },
-  { name: "MIT", location: "Cambridge, MA", logoText: "MIT", color: "#A31F34" },
+  {
+    name: "MIT",
+    location: "Cambridge, MA",
+    logo: "/home/unis/mit.svg",
+  },
   {
     name: "Stanford University",
     location: "Stanford, CA",
-    logoText: "SU",
-    color: "#8C1515",
-  },
-  {
-    name: "University of Melbourne",
-    location: "Melbourne, AU",
-    logoText: "UoM",
-    color: "#003087",
-  },
-  {
-    name: "TU Munich",
-    location: "Munich, Germany",
-    logoText: "TUM",
-    color: "#0065BD",
-  },
-  {
-    name: "ETH Zurich",
-    location: "Zurich, Switzerland",
-    logoText: "ETH",
-    color: "#1a1a1a",
-  },
-  {
-    name: "Harvard University",
-    location: "Cambridge, MA",
-    logoText: "HU",
-    color: "#A51C30",
+    logo: "/home/unis/stanford.svg",
   },
   {
     name: "Yale University",
     location: "New Haven, CT",
-    logoText: "Yale",
-    color: "#00356B",
+    logo: "/home/unis/yale.svg",
   },
   {
     name: "Columbia University",
     location: "New York, NY",
-    logoText: "CU",
-    color: "#003087",
+    logo: "/home/unis/columbia.svg",
   },
   {
     name: "UCLA",
     location: "Los Angeles, CA",
-    logoText: "UCLA",
-    color: "#2D68C4",
+    logo: "/home/unis/ucla.svg",
+  },
+  {
+    name: "New York University",
+    location: "New York, NY",
+    logo: "/home/unis/nyu.svg",
+  },
+  {
+    name: "Univ. of Michigan",
+    location: "Ann Arbor, MI",
+    logo: "/home/unis/umich.svg",
   },
 ];
 
@@ -74,7 +60,7 @@ const Partners = () => {
   const inView = useInView(ref, { once: true, margin: "-80px" });
 
   return (
-    <section className="relative bg-primary overflow-hidden my-16 py-32">
+    <section className="relative bg-primary overflow-hidden py-16 sm:py-20 lg:py-24">
       {/* ── Background texture dots ── */}
       <div
         className="pointer-events-none absolute inset-0 opacity-[0.06]"
@@ -134,13 +120,13 @@ const Partners = () => {
           transition={{ duration: 0.45, delay: 0.2 }}
         >
           Active partnerships with 50+ universities across the US, UK, Europe,
-          and Australia — all working to get you there.
+          and Australia all working to get you there.
         </motion.p>
       </div>
 
       {/* ── Scrolling carousel ── */}
       <div className="relative w-full overflow-hidden">
-        {/* Fade masks — blend into primary */}
+        {/* Fade masks  blend into primary */}
         <div
           className="pointer-events-none absolute inset-y-0 left-0 w-24 sm:w-48 z-10"
           style={{
@@ -157,30 +143,33 @@ const Partners = () => {
         />
 
         {/* Track */}
-        <div className="flex items-center gap-4 animate-infinite-scroll py-3">
+        <div className="flex items-stretch gap-4 animate-infinite-scroll py-3">
           {scrollList.map((uni, i) => (
             <div
               key={i}
-              className="flex items-center gap-3.5 shrink-0 px-4 py-3.5 rounded-2xl min-w-[220px] transition-all duration-200 hover:-translate-y-0.5"
-              style={{
-                background: "rgba(255,255,255,0.07)",
-                border: "1px solid rgba(255,255,255,0.12)",
-                backdropFilter: "blur(8px)",
-              }}
+              className="group shrink-0 flex flex-col items-center justify-between gap-3 w-[188px] px-5 pt-5 pb-4 rounded-2xl bg-white border border-white/10 shadow-md shadow-black/20 cursor-default transition-all duration-250 hover:-translate-y-1.5 hover:shadow-xl hover:shadow-black/30"
             >
-              {/* Logo mark */}
-              <div
-                className="w-10 h-10 rounded-xl flex items-center justify-center font-black text-[10px] shrink-0 font-poppins text-white"
-                style={{ backgroundColor: uni.color }}
-              >
-                {uni.logoText}
+              {/* Logo area */}
+              <div className="w-full flex items-center justify-center h-[52px]">
+                <Image
+                  src={uni.logo}
+                  alt={uni.name}
+                  width={140}
+                  height={52}
+                  className="w-auto max-w-[140px] h-full object-contain transition-opacity duration-200 group-hover:opacity-90"
+                  unoptimized
+                />
               </div>
 
-              <div>
-                <p className="text-sm font-semibold text-white font-poppins whitespace-nowrap leading-tight">
+              {/* Divider */}
+              <div className="w-full h-px bg-gray-100" />
+
+              {/* Text */}
+              <div className="w-full text-center">
+                <p className="text-[12px] font-semibold text-gray-800 font-poppins leading-snug">
                   {uni.name}
                 </p>
-                <p className="text-[11px] text-white/45 font-inter mt-0.5">
+                <p className="text-[10px] text-gray-400 font-inter mt-0.5">
                   {uni.location}
                 </p>
               </div>

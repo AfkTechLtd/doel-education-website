@@ -1,5 +1,31 @@
 "use client";
 
+const stats = [
+  {
+    icon: Users,
+    value: "1,200+",
+    label: "Total Attendees",
+    sub: "across all sessions",
+  },
+  {
+    icon: Mic2,
+    value: "35",
+    label: "Sessions in 2025",
+    sub: "online & in-person",
+  },
+  {
+    icon: MapPinned,
+    value: "12",
+    label: "Cities Reached",
+    sub: "across Bangladesh",
+  },
+  {
+    icon: Star,
+    value: "4.9",
+    label: "Avg. Rating",
+    sub: "from post-event surveys",
+  },
+];
 import { useEffect, useRef, useState } from "react";
 import AnimatedNumber from "@/components/Home/HomeAnimationNumber";
 
@@ -11,6 +37,28 @@ const stats = [
     sub: "Across webinars and seminars",
   },
   {
+    number: "01",
+    title: "Fall 2025 US Admissions Masterclass",
+    date: "Jan 18, 2025",
+    attendees: "340 attendees",
+    outcome:
+      "Students left with a personalised 6-university shortlist framework.",
+  },
+  {
+    number: "02",
+    title: "Visa Interview Prep  Live Mock Session",
+    date: "Feb 8, 2025",
+    attendees: "215 attendees",
+    outcome:
+      "92% of participants reported higher confidence before their embassy appointment.",
+  },
+  {
+    number: "03",
+    title: "Scholarship Deep-Dive: Fulbright & Beyond",
+    date: "Mar 1, 2025",
+    attendees: "180 attendees",
+    outcome:
+      "Covered 14 funding sources specific to Bangladeshi graduate applicants.",
     value: 35,
     suffix: "",
     label: "Sessions Hosted",

@@ -13,7 +13,7 @@ const admissionSteps = [
     icon: Search,
     title: "Profile Evaluation",
     description:
-      "GPA, test scores, gap year, and budget — we give you an honest target range before you spend a taka on applications.",
+      "GPA, test scores, gap year, and budget  we give you an honest target range before you spend a taka on applications.",
     points: ["Academic fit assessment", "Realistic shortlist criteria"],
   },
   {
@@ -75,7 +75,7 @@ export default function ServicesGrid() {
           </h2>
           <p className="text-gray-500 max-w-2xl mx-auto text-lg">
             From evaluating your profile on day one to walking you through
-            pre-departure on the last — every service is part of one plan.
+            pre-departure on the last every service is part of one plan.
           </p>
         </div>
 

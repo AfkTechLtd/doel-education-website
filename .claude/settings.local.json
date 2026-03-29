@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(curl -sL \"https://upload.wikimedia.org/wikipedia/commons/b/b5/Seal_of_Leland_Stanford_Junior_University.svg\" -o \"E:/Code V2/doel-education/public/home/unis/stanford.svg\")",
+      "WebSearch",
+      "WebFetch(domain:commons.wikimedia.org)",
+      "Bash(curl -sL \"https://upload.wikimedia.org/wikipedia/commons/0/07/Yale_University_Shield_1.svg\" -o \"E:/Code V2/doel-education/public/home/unis/yale.svg\")",
+      "Bash(node:*)"
+    ]
+  }
+}
