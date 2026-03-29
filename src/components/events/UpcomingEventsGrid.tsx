@@ -17,6 +17,8 @@ export type EventType =
   | "Seminar"
   | "Workshop";
 
+export type EventFilter = "All" | "Upcoming Events" | "Past Events";
+
 export interface EventItem {
   id: number;
   status: Exclude<EventFilter, "All">;
