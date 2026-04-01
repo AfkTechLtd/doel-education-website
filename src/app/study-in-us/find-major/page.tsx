@@ -49,10 +49,16 @@ const sectionRevealDelayed = {
   },
 };
 
-const viewportOpts = {
+/**
+ * Intersection settings tuned for mobile: a negative rootMargin shrinks the IO
+ * root; combined with amount 0.12 on a very tall section, the reveal often
+ * never reached threshold (content stayed at opacity 0). Use a slightly
+ * expanded root and "some" so any real overlap counts.
+ */
+const sectionViewportOpts = {
   once: true as const,
-  margin: "-72px 0px" as const,
-  amount: 0.12 as const,
+  margin: "32px 0px 160px 0px" as const,
+  amount: "some" as const,
 };
 
 export default function FindMajorPage() {
@@ -63,10 +69,10 @@ export default function FindMajorPage() {
         align="left"
         imageSrc="/study/hero-campus.png"
         imageAlt="Students exploring majors"
-        minHeightClassName="min-h-[70vh]"
+        minHeightClassName="min-h-[60vh] sm:min-h-[65vh] lg:min-h-[70vh]"
       >
         <motion.div
-          className="relative py-24 text-white"
+          className="relative py-10 sm:py-16 md:py-20 lg:py-24 text-white w-full min-w-0"
           variants={staggerContainer}
           initial="hidden"
           animate="visible"
@@ -107,20 +113,22 @@ export default function FindMajorPage() {
 
       {/* ── COURSE BROWSER ── */}
       <motion.div
+        className="w-full min-w-0"
         variants={sectionReveal}
         initial="hidden"
         whileInView="visible"
-        viewport={viewportOpts}
+        viewport={sectionViewportOpts}
       >
         <CourseBrowser />
       </motion.div>
 
       {/* ── POPULAR MAJORS ── */}
       <motion.div
+        className="w-full min-w-0"
         variants={sectionRevealDelayed}
         initial="hidden"
         whileInView="visible"
-        viewport={viewportOpts}
+        viewport={sectionViewportOpts}
       >
         <PopularMajors />
       </motion.div>

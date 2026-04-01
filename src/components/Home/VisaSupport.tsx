@@ -44,19 +44,19 @@ const VisaSupport = () => {
                     <h5 className="text-secondary font-bold tracking-widest uppercase text-sm mb-3">
                         Visa Support
                     </h5>
-                    <h2 className="text-4xl md:text-5xl font-bold text-slate-900 mb-6 leading-tight">
+                    <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-slate-900 mb-6 leading-tight">
                         WE&apos;RE WITH YOU EVERY STEP OF THE WAY.
                     </h2>
-                    <p className="text-gray-500 max-w-2xl mx-auto text-lg">
+                    <p className="text-gray-500 max-w-2xl mx-auto text-sm sm:text-base lg:text-lg">
                         Most agencies stop at the visa. We&apos;re just getting started.
                     </p>
                 </div>
 
                 {/* Support Cards Grid */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:px-10">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 lg:gap-8">
 
                     {/* Pre-Visa Card */}
-                    <div className="relative overflow-hidden bg-white border border-gray-100 rounded-[32px] p-8 md:p-12 shadow-sm bg-[radial-gradient(circle_at_top_right,_#f0f9ff_0%,_transparent_50%)]">
+                    <div className="relative overflow-hidden bg-white border border-gray-100 rounded-[24px] sm:rounded-[32px] p-6 sm:p-8 md:p-10 shadow-sm bg-[radial-gradient(circle_at_top_right,_#f0f9ff_0%,_transparent_50%)]">
                         <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-blue-50 text-primary text-sm font-semibold mb-8">
                             <FileText size={14} />
                             Pre-Visa Support
@@ -79,7 +79,7 @@ const VisaSupport = () => {
                     </div>
 
                     {/* Post-Visa Card */}
-                    <div className="relative overflow-hidden bg-white border border-gray-100 rounded-[32px] p-8 md:p-12 shadow-sm bg-[radial-gradient(circle_at_bottom_left,_#f0f9ff_0%,_transparent_50%)]">
+                    <div className="relative overflow-hidden bg-white border border-gray-100 rounded-[24px] sm:rounded-[32px] p-6 sm:p-8 md:p-10 shadow-sm bg-[radial-gradient(circle_at_bottom_left,_#f0f9ff_0%,_transparent_50%)]">
                         <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-blue-50 text-primary text-sm font-semibold mb-8">
                             <Plane size={14} />
                             Post-Visa Support

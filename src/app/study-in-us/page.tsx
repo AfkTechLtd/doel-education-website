@@ -390,7 +390,7 @@ export default function StudyInUSAPage() {
       </HeroSection>
 
       {/* ── 2. WHY USA ─────────────────────────────────────────────────────── */}
-      <section className="py-24 bg-white">
+      <section className="py-16 sm:py-20 lg:py-24 bg-white">
         <div className="max-w-7xl mx-auto px-6">
           <motion.div
             className="max-w-2xl mb-14"
@@ -413,7 +413,7 @@ export default function StudyInUSAPage() {
           </motion.div>
 
           <motion.div
-            className="grid md:grid-cols-2 lg:grid-cols-3 gap-5"
+            className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5"
             variants={staggerContainer}
             initial="hidden"
             whileInView="show"
@@ -445,7 +445,7 @@ export default function StudyInUSAPage() {
       </section>
 
       {/* ── 3. DEGREE PROGRAMS ─────────────────────────────────────────────── */}
-      <section className="py-24 bg-gray-50">
+      <section className="py-16 sm:py-20 lg:py-24 bg-gray-50">
         <div className="max-w-7xl mx-auto px-6">
           <motion.div
             className="max-w-xl mb-14"
@@ -527,7 +527,7 @@ export default function StudyInUSAPage() {
       </section>
 
       {/* ── 4. INTAKES ─────────────────────────────────────────────────────── */}
-      <section className="py-24 bg-white">
+      <section className="py-16 sm:py-20 lg:py-24 bg-white">
         <div className="max-w-7xl mx-auto px-6">
           <motion.div
             className="max-w-xl mb-14"
@@ -551,7 +551,7 @@ export default function StudyInUSAPage() {
           </motion.div>
 
           <motion.div
-            className="grid md:grid-cols-3 gap-5"
+            className="grid sm:grid-cols-2 md:grid-cols-3 gap-5"
             variants={staggerContainer}
             initial="hidden"
             whileInView="show"
@@ -629,7 +629,7 @@ export default function StudyInUSAPage() {
       </section>
 
       {/* ── 5. COST BREAKDOWN ──────────────────────────────────────────────── */}
-      <section className="py-24 bg-gray-50">
+      <section className="py-16 sm:py-20 lg:py-24 bg-gray-50">
         <div className="max-w-7xl mx-auto px-6">
           {/* Section header */}
           <motion.div
@@ -654,7 +654,7 @@ export default function StudyInUSAPage() {
 
           {/* Cost cards */}
           <motion.div
-            className="grid md:grid-cols-3 gap-5 mb-5"
+            className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5 mb-5"
             variants={staggerContainer}
             initial="hidden"
             whileInView="show"
@@ -814,10 +814,10 @@ export default function StudyInUSAPage() {
       </section>
 
       {/* ── 6. UNIVERSITIES ────────────────────────────────────────────────── */}
-      <section id="universities" className="py-24 bg-primary text-white">
+      <section id="universities" className="py-16 sm:py-20 lg:py-24 bg-primary text-white">
         <div className="max-w-7xl mx-auto px-6">
           <motion.div
-            className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-14"
+            className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 sm:gap-6 mb-10 sm:mb-14"
             variants={fadeUp}
             initial="hidden"
             whileInView="show"
@@ -841,7 +841,7 @@ export default function StudyInUSAPage() {
           </motion.div>
 
           <motion.div
-            className="grid md:grid-cols-3 gap-6"
+            className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6"
             variants={staggerContainer}
             initial="hidden"
             whileInView="show"
@@ -899,7 +899,7 @@ export default function StudyInUSAPage() {
       </section>
 
       {/* ── 7. ADMISSION REQUIREMENTS ──────────────────────────────────────── */}
-      <section className="py-24 bg-white">
+      <section className="py-16 sm:py-20 lg:py-24 bg-white">
         <div className="max-w-7xl mx-auto px-6">
           <motion.div
             className="max-w-xl mb-14"
@@ -924,7 +924,7 @@ export default function StudyInUSAPage() {
           </motion.div>
 
           <motion.div
-            className="grid md:grid-cols-2 lg:grid-cols-3 gap-5"
+            className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5"
             variants={staggerContainer}
             initial="hidden"
             whileInView="show"
@@ -955,9 +955,9 @@ export default function StudyInUSAPage() {
       </section>
 
       {/* ── 8. WORK RIGHTS ─────────────────────────────────────────────────── */}
-      <section className="py-24 bg-gray-50">
+      <section className="py-16 sm:py-20 lg:py-24 bg-gray-50">
         <div className="max-w-7xl mx-auto px-6">
-          <div className="grid lg:grid-cols-2 gap-16 items-start">
+          <div className="grid lg:grid-cols-2 gap-10 lg:gap-16 items-start">
             <motion.div
               variants={fadeUp}
               initial="hidden"
@@ -1025,9 +1025,9 @@ export default function StudyInUSAPage() {
       </section>
 
       {/* ── 9. VISA SECTION ────────────────────────────────────────────────── */}
-      <section className="py-24 bg-white">
+      <section className="py-16 sm:py-20 lg:py-24 bg-white">
         <div className="max-w-7xl mx-auto px-6">
-          <div className="grid lg:grid-cols-2 gap-16 items-start">
+          <div className="grid lg:grid-cols-2 gap-10 lg:gap-16 items-start">
             {/* ── Left column ── */}
             <motion.div
               variants={fadeUp}
@@ -1129,7 +1129,7 @@ export default function StudyInUSAPage() {
       </section>
 
       {/* ── 10. TESTIMONIALS + FAQ ─────────────────────────────────────────── */}
-      <section className="py-24 bg-gray-50">
+      <section className="py-16 sm:py-20 lg:py-24 bg-gray-50">
         <div className="max-w-7xl mx-auto px-6">
           <motion.div
             className="max-w-xl mb-14"
@@ -1148,7 +1148,7 @@ export default function StudyInUSAPage() {
           </motion.div>
 
           <motion.div
-            className="grid md:grid-cols-3 gap-6 mb-24"
+            className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-16 sm:mb-20 lg:mb-24"
             variants={staggerContainer}
             initial="hidden"
             whileInView="show"

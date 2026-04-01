@@ -570,7 +570,8 @@ function ResultTable({
       </div>
 
       {/* Table */}
-      <table className="w-full text-sm">
+      <div className="overflow-x-auto">
+      <table className="w-full text-sm min-w-[340px]">
         <thead>
           <tr className="bg-primary">
             <th className="text-left px-5 py-3 text-xs font-semibold text-white/70 uppercase tracking-wider">
@@ -630,6 +631,7 @@ function ResultTable({
           </tr>
         </tfoot>
       </table>
+      </div>
 
       {/* Net out-of-pocket (PhD only) */}
       {isPHD && netMin !== null && netMax !== null && (

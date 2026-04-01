@@ -220,8 +220,27 @@ const Hero = () => {
 
               {/* RIGHT  orbit */}
               <div className="fu d5 order-1 md:order-2 flex items-center justify-center md:justify-end">
+                {/* Mobile/sm: graduate photo only */}
+                <div className="md:hidden">
+                  <div
+                    className="w-44 h-44 sm:w-60 sm:h-60 rounded-full overflow-hidden"
+                    style={{
+                      border: "4px solid rgba(255,255,255,0.35)",
+                      boxShadow:
+                        "0 0 0 10px rgba(255,255,255,0.06), 0 24px 60px rgba(0,0,0,0.45)",
+                    }}
+                  >
+                    <img
+                      src="/home/graduate.png"
+                      alt="Graduate student"
+                      className="w-full h-full object-cover object-top"
+                    />
+                  </div>
+                </div>
+
+                {/* md+: full orbit */}
                 <div
-                  className="relative flex items-center justify-center"
+                  className="hidden md:flex relative items-center justify-center"
                   style={{ width: 520, height: 520 }}
                 >
                   {/* Dashed orbit guides */}

@@ -391,11 +391,21 @@ function FilterChip({
 }) {
   return (
     <span
-      className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold cursor-pointer transition-opacity hover:opacity-80"
+      className="inline-flex items-center gap-1 max-w-full min-w-0 px-3 py-1 rounded-full text-xs font-semibold transition-opacity hover:opacity-80"
       style={{ backgroundColor: "var(--primary, #1a3c5e)", color: "#fff" }}
     >
-      {label}
-      <X size={11} strokeWidth={2.5} onClick={onRemove} />
+      <span className="truncate">{label}</span>
+      <button
+        type="button"
+        aria-label={`Remove ${label} filter`}
+        className="flex-shrink-0 rounded-full p-0.5 hover:bg-white/20 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/80"
+        onClick={(e) => {
+          e.stopPropagation();
+          onRemove();
+        }}
+      >
+        <X size={11} strokeWidth={2.5} />
+      </button>
     </span>
   );
 }
@@ -403,7 +413,7 @@ function FilterChip({
 function CourseCard({ course }: { course: Course }) {
   const badge = course.highlight ? BADGE[course.highlight] : null;
   return (
-    <div className="flex flex-col sm:flex-row gap-0 rounded-2xl overflow-hidden border border-slate-100 bg-white hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200 cursor-pointer group">
+    <div className="flex flex-col sm:flex-row gap-0 w-full max-w-full min-w-0 rounded-2xl overflow-hidden border border-slate-100 bg-white hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200 cursor-pointer group">
       {/* Left accent bar */}
       <div
         className="w-full sm:w-1.5 h-1.5 sm:h-auto flex-shrink-0 rounded-t-2xl sm:rounded-l-2xl sm:rounded-tr-none"
@@ -428,7 +438,7 @@ function CourseCard({ course }: { course: Course }) {
             {/* University + location */}
             <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-0.5">
               <span
-                className="text-xs font-semibold"
+                className="text-xs font-semibold break-words min-w-0"
                 style={{ color: facultyColor(course.faculty) }}
               >
                 {course.university}
@@ -465,18 +475,19 @@ function CourseCard({ course }: { course: Course }) {
         </div>
       </div>
 
-      {/* Right: ranking + CTA */}
-      <div className="flex sm:flex-col items-center sm:items-end justify-between sm:justify-center gap-3 px-5 py-4 sm:border-l border-t sm:border-t-0 border-slate-100 sm:min-w-[148px]">
-        <div className="text-right">
+      {/* Right: ranking + CTA — stack on narrow cards so nothing clips */}
+      <div className="w-full flex flex-col gap-3 px-5 py-4 border-t border-slate-100 sm:w-auto sm:min-w-[148px] sm:flex-col sm:items-end sm:justify-center sm:border-l sm:border-t-0">
+        <div className="text-left sm:text-right min-w-0 w-full sm:w-auto">
           <p className="text-[10px] text-slate-400 font-medium uppercase tracking-wider">
             QS Ranking
           </p>
-          <p className="text-xs font-bold text-slate-700 mt-0.5">
+          <p className="text-xs font-bold text-slate-700 mt-0.5 break-words">
             {course.ranking}
           </p>
         </div>
         <button
-          className="px-4 py-2 rounded-xl text-xs font-bold transition-all duration-200 hover:opacity-90 active:scale-95"
+          type="button"
+          className="w-full sm:w-auto px-4 py-2.5 sm:py-2 rounded-xl text-xs font-bold transition-all duration-200 hover:opacity-90 active:scale-95"
           style={{
             backgroundColor: facultyColor(course.faculty) + "18",
             color: facultyColor(course.faculty),
@@ -532,9 +543,6 @@ export default function CourseBrowser() {
   const [selectedLevels, setSelectedLevels] = useState<StudyLevel[]>([]);
   const [selectedIntakes, setSelectedIntakes] = useState<Intake[]>([]);
   const [selectedStates, setSelectedStates] = useState<string[]>([]);
-  const [showLevelDropdown, setShowLevelDropdown] = useState(false);
-  const [showIntakeDropdown, setShowIntakeDropdown] = useState(false);
-  const [showStateDropdown, setShowStateDropdown] = useState(false);
   const [showMobileFilters, setShowMobileFilters] = useState(false);
 
   const allStates = useMemo(
@@ -606,17 +614,17 @@ export default function CourseBrowser() {
     );
 
   return (
-    <section className="py-16 px-4 max-w-7xl mx-auto">
+    <section className="py-12 sm:py-16 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto w-full min-w-0">
       {/* ── Section Header ── */}
-      <div className="mb-10">
+      <div className="mb-8 sm:mb-10 min-w-0">
         <div className="flex items-center gap-3 mb-3">
-          <span className="h-px w-8 bg-slate-300 block" />
+          <span className="h-px w-8 bg-slate-300 shrink-0" />
           <span className="text-[10px] font-bold uppercase tracking-[0.25em] text-slate-400">
             Explore Programs
           </span>
-          <span className="h-px w-8 bg-slate-300 block" />
+          <span className="h-px w-8 bg-slate-300 shrink-0" />
         </div>
-        <h2 className="font-poppins text-3xl sm:text-4xl font-bold text-slate-900 tracking-tight">
+        <h2 className="font-poppins text-2xl sm:text-3xl md:text-4xl font-bold text-slate-900 tracking-tight text-balance break-words">
           Find Your{" "}
           <span className="text-primary relative inline-block">
             Perfect Course
@@ -633,16 +641,17 @@ export default function CourseBrowser() {
         </p>
       </div>
 
-      <div className="flex gap-6 items-start">
+      <div className="flex flex-col lg:flex-row gap-6 lg:gap-8 items-stretch lg:items-start w-full min-w-0">
         {/* ════════════════════════════
             LEFT SIDEBAR (desktop)
             ════════════════════════════ */}
-        <aside className="hidden lg:flex flex-col gap-4 w-60 flex-shrink-0 sticky top-6">
+        <aside className="hidden lg:flex flex-col gap-4 w-60 shrink-0 sticky top-6 self-start">
           <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-4">
             <div className="flex items-center justify-between mb-4">
               <span className="text-sm font-bold text-slate-700">Filters</span>
               {activeChips.length > 0 && (
                 <button
+                  type="button"
                   onClick={resetAll}
                   className="text-xs text-primary hover:underline"
                 >
@@ -694,23 +703,24 @@ export default function CourseBrowser() {
         {/* ════════════════════════════
             MAIN CONTENT
             ════════════════════════════ */}
-        <div className="flex-1 min-w-0">
+        <div className="flex-1 min-w-0 w-full max-w-full">
           {/* Search bar */}
-          <div className="relative mb-5">
+          <div className="relative mb-5 min-w-0">
             <Search
               size={16}
-              className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none"
+              className="absolute left-3 sm:left-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none"
             />
             <input
               type="text"
               placeholder="Search courses, universities, locations…"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              className="w-full pl-11 pr-4 py-3 rounded-xl border border-slate-200 bg-white text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
+              className="w-full min-w-0 pl-10 sm:pl-11 pr-10 sm:pr-4 py-3 rounded-xl border border-slate-200 bg-white text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
             />
             {query && (
               <button
-                className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                type="button"
+                className="absolute right-3 sm:right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
                 onClick={() => setQuery("")}
               >
                 <X size={14} />
@@ -719,10 +729,11 @@ export default function CourseBrowser() {
           </div>
 
           {/* Mobile filter bar */}
-          <div className="flex lg:hidden gap-2 mb-4 flex-wrap">
+          <div className="flex lg:hidden gap-2 mb-4 min-w-0 items-stretch">
             <button
+              type="button"
               onClick={() => setShowMobileFilters(!showMobileFilters)}
-              className="flex items-center gap-2 px-3 py-2 rounded-lg border border-slate-200 bg-white text-xs font-semibold text-slate-600"
+              className="flex shrink-0 items-center gap-2 px-3 py-2 rounded-lg border border-slate-200 bg-white text-xs font-semibold text-slate-600"
             >
               <SlidersHorizontal size={13} /> Filters
               {activeChips.length > 0 && (
@@ -731,18 +742,22 @@ export default function CourseBrowser() {
                 </span>
               )}
             </button>
-            {activeChips.map((chip) => (
-              <FilterChip
-                key={chip.label}
-                label={chip.label}
-                onRemove={chip.clear}
-              />
-            ))}
+            {activeChips.length > 0 && (
+              <div className="flex min-w-0 flex-1 gap-2 overflow-x-auto pb-1 [-webkit-overflow-scrolling:touch] [scrollbar-width:thin]">
+                {activeChips.map((chip) => (
+                  <FilterChip
+                    key={chip.label}
+                    label={chip.label}
+                    onRemove={chip.clear}
+                  />
+                ))}
+              </div>
+            )}
           </div>
 
           {/* Mobile filter panel */}
           {showMobileFilters && (
-            <div className="lg:hidden bg-white rounded-2xl border border-slate-100 shadow-sm p-4 mb-4">
+            <div className="lg:hidden bg-white rounded-2xl border border-slate-100 shadow-sm p-4 mb-4 max-h-[min(70vh,28rem)] overflow-y-auto overscroll-contain min-h-0">
               <FilterSection
                 title="Study Level"
                 items={STUDY_LEVELS}
@@ -765,17 +780,18 @@ export default function CourseBrowser() {
             </div>
           )}
 
-          {/* Faculty pills */}
-          <div className="mb-5">
+          {/* Faculty pills — horizontal scroll on small screens to avoid layout blowout */}
+          <div className="mb-5 min-w-0">
             <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3">
               Popular Faculties
             </p>
-            <div className="flex flex-wrap gap-2">
+            <div className="flex gap-2 overflow-x-auto pb-2 -mx-1 px-1 sm:mx-0 sm:px-0 sm:flex-wrap sm:overflow-visible [-webkit-overflow-scrolling:touch] [scrollbar-width:thin]">
               {FACULTIES.map((f) => (
                 <button
                   key={f}
+                  type="button"
                   onClick={() => setActiveFaculty(f)}
-                  className="px-4 py-2 rounded-full text-xs font-semibold border transition-all duration-150"
+                  className="shrink-0 px-3.5 sm:px-4 py-2 rounded-full text-[11px] sm:text-xs font-semibold border transition-all duration-150 whitespace-nowrap"
                   style={
                     activeFaculty === f
                       ? {
@@ -799,10 +815,10 @@ export default function CourseBrowser() {
           </div>
 
           {/* Results count */}
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="font-poppins font-bold text-slate-800 text-lg">
-              Available Courses{" "}
-              <span className="text-sm font-normal text-slate-400">
+          <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between mb-4 min-w-0">
+            <h3 className="font-poppins font-bold text-slate-800 text-base sm:text-lg min-w-0">
+              <span className="block sm:inline">Available Courses </span>
+              <span className="text-sm font-normal text-slate-400 break-words">
                 ({filtered.length} result{filtered.length !== 1 ? "s" : ""}{" "}
                 found)
               </span>
@@ -823,6 +839,7 @@ export default function CourseBrowser() {
                 No courses match your filters.
               </p>
               <button
+                type="button"
                 onClick={resetAll}
                 className="mt-3 text-xs text-primary hover:underline"
               >
@@ -856,8 +873,9 @@ function FilterSection({
   return (
     <div className="mb-4 pb-4 border-b border-slate-100 last:border-0 last:mb-0 last:pb-0">
       <button
+        type="button"
         onClick={() => setOpen((p) => !p)}
-        className="w-full flex items-center justify-between mb-2.5 group"
+        className="w-full flex items-center justify-between mb-2.5 group text-left min-w-0"
       >
         <span className="text-xs font-bold text-slate-600 uppercase tracking-wider">
           {title}
@@ -896,7 +914,7 @@ function FilterSection({
                   </svg>
                 )}
               </span>
-              <span className="text-xs text-slate-600 group-hover/item:text-slate-900 transition-colors">
+              <span className="text-xs text-slate-600 group-hover/item:text-slate-900 transition-colors min-w-0 break-words">
                 {item}
               </span>
             </label>
@@ -904,6 +922,7 @@ function FilterSection({
         })}
         {collapsible && items.length > 4 && (
           <button
+            type="button"
             className="text-left text-[11px] text-primary hover:underline mt-0.5 font-medium"
             onClick={() => setOpen((p) => !p)}
           >

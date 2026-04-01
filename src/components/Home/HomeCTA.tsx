@@ -34,7 +34,7 @@ const HomeCTA = () => {
               </p>
             </div>
 
-            <h2 className="text-4xl sm:text-5xl font-semibold leading-[1.1] tracking-tight text-white font-poppins">
+            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-semibold leading-[1.1] tracking-tight text-white font-poppins">
               Your global
               <br />
               education
