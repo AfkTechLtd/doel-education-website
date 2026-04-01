@@ -338,7 +338,7 @@ export default function ApplicationProcess() {
       </div>
 
       {/* ── Mobile: vertical timeline ── */}
-      <div className="lg:hidden flex flex-col px-2">
+      <div className="lg:hidden flex flex-col px-2 sm:px-4 max-w-lg mx-auto">
         {steps.map((step, i) => {
           const Icon = step.icon;
           const isLast = i === steps.length - 1;

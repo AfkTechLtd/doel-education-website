@@ -186,7 +186,7 @@ const Partners = () => {
         transition={{ duration: 0.5, delay: 0.35 }}
       >
         {stats.map(({ value, label }) => (
-          <div key={label} className="text-center px-10 sm:px-16 py-2">
+          <div key={label} className="text-center px-4 sm:px-8 lg:px-12 py-2">
             <p className="text-3xl font-bold text-secondary font-poppins leading-none">
               {value}
             </p>

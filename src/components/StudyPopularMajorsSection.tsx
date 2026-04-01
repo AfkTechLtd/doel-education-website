@@ -268,8 +268,8 @@ export default function PopularMajors() {
   const Icon = active.icon;
 
   return (
-    <section className="py-24 bg-white">
-      <div className="max-w-7xl mx-auto px-6">
+    <section className="py-16 sm:py-20 lg:py-24 bg-white w-full min-w-0">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full min-w-0">
         {/* Header */}
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-14">
           <div className="max-w-xl">
@@ -325,7 +325,7 @@ export default function PopularMajors() {
           {/* RIGHT: Detail panel */}
           <div className="rounded-3xl border border-slate-100 bg-white shadow-sm overflow-hidden">
             {/* Panel header */}
-            <div className="bg-primary px-8 py-7 flex items-start gap-5">
+            <div className="bg-primary px-5 py-6 sm:px-8 sm:py-7 flex items-start gap-4 sm:gap-5 min-w-0">
               <div className="flex-shrink-0 w-14 h-14 rounded-2xl bg-white/15 flex items-center justify-center">
                 <Icon size={26} className="text-white" />
               </div>
@@ -376,8 +376,11 @@ export default function PopularMajors() {
                   sub: "first year in US",
                 },
               ].map(({ label, value, sub }) => (
-                <div key={label} className="px-6 py-5 text-center">
-                  <p className="font-poppins text-2xl font-bold text-primary leading-none">
+                <div
+                  key={label}
+                  className="px-3 py-4 sm:px-6 sm:py-5 text-center min-w-0"
+                >
+                  <p className="font-poppins text-xl sm:text-2xl font-bold text-primary leading-none break-words">
                     {value}
                   </p>
                   <p className="font-inter text-xs font-semibold text-slate-700 mt-1.5">
@@ -391,7 +394,7 @@ export default function PopularMajors() {
             </div>
 
             {/* Body */}
-            <div className="p-8 space-y-7">
+            <div className="p-5 sm:p-8 space-y-6 sm:space-y-7 min-w-0">
               {/* Conversion rate */}
               <div>
                 <div className="flex items-center justify-between mb-2">

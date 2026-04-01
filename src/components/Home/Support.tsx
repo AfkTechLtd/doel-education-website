@@ -63,10 +63,10 @@ const Support = () => {
                     <h5 className="text-secondary font-bold tracking-widest uppercase text-sm mb-3">
                         Our Services
                     </h5>
-                    <h2 className="text-4xl md:text-5xl font-bold text-slate-900 mb-6">
+                    <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-slate-900 mb-6">
                         Complete Support at Every Step
                     </h2>
-                    <p className="text-gray-500 max-w-2xl mx-auto text-lg">
+                    <p className="text-gray-500 max-w-2xl mx-auto text-sm sm:text-base lg:text-lg">
                         From your first consultation to landing your dream job abroad, we provide
                         comprehensive support throughout your journey.
                     </p>

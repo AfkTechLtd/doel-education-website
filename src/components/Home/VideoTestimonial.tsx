@@ -60,7 +60,7 @@ const VideoTestimonial = () => {
           </div>
 
           {/* Floating stat card */}
-          <div className="absolute -bottom-6 -right-6 rounded-2xl px-5 py-4 shadow-xl border border-white/60 backdrop-blur-sm bg-primary">
+          <div className="absolute bottom-2 right-2 sm:-bottom-6 sm:-right-6 rounded-2xl px-4 sm:px-5 py-3 sm:py-4 shadow-xl border border-white/60 backdrop-blur-sm bg-primary">
             <p className="text-3xl font-bold text-white font-poppins leading-none tabular-nums">
               <AnimatedNumber
                 target={96}
