@@ -25,6 +25,7 @@ const navLinks: NavLink[] = [
   { label: "Blog", href: "/blog" },
   { label: "Q&A", href: "/qna" },
   { label: "Contact", href: "/contact" },
+  { label: "Login", href: "/login" },
 ];
 
 export default navLinks;
