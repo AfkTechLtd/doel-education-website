@@ -1,9 +1,7 @@
 import type { Metadata } from "next";
 import "../styles/globals.css";
-import Navbar from "@/components/Navbar";
-import Footer from "@/components/Footer";
-import InquiryModalProvider from "@/components/common/InquiryModalProvider";
 import { Inter, Poppins } from "next/font/google";
+import PublicLayout from "@/components/PublicLayout";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -31,11 +29,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${inter.variable} ${poppins.variable}`}>
-        <InquiryModalProvider>
-          <Navbar />
-          {children}
-          <Footer />
-        </InquiryModalProvider>
+        <PublicLayout>{children}</PublicLayout>
       </body>
     </html>
   );
