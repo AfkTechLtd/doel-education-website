@@ -7,17 +7,14 @@ import { FormProvider, useFormContext } from "@/context/FormContext";
 import { FormField } from "@/components/FormField/FormField";
 import { PasswordField } from "@/components/FormField/FormPasswordField";
 import AuthCard from "./AuthCard";
-import { consumeResetSuccess } from "./auth-flow-storage";
-import { validateEmail } from "./auth-utils";
+import { validateEmail, validatePassword } from "./auth-utils";
 import { createClient } from "@/lib/supabase/client";
-import { ROLE_DASHBOARD, type RoleType } from "@/lib/constants";
 
-function LoginFormContent() {
+function RegisterFormContent() {
   const router = useRouter();
   const { errors, validateAllFields, values } = useFormContext();
   const [loading, setLoading] = useState(false);
   const [serverError, setServerError] = useState<string | null>(null);
-  const [resetSuccess] = useState(() => consumeResetSuccess());
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -26,6 +23,7 @@ function LoginFormContent() {
       return;
     }
 
+    const name = String(values.name ?? "");
     const email = String(values.email ?? "");
     const password = String(values.password ?? "");
 
@@ -34,33 +32,44 @@ function LoginFormContent() {
 
     try {
       const supabase = createClient();
-      const { data, error } = await supabase.auth.signInWithPassword({
+
+      // 1. Sign up with Supabase Auth
+      const { data, error: signUpError } = await supabase.auth.signUp({
         email,
         password,
+        options: {
+          data: { name },
+        },
       });
 
-      if (error) {
-        setServerError(error.message);
+      if (signUpError) {
+        setServerError(signUpError.message);
         return;
       }
 
       if (!data.user) {
-        setServerError("Login failed. Please try again.");
+        setServerError("Registration failed. Please try again.");
         return;
       }
 
-      // Fetch user role from our DB to determine redirect
-      const response = await fetch("/api/auth/me");
-      if (response.ok) {
-        const { role } = await response.json();
-        const dest = ROLE_DASHBOARD[role as RoleType] ?? "/student";
-        router.push(dest);
-        router.refresh();
-      } else {
-        // Fallback: let middleware handle the redirect
-        router.push("/student");
-        router.refresh();
+      // 2. Create the User row in our database via Server Action
+      const response = await fetch("/api/auth/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          supabaseId: data.user.id,
+          email,
+          name,
+        }),
+      });
+
+      if (!response.ok) {
+        const body = await response.json().catch(() => ({}));
+        setServerError(body.error ?? "Failed to complete registration.");
+        return;
       }
+
+      router.push("/student");
     } catch {
       setServerError("An unexpected error occurred. Please try again.");
     } finally {
@@ -70,14 +79,10 @@ function LoginFormContent() {
 
   return (
     <AuthCard
-      title="Login"
-      description="Welcome back. Sign in with your email and password to continue."
+      title="Create Account"
+      description="Register as a student to begin your US study journey."
       banner={
-        resetSuccess ? (
-          <p className="rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 font-inter text-sm font-medium text-emerald-700">
-            Password updated successfully. Please log in.
-          </p>
-        ) : serverError ? (
+        serverError ? (
           <p className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 font-inter text-sm font-medium text-red-700">
             {serverError}
           </p>
@@ -85,17 +90,28 @@ function LoginFormContent() {
       }
       footer={
         <p className="text-center font-inter text-sm text-slate-500">
-          New student?{" "}
+          Already have an account?{" "}
           <Link
-            href="/register"
+            href="/login"
             className="font-semibold text-primary transition-colors hover:text-primary/80"
           >
-            Create an account
+            Log in
           </Link>
         </p>
       }
     >
       <form className="space-y-5" onSubmit={handleSubmit}>
+        <FormField
+          name="name"
+          label="Full Name"
+          type="text"
+          required
+          error={errors.name}
+          validate={(value) =>
+            value.trim() ? undefined : "Full name is required"
+          }
+        />
+
         <FormField
           name="email"
           label="Email Address"
@@ -110,19 +126,8 @@ function LoginFormContent() {
           label="Password"
           required
           error={errors.password}
-          validate={(value) =>
-            value.trim() ? undefined : "Password is required"
-          }
+          validate={validatePassword}
         />
-
-        <div className="flex justify-end">
-          <Link
-            href="/forgot-password"
-            className="font-inter text-sm font-semibold text-primary transition-colors hover:text-primary/80"
-          >
-            Forgot password?
-          </Link>
-        </div>
 
         <button
           type="submit"
@@ -151,10 +156,10 @@ function LoginFormContent() {
                   d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
                 />
               </svg>
-              Logging in...
+              Creating account...
             </>
           ) : (
-            "Login"
+            "Create Account"
           )}
         </button>
       </form>
@@ -162,10 +167,10 @@ function LoginFormContent() {
   );
 }
 
-export default function LoginForm() {
+export default function RegisterForm() {
   return (
     <FormProvider>
-      <LoginFormContent />
+      <RegisterFormContent />
     </FormProvider>
   );
 }

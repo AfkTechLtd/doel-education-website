@@ -4,13 +4,25 @@ import { useState, type ReactNode } from "react";
 import DashboardSidebar from "./DashboardSidebar";
 import DashboardTopbar from "./DashboardTopbar";
 
-export default function DashboardShell({ children }: { children: ReactNode }) {
+interface DashboardShellProps {
+  children: ReactNode;
+  role: string;
+  userName: string;
+  userEmail: string;
+}
+
+export default function DashboardShell({
+  children,
+  role,
+  userName,
+  userEmail,
+}: DashboardShellProps) {
   const [mobileOpen, setMobileOpen] = useState(false);
 
   return (
     <div className="min-h-screen bg-slate-50">
       <div className="hidden lg:fixed lg:inset-y-0 lg:flex lg:w-72">
-        <DashboardSidebar />
+        <DashboardSidebar role={role} userName={userName} userEmail={userEmail} />
       </div>
 
       {mobileOpen ? (
@@ -22,7 +34,12 @@ export default function DashboardShell({ children }: { children: ReactNode }) {
             aria-label="Close dashboard sidebar overlay"
           />
           <div className="relative h-full w-[88vw] max-w-sm">
-            <DashboardSidebar onClose={() => setMobileOpen(false)} />
+            <DashboardSidebar
+              role={role}
+              userName={userName}
+              userEmail={userEmail}
+              onClose={() => setMobileOpen(false)}
+            />
           </div>
         </div>
       ) : null}

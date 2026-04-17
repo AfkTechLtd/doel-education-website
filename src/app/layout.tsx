@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import "../styles/globals.css";
 import { Inter, Poppins } from "next/font/google";
-import PublicLayout from "@/components/PublicLayout";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -29,7 +28,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${inter.variable} ${poppins.variable}`}>
-        <PublicLayout>{children}</PublicLayout>
+        {children}
       </body>
     </html>
   );

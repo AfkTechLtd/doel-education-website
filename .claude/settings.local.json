@@ -5,7 +5,24 @@
       "WebSearch",
       "WebFetch(domain:commons.wikimedia.org)",
       "Bash(curl -sL \"https://upload.wikimedia.org/wikipedia/commons/0/07/Yale_University_Shield_1.svg\" -o \"E:/Code V2/doel-education/public/home/unis/yale.svg\")",
-      "Bash(node:*)"
+      "Bash(node:*)",
+      "Bash(npm install:*)",
+      "Bash(cd:*)",
+      "Bash(mv page.tsx \"\\(public\\)/page.tsx\")",
+      "Bash(mv about:*)",
+      "Bash(mv blog:*)",
+      "Bash(mv consultation:*)",
+      "Bash(mv contact:*)",
+      "Bash(mv login:*)",
+      "Bash(mv forgot-password:*)",
+      "Bash(mv profile:*)",
+      "Bash(cp -r dashboard/. \"\\(dashboard\\)/admin/\")",
+      "Bash(ls \"\\(dashboard\\)/admin/\")",
+      "Bash(cat:*)",
+      "Bash(ls \"E:/Code V2/doel-education/src/app/\\(auth\\)/profile\")",
+      "Bash(npx prisma:*)",
+      "Bash(npm run:*)",
+      "Bash(rm:*)"
     ]
   }
 }
