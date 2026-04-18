@@ -48,7 +48,7 @@ export const studentNavItems: DashboardNavItem[] = [
   {
     label: "Resources",
     icon: BookOpen,
-    comingSoon: true,
+    href: "/student/resources",
   },
   {
     label: "Messages",

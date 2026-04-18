@@ -8,6 +8,7 @@ export default function DashboardPage() {
   return (
     <div className="space-y-8">
       <DashboardPageHeader
+        eyebrow="Admin Overview"
         title="Dashboard"
         description="Student progress, uploads, and application outcomes."
       />
