@@ -122,6 +122,28 @@ export const STORAGE_BUCKETS = {
 } as const;
 
 // ============================================================
+// Kanban Stages
+// ============================================================
+
+export const KANBAN_STAGE = {
+  NEW_DOCS: "NEW_DOCS",
+  PENDING: "PENDING",
+  APPLIED: "APPLIED",
+  ADMITTED: "ADMITTED",
+  VISA_STAGE: "VISA_STAGE",
+} as const;
+
+export type KanbanStageType = (typeof KANBAN_STAGE)[keyof typeof KANBAN_STAGE];
+
+export const KANBAN_STAGE_LABELS: Record<string, string> = {
+  NEW_DOCS: "New Docs",
+  PENDING: "Pending",
+  APPLIED: "Applied",
+  ADMITTED: "Admitted",
+  VISA_STAGE: "Visa Stage",
+};
+
+// ============================================================
 // Route constants
 // ============================================================
 
@@ -132,7 +154,11 @@ export const ROUTES = {
   FORGOT_PASSWORD: "/forgot-password",
   STUDENT_DASHBOARD: "/student",
   COUNSELOR_DASHBOARD: "/counselor",
+  COUNSELOR_STUDENTS: "/counselor/students",
+  COUNSELOR_KANBAN: "/counselor/kanban",
   ADMIN_DASHBOARD: "/admin",
+  ADMIN_USERS: "/admin/users",
+  ADMIN_ASSIGNMENTS: "/admin/assignments",
 } as const;
 
 export const ROLE_DASHBOARD: Record<RoleType, string> = {

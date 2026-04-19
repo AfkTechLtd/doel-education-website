@@ -92,7 +92,7 @@ export default function DashboardSidebar({
       <nav className="mt-8 flex-1 space-y-1 overflow-y-auto">
         {navItems.map((item) => {
           const Icon = item.icon;
-          const isActive = item.href ? pathname === item.href || pathname.startsWith(item.href + "/") : false;
+          const isActive = item.href ? pathname === item.href : false;
 
           return (
             <div key={item.label}>
