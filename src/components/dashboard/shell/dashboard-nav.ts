@@ -94,12 +94,12 @@ export const counselorNavItems: DashboardNavItem[] = [
   {
     label: "My Students",
     icon: Users,
-    comingSoon: true,
+    href: "/counselor/students",
   },
   {
     label: "Kanban Board",
     icon: Kanban,
-    comingSoon: true,
+    href: "/counselor/kanban",
   },
 ];
 
@@ -117,12 +117,12 @@ export const adminNavItems: DashboardNavItem[] = [
   {
     label: "Users",
     icon: UserCog,
-    comingSoon: true,
+    href: "/admin/users",
   },
   {
     label: "Assignments",
     icon: GitBranch,
-    comingSoon: true,
+    href: "/admin/assignments",
   },
   {
     label: "Settings",
