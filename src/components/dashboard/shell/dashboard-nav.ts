@@ -43,7 +43,7 @@ export const studentNavItems: DashboardNavItem[] = [
   {
     label: "Document Vault",
     icon: FolderOpen,
-    comingSoon: true,
+    href: "/student/documents",
   },
   {
     label: "Resources",
