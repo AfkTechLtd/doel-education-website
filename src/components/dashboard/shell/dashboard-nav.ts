@@ -38,6 +38,7 @@ export const studentNavItems: DashboardNavItem[] = [
   {
     label: "My Application",
     icon: ClipboardList,
+    href: "/student/application",
     comingSoon: true,
   },
   {

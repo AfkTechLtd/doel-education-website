@@ -6,11 +6,25 @@ export type StudentDocumentStatus =
   | "REJECTED"
   | "WAIVED";
 
+export type DocumentLinkContext = "REQUIRED_DOCUMENT" | "APPLICATION_FIELD";
+
+export type DocumentLinkUsageItem = {
+  contextType: DocumentLinkContext;
+  contextKey: string;
+};
+
+export type DocumentLinkUsage = {
+  documentId: string;
+  total: number;
+  items: DocumentLinkUsageItem[];
+};
+
 export type DocumentMatchState = "MATCHED" | "UNASSIGNED";
 
 export type SelectedDocumentReference = {
   id: string;
   name: string;
+  type: string;
   bucket: string | null;
   storagePath: string | null;
   mimeType: string | null;
@@ -19,7 +33,6 @@ export type SelectedDocumentReference = {
 };
 
 export type VaultDocumentListItem = SelectedDocumentReference & {
-  type: string;
   notes: string | null;
   uploadedAt: string | null;
   source: string | null;
@@ -29,7 +42,10 @@ export type VaultDocumentListItem = SelectedDocumentReference & {
 
 export type RequiredDocumentLinkItem = {
   contextKey: string;
-  document: SelectedDocumentReference & {
-    type: string;
-  };
+  document: SelectedDocumentReference;
+};
+
+export type ApplicationFieldDocumentLinkItem = {
+  contextKey: string;
+  document: SelectedDocumentReference;
 };

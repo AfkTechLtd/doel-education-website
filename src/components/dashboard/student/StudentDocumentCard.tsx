@@ -4,7 +4,7 @@ import type { VaultDocumentListItem } from "@/lib/documents/types";
 
 type StudentDocumentCardProps = {
   document: VaultDocumentListItem;
-  onDelete: (documentId: string) => void;
+  onDeleteRequest: (document: { id: string; name: string }) => void;
   isDeleting: boolean;
 };
 
@@ -34,7 +34,7 @@ function formatSize(value: number | null) {
 
 export default function StudentDocumentCard({
   document,
-  onDelete,
+  onDeleteRequest,
   isDeleting,
 }: StudentDocumentCardProps) {
   const isImage = document.mimeType?.startsWith("image/");
@@ -60,7 +60,7 @@ export default function StudentDocumentCard({
               <DashboardStatusBadge status={document.status.replaceAll("_", " ")} />
               <button
                 type="button"
-                onClick={() => onDelete(document.id)}
+                onClick={() => onDeleteRequest({ id: document.id, name: document.name })}
                 disabled={isDeleting}
                 className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-500 transition hover:border-red-200 hover:text-red-600 disabled:cursor-not-allowed disabled:opacity-60"
                 aria-label={`Delete ${document.name}`}

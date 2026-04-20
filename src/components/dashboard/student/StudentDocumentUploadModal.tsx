@@ -2,8 +2,8 @@
 
 import { useEffect } from "react";
 import { X } from "lucide-react";
+import DocumentUploader from "@/components/common/documents/DocumentUploader";
 import type { SelectedDocumentReference } from "@/lib/documents/types";
-import StudentDocumentUploadZone from "./StudentDocumentUploadZone";
 
 type StudentDocumentUploadModalProps = {
   open: boolean;
@@ -70,7 +70,7 @@ export default function StudentDocumentUploadModal({
           </button>
         </div>
 
-        <StudentDocumentUploadZone
+        <DocumentUploader
           onCancel={onClose}
           onUploadComplete={onUploadComplete}
         />

@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import StudentDocumentUploadZone from "@/components/dashboard/student/StudentDocumentUploadZone";
+import DocumentUploader from "@/components/common/documents/DocumentUploader";
 import type { SelectedDocumentReference } from "@/lib/documents/types";
 
 type UploadNewDocumentPanelProps = {
@@ -27,15 +27,16 @@ export default function UploadNewDocumentPanel({
     }
 
     return uploadedDocuments.filter((document) => {
-      return normalizedAllowedTypes.some((allowedType) =>
-        normalize(document.name).includes(allowedType),
-      );
+      return normalizedAllowedTypes.some((allowedType) => {
+        const normalizedDocumentType = normalize(document.type);
+        return normalizedDocumentType.includes(allowedType) || allowedType.includes(normalizedDocumentType);
+      });
     });
   }, [allowedTypes, uploadedDocuments]);
 
   return (
     <div className="space-y-5">
-      <StudentDocumentUploadZone
+      <DocumentUploader
         onCancel={() => {
           // No-op in picker tab; closing is handled by the parent modal.
         }}

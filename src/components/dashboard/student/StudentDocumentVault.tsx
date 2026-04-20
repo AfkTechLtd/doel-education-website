@@ -2,11 +2,20 @@
 
 import { useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { deleteStudentDocument, setRequiredDocumentLink } from "@/actions/documents";
+import {
+  getDocumentLinkUsage,
+  hardDeleteStudentDocument,
+  deleteStudentDocument,
+  removeDocumentLink,
+  setRequiredDocumentLink,
+} from "@/actions/documents";
 import DocumentPickerModal from "@/components/common/documents/DocumentPickerModal";
+import { useToast } from "@/components/common/feedback/ToastProvider";
+import StudentDocumentDeleteModal from "@/components/dashboard/student/StudentDocumentDeleteModal";
 import { cn } from "@/lib/utils";
 import type { StudentDocumentRequirement } from "@/data/student-document-requirements";
 import type {
+  DocumentLinkUsage,
   RequiredDocumentLinkItem,
   SelectedDocumentReference,
   StudentDocumentStatus,
@@ -55,12 +64,14 @@ export default function StudentDocumentVault({
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState<StudentDocumentFilter>("ALL");
   const [view, setView] = useState<VaultView>("ALL_FILES");
-  const [deleteError, setDeleteError] = useState<string | null>(null);
   const [deletingId, startDeleting] = useTransition();
   const [activeDeletingId, setActiveDeletingId] = useState<string | null>(null);
+  const [deleteCandidate, setDeleteCandidate] = useState<{ id: string; name: string } | null>(null);
+  const [deleteUsage, setDeleteUsage] = useState<DocumentLinkUsage | null>(null);
+  const [isLoadingDeleteUsage, setIsLoadingDeleteUsage] = useState(false);
   const [pickerRequirement, setPickerRequirement] = useState<StudentDocumentRequirement | null>(null);
-  const [linkError, setLinkError] = useState<string | null>(null);
   const [isLinking, startLinking] = useTransition();
+  const { showToast } = useToast();
 
   const requiredLinkMap = useMemo(() => {
     return requiredLinks.reduce<Record<string, SelectedDocumentReference & { type: string }>>(
@@ -81,28 +92,98 @@ export default function StudentDocumentVault({
   }, [documents, filter, query]);
 
   const filteredRequirements = useMemo(() => {
+    const requirementsWithStatus = requirements.map((requirement) => {
+      const linkedStatus = requiredLinkMap[requirement.id]?.status;
+      const effectiveStatus: StudentDocumentStatus = linkedStatus ?? "PENDING";
+
+      return {
+        requirement,
+        effectiveStatus,
+      };
+    });
+
     if (filter === "ALL") {
-      return requirements;
+      return requirementsWithStatus;
     }
 
-    return requirements.filter((requirement) => requirement.status === filter);
-  }, [filter, requirements]);
+    return requirementsWithStatus.filter((item) => item.effectiveStatus === filter);
+  }, [filter, requiredLinkMap, requirements]);
 
   function handleDelete(documentId: string) {
-    setDeleteError(null);
     setActiveDeletingId(documentId);
 
     startDeleting(async () => {
       const result = await deleteStudentDocument(documentId);
 
       if (!result.success) {
-        setDeleteError(result.error ?? "Failed to delete the document.");
+        showToast({
+          variant: "error",
+          title: "Delete failed",
+          description: result.error ?? "Failed to delete the document.",
+        });
         setActiveDeletingId(null);
         return;
       }
 
+      showToast({
+        variant: "success",
+        title: "Document deleted",
+      });
       router.refresh();
       setActiveDeletingId(null);
+    });
+  }
+
+  function handleDeleteRequest(document: { id: string; name: string }) {
+    setDeleteCandidate(document);
+    setDeleteUsage(null);
+    setIsLoadingDeleteUsage(true);
+
+    startDeleting(async () => {
+      const usageResult = await getDocumentLinkUsage(document.id);
+
+      if (!usageResult.success || !usageResult.data) {
+        showToast({
+          variant: "error",
+          title: "Could not check document usage",
+          description: usageResult.error ?? "Try again.",
+        });
+        setDeleteCandidate(null);
+        setIsLoadingDeleteUsage(false);
+        return;
+      }
+
+      setDeleteUsage(usageResult.data);
+      setIsLoadingDeleteUsage(false);
+    });
+  }
+
+  function handleHardDelete(documentId: string) {
+    setActiveDeletingId(documentId);
+
+    startDeleting(async () => {
+      const result = await hardDeleteStudentDocument(documentId);
+
+      if (!result.success) {
+        showToast({
+          variant: "error",
+          title: "Hard delete failed",
+          description: result.error ?? "Failed to unlink and delete this document.",
+        });
+        setActiveDeletingId(null);
+        return;
+      }
+
+      showToast({
+        variant: "success",
+        title: "Document deleted",
+        description: "Links were removed and the file was deleted.",
+      });
+
+      setDeleteCandidate(null);
+      setDeleteUsage(null);
+      setActiveDeletingId(null);
+      router.refresh();
     });
   }
 
@@ -142,18 +223,6 @@ export default function StudentDocumentVault({
         </button>
       </div>
 
-      {deleteError ? (
-        <div className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 font-inter text-sm text-red-700">
-          {deleteError}
-        </div>
-      ) : null}
-
-      {linkError ? (
-        <div className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 font-inter text-sm text-red-700">
-          {linkError}
-        </div>
-      ) : null}
-
       {view === "ALL_FILES" ? (
         filteredDocuments.length ? (
           <section className="space-y-4">
@@ -161,7 +230,7 @@ export default function StudentDocumentVault({
               <StudentDocumentCard
                 key={document.id}
                 document={document}
-                onDelete={handleDelete}
+                onDeleteRequest={handleDeleteRequest}
                 isDeleting={deletingId && activeDeletingId === document.id}
               />
             ))}
@@ -176,13 +245,36 @@ export default function StudentDocumentVault({
         )
       ) : filteredRequirements.length ? (
         <section className="grid grid-cols-1 gap-4 xl:grid-cols-2">
-          {filteredRequirements.map((requirement) => (
+          {filteredRequirements.map(({ requirement, effectiveStatus }) => (
             <StudentRequiredDocumentCard
               key={requirement.id}
               requirement={requirement}
-              linkedFileName={requiredLinkMap[requirement.id]?.name}
-              linkedStatus={requiredLinkMap[requirement.id]?.status}
+              linkedDocument={requiredLinkMap[requirement.id] ?? null}
+              effectiveStatus={effectiveStatus}
               onChooseDocument={setPickerRequirement}
+              onUnlinkDocument={(selectedRequirement) => {
+                startLinking(async () => {
+                  const result = await removeDocumentLink(
+                    "REQUIRED_DOCUMENT",
+                    selectedRequirement.id,
+                  );
+
+                  if (!result.success) {
+                    showToast({
+                      variant: "error",
+                      title: "Unlink failed",
+                      description: result.error ?? "Failed to unlink required document.",
+                    });
+                    return;
+                  }
+
+                  showToast({
+                    variant: "success",
+                    title: "Document unlinked",
+                  });
+                  router.refresh();
+                });
+              }}
               disabled={isLinking}
             />
           ))}
@@ -202,26 +294,65 @@ export default function StudentDocumentVault({
         title={pickerRequirement
           ? `Choose Document for ${pickerRequirement.label}`
           : "Choose Document"}
-        allowedTypes={pickerRequirement ? [pickerRequirement.type] : undefined}
         onSelect={(document) => {
           if (!pickerRequirement) {
             return;
           }
-
-          setLinkError(null);
           const selectedRequirement = pickerRequirement;
 
           startLinking(async () => {
             const result = await setRequiredDocumentLink(selectedRequirement.id, document.id);
 
             if (!result.success) {
-              setLinkError(result.error ?? "Failed to link required document.");
+              showToast({
+                variant: "error",
+                title: "Link failed",
+                description: result.error ?? "Failed to link required document.",
+              });
               return;
             }
 
+            showToast({
+              variant: "success",
+              title: "Document linked",
+              description: `${document.name} linked to ${selectedRequirement.label}.`,
+            });
             setPickerRequirement(null);
             router.refresh();
           });
+        }}
+      />
+
+      <StudentDocumentDeleteModal
+        open={Boolean(deleteCandidate)}
+        documentName={deleteCandidate?.name ?? ""}
+        usage={deleteUsage}
+        isLoadingUsage={isLoadingDeleteUsage}
+        isSubmitting={deletingId && activeDeletingId === deleteCandidate?.id}
+        onClose={() => {
+          if (deletingId) {
+            return;
+          }
+
+          setDeleteCandidate(null);
+          setDeleteUsage(null);
+          setIsLoadingDeleteUsage(false);
+        }}
+        onDelete={() => {
+          if (!deleteCandidate) {
+            return;
+          }
+
+          handleDelete(deleteCandidate.id);
+          setDeleteCandidate(null);
+          setDeleteUsage(null);
+        }}
+        onHardDelete={() => {
+          if (!deleteCandidate) {
+            return;
+          }
+
+          handleHardDelete(deleteCandidate.id);
         }}
       />
     </div>

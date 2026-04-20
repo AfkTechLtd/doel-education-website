@@ -67,9 +67,12 @@ export default function DocumentPickerModal({
       <div className="relative z-10 w-full max-w-3xl rounded-[2rem] border border-slate-200 bg-white p-6 shadow-2xl sm:p-7">
         <div className="mb-5 flex items-start justify-between gap-4 border-b border-slate-200 pb-5">
           <div>
-            <h2 className="font-poppins text-2xl font-semibold text-slate-900">{title}</h2>
+            <h2 className="font-poppins text-2xl font-semibold text-slate-900">
+              {title}
+            </h2>
             <p className="mt-2 font-inter text-sm leading-relaxed text-slate-500">
-              Choose from your vault or upload a new file. New uploads are automatically added to your vault.
+              Choose from your vault or upload a new file. New uploads are
+              automatically added to your vault.
             </p>
           </div>
 

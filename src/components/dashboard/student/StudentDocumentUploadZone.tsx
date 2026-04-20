@@ -3,7 +3,11 @@
 import { useCallback, useMemo, useState } from "react";
 import { FileWarning, UploadCloud, X } from "lucide-react";
 import { useDropzone, type FileRejection } from "react-dropzone";
-import { createStudentDocumentRecord } from "@/actions/documents";
+import {
+  autoLinkRequiredDocumentByFileName,
+  createStudentDocumentRecord,
+} from "@/actions/documents";
+import { useToast } from "@/components/common/feedback/ToastProvider";
 import { STORAGE_BUCKETS } from "@/lib/constants";
 import { buildStudentDocumentStoragePath, inferDocumentType } from "@/lib/documents/paths";
 import type { SelectedDocumentReference } from "@/lib/documents/types";
@@ -58,8 +62,8 @@ export default function StudentDocumentUploadZone({
 }: StudentDocumentUploadZoneProps) {
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [rejectedFiles, setRejectedFiles] = useState<FileRejection[]>([]);
-  const [uploadErrors, setUploadErrors] = useState<string[]>([]);
   const [isUploading, setIsUploading] = useState(false);
+  const { showToast } = useToast();
 
   const onDrop = useCallback(
     (acceptedFiles: File[], fileRejections: FileRejection[]) => {
@@ -78,9 +82,17 @@ export default function StudentDocumentUploadZone({
       });
 
       setRejectedFiles(fileRejections);
-      setUploadErrors([]);
+
+      if (fileRejections.length) {
+        const firstMessage = getRejectionMessage(fileRejections[0]);
+        showToast({
+          variant: "error",
+          title: "Some files were not added",
+          description: firstMessage,
+        });
+      }
     },
-    [],
+    [showToast],
   );
 
   const {
@@ -127,7 +139,6 @@ export default function StudentDocumentUploadZone({
     }
 
     setIsUploading(true);
-    setUploadErrors([]);
 
     const supabase = createSupabaseBrowserClient();
     const {
@@ -136,13 +147,18 @@ export default function StudentDocumentUploadZone({
     } = await supabase.auth.getUser();
 
     if (userError || !user) {
-      setUploadErrors(["You must be signed in to upload documents."]);
+      showToast({
+        variant: "error",
+        title: "Upload failed",
+        description: "You must be signed in to upload documents.",
+      });
       setIsUploading(false);
       return;
     }
 
     const successfulUploads: SelectedDocumentReference[] = [];
     const failedUploads: string[] = [];
+    let autoLinkedCount = 0;
     const failedFileKeys = new Set<string>();
 
     for (const file of selectedFiles) {
@@ -182,11 +198,38 @@ export default function StudentDocumentUploadZone({
         continue;
       }
 
+      const autoLinkResult = await autoLinkRequiredDocumentByFileName(
+        file.name,
+        documentResult.data.id,
+      );
+
+      if (autoLinkResult.success && autoLinkResult.data?.contextKey) {
+        autoLinkedCount += 1;
+      }
+
       successfulUploads.push(documentResult.data);
     }
 
-    setUploadErrors(failedUploads);
     setIsUploading(false);
+
+    if (failedUploads.length) {
+      showToast({
+        variant: "error",
+        title: "Upload failed for some files",
+        description: failedUploads[0],
+      });
+    }
+
+    if (successfulUploads.length) {
+      showToast({
+        variant: "success",
+        title: `${successfulUploads.length} ${successfulUploads.length === 1 ? "file" : "files"} uploaded`,
+        description:
+          autoLinkedCount > 0
+            ? `${autoLinkedCount} ${autoLinkedCount === 1 ? "file was" : "files were"} auto-linked.`
+            : "Files were added to your vault.",
+      });
+    }
 
     if (failedUploads.length) {
       setSelectedFiles((currentFiles) =>
@@ -292,23 +335,6 @@ export default function StudentDocumentUploadZone({
 
           <div className="space-y-2">
             {rejectionMessages.map((message) => (
-              <p key={message} className="font-inter text-sm leading-relaxed text-red-700">
-                {message}
-              </p>
-            ))}
-          </div>
-        </div>
-      ) : null}
-
-      {uploadErrors.length ? (
-        <div className="space-y-3 rounded-[1.5rem] border border-red-200 bg-red-50 p-4">
-          <div className="flex items-center gap-2 text-red-700">
-            <FileWarning className="h-4 w-4" aria-hidden="true" />
-            <p className="font-inter text-sm font-semibold">Upload failed for some files</p>
-          </div>
-
-          <div className="space-y-2">
-            {uploadErrors.map((message) => (
               <p key={message} className="font-inter text-sm leading-relaxed text-red-700">
                 {message}
               </p>
