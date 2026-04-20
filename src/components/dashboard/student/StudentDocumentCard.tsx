@@ -1,9 +1,11 @@
-import { FileImage, FileText } from "lucide-react";
+import { FileImage, FileText, Trash2 } from "lucide-react";
 import DashboardStatusBadge from "@/components/dashboard/shared/DashboardStatusBadge";
-import type { LocalStudentDocument } from "@/data/student-documents";
+import type { VaultDocumentListItem } from "@/lib/documents/types";
 
 type StudentDocumentCardProps = {
-  document: LocalStudentDocument;
+  document: VaultDocumentListItem;
+  onDelete: (documentId: string) => void;
+  isDeleting: boolean;
 };
 
 function formatDate(value: string | null) {
@@ -30,7 +32,11 @@ function formatSize(value: number | null) {
   return `${Math.round(value / 1024)} KB`;
 }
 
-export default function StudentDocumentCard({ document }: StudentDocumentCardProps) {
+export default function StudentDocumentCard({
+  document,
+  onDelete,
+  isDeleting,
+}: StudentDocumentCardProps) {
   const isImage = document.mimeType?.startsWith("image/");
   const sizeLabel = formatSize(document.sizeBytes);
 
@@ -50,7 +56,18 @@ export default function StudentDocumentCard({ document }: StudentDocumentCardPro
               <p className="mt-1 font-inter text-sm text-slate-500">{document.type}</p>
             </div>
 
-            <DashboardStatusBadge status={document.status.replaceAll("_", " ")} />
+            <div className="flex items-center gap-2">
+              <DashboardStatusBadge status={document.status.replaceAll("_", " ")} />
+              <button
+                type="button"
+                onClick={() => onDelete(document.id)}
+                disabled={isDeleting}
+                className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-500 transition hover:border-red-200 hover:text-red-600 disabled:cursor-not-allowed disabled:opacity-60"
+                aria-label={`Delete ${document.name}`}
+              >
+                <Trash2 className="h-4 w-4" aria-hidden="true" />
+              </button>
+            </div>
           </div>
 
           <div className="flex flex-wrap items-center gap-x-5 gap-y-2 font-inter text-sm text-slate-500">

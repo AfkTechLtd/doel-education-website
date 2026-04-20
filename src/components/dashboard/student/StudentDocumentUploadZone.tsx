@@ -3,11 +3,18 @@
 import { useCallback, useMemo, useState } from "react";
 import { FileWarning, UploadCloud, X } from "lucide-react";
 import { useDropzone, type FileRejection } from "react-dropzone";
+import { createStudentDocumentRecord } from "@/actions/documents";
+import { STORAGE_BUCKETS } from "@/lib/constants";
+import { buildStudentDocumentStoragePath, inferDocumentType } from "@/lib/documents/paths";
+import type { SelectedDocumentReference } from "@/lib/documents/types";
+import { createClient as createSupabaseBrowserClient } from "@/lib/supabase/client";
 import { cn } from "@/lib/utils";
 
 type StudentDocumentUploadZoneProps = {
   onCancel: () => void;
-  onFilesSelected?: (files: File[]) => void;
+  onUploadComplete?: (documents: SelectedDocumentReference[]) => void;
+  showCancel?: boolean;
+  submitLabel?: string;
 };
 
 const MAX_FILE_SIZE_BYTES = 10 * 1024 * 1024;
@@ -45,10 +52,14 @@ function getRejectionMessage(rejection: FileRejection) {
 
 export default function StudentDocumentUploadZone({
   onCancel,
-  onFilesSelected,
+  onUploadComplete,
+  showCancel = true,
+  submitLabel = "Upload Files",
 }: StudentDocumentUploadZoneProps) {
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [rejectedFiles, setRejectedFiles] = useState<FileRejection[]>([]);
+  const [uploadErrors, setUploadErrors] = useState<string[]>([]);
+  const [isUploading, setIsUploading] = useState(false);
 
   const onDrop = useCallback(
     (acceptedFiles: File[], fileRejections: FileRejection[]) => {
@@ -63,13 +74,13 @@ export default function StudentDocumentUploadZone({
         });
 
         const nextFiles = [...currentFiles, ...uniqueNewFiles];
-        onFilesSelected?.(nextFiles);
         return nextFiles;
       });
 
       setRejectedFiles(fileRejections);
+      setUploadErrors([]);
     },
-    [onFilesSelected],
+    [],
   );
 
   const {
@@ -99,7 +110,7 @@ export default function StudentDocumentUploadZone({
 
   function handleRemoveFile(fileToRemove: File) {
     setSelectedFiles((currentFiles) => {
-      const nextFiles = currentFiles.filter(
+      return currentFiles.filter(
         (file) =>
           !(
             file.name === fileToRemove.name &&
@@ -107,9 +118,87 @@ export default function StudentDocumentUploadZone({
             file.lastModified === fileToRemove.lastModified
           ),
       );
-      onFilesSelected?.(nextFiles);
-      return nextFiles;
     });
+  }
+
+  async function handleUploadFiles() {
+    if (!selectedFiles.length || isUploading) {
+      return;
+    }
+
+    setIsUploading(true);
+    setUploadErrors([]);
+
+    const supabase = createSupabaseBrowserClient();
+    const {
+      data: { user },
+      error: userError,
+    } = await supabase.auth.getUser();
+
+    if (userError || !user) {
+      setUploadErrors(["You must be signed in to upload documents."]);
+      setIsUploading(false);
+      return;
+    }
+
+    const successfulUploads: SelectedDocumentReference[] = [];
+    const failedUploads: string[] = [];
+    const failedFileKeys = new Set<string>();
+
+    for (const file of selectedFiles) {
+      const fileKey = `${file.name}-${file.size}-${file.lastModified}`;
+      const documentId = crypto.randomUUID();
+      const storagePath = buildStudentDocumentStoragePath(user.id, documentId, file.name);
+
+      const { error: uploadError } = await supabase.storage
+        .from(STORAGE_BUCKETS.DOCUMENTS)
+        .upload(storagePath, file, { upsert: false });
+
+      if (uploadError) {
+        failedUploads.push(`${file.name}: ${uploadError.message}`);
+        failedFileKeys.add(fileKey);
+        continue;
+      }
+
+      const documentResult = await createStudentDocumentRecord({
+        id: documentId,
+        name: file.name,
+        type: inferDocumentType(file.name, file.type),
+        bucket: STORAGE_BUCKETS.DOCUMENTS,
+        storagePath,
+        mimeType: file.type || null,
+        sizeBytes: file.size,
+        source: "VAULT_UPLOAD",
+        status: "PENDING",
+      });
+
+      if (!documentResult.success || !documentResult.data) {
+        failedUploads.push(
+          documentResult.error ?? `${file.name}: Failed to save the uploaded document.`,
+        );
+        failedFileKeys.add(fileKey);
+
+        await supabase.storage.from(STORAGE_BUCKETS.DOCUMENTS).remove([storagePath]);
+        continue;
+      }
+
+      successfulUploads.push(documentResult.data);
+    }
+
+    setUploadErrors(failedUploads);
+    setIsUploading(false);
+
+    if (failedUploads.length) {
+      setSelectedFiles((currentFiles) =>
+        currentFiles.filter((file) =>
+          failedFileKeys.has(`${file.name}-${file.size}-${file.lastModified}`),
+        ),
+      );
+    } else if (successfulUploads.length) {
+      setSelectedFiles([]);
+      setRejectedFiles([]);
+      onUploadComplete?.(successfulUploads);
+    }
   }
 
   return (
@@ -146,6 +235,7 @@ export default function StudentDocumentUploadZone({
           <button
             type="button"
             onClick={open}
+            disabled={isUploading}
             className="mt-6 inline-flex items-center justify-center rounded-2xl bg-primary px-5 py-2.5 font-inter text-sm font-semibold text-white transition hover:bg-primary/90"
           >
             Add Files
@@ -210,20 +300,41 @@ export default function StudentDocumentUploadZone({
         </div>
       ) : null}
 
+      {uploadErrors.length ? (
+        <div className="space-y-3 rounded-[1.5rem] border border-red-200 bg-red-50 p-4">
+          <div className="flex items-center gap-2 text-red-700">
+            <FileWarning className="h-4 w-4" aria-hidden="true" />
+            <p className="font-inter text-sm font-semibold">Upload failed for some files</p>
+          </div>
+
+          <div className="space-y-2">
+            {uploadErrors.map((message) => (
+              <p key={message} className="font-inter text-sm leading-relaxed text-red-700">
+                {message}
+              </p>
+            ))}
+          </div>
+        </div>
+      ) : null}
+
       <div className="flex items-center justify-end gap-3">
+        {showCancel ? (
+          <button
+            type="button"
+            onClick={onCancel}
+            disabled={isUploading}
+            className="inline-flex items-center justify-center rounded-2xl border border-slate-200 bg-white px-4 py-2.5 font-inter text-sm font-semibold text-slate-600 transition hover:border-slate-300 hover:text-slate-900"
+          >
+            Cancel
+          </button>
+        ) : null}
         <button
           type="button"
-          onClick={onCancel}
-          className="inline-flex items-center justify-center rounded-2xl border border-slate-200 bg-white px-4 py-2.5 font-inter text-sm font-semibold text-slate-600 transition hover:border-slate-300 hover:text-slate-900"
+          onClick={handleUploadFiles}
+          disabled={!selectedFiles.length || isUploading}
+          className="inline-flex items-center justify-center rounded-2xl bg-primary px-5 py-2.5 font-inter text-sm font-semibold text-white transition hover:bg-primary/90 disabled:cursor-not-allowed disabled:bg-slate-300"
         >
-          Cancel
-        </button>
-        <button
-          type="button"
-          onClick={open}
-          className="inline-flex items-center justify-center rounded-2xl bg-primary px-5 py-2.5 font-inter text-sm font-semibold text-white transition hover:bg-primary/90"
-        >
-          Add Files
+          {isUploading ? "Uploading..." : submitLabel}
         </button>
       </div>
     </section>

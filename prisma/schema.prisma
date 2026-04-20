@@ -30,9 +30,11 @@ enum ApplicationStatus {
 
 enum DocumentStatus {
   PENDING
-  UPLOADED
+  UNDER_REVIEW
+  RECEIVED
   VERIFIED
   REJECTED
+  WAIVED
 }
 
 enum SectionNumber {
@@ -73,6 +75,19 @@ enum CounselorNoteStage {
   COMPLETED
 }
 
+enum KanbanStage {
+  NEW_DOCS
+  PENDING
+  APPLIED
+  ADMITTED
+  VISA_STAGE
+}
+
+enum DocumentLinkContext {
+  REQUIRED_DOCUMENT
+  APPLICATION_FIELD
+}
+
 // ============================================================
 // Models
 // ============================================================
@@ -106,6 +121,7 @@ model StudentProfile {
   id           String   @id @default(cuid())
   userId       String   @unique @map("user_id")
   counselorId  String?  @map("counselor_id")
+  kanbanStage  KanbanStage @default(PENDING) @map("kanban_stage")
   nationality  String?
   dateOfBirth  DateTime? @map("date_of_birth")
   passportNo   String?  @map("passport_no")
@@ -119,6 +135,7 @@ model StudentProfile {
   counselor   User?          @relation("CounselorStudents", fields: [counselorId], references: [id], onDelete: SetNull)
   application Application?
   documents   Document[]
+  documentLinks DocumentLink[]
 
   @@index([counselorId])
   @@map("student_profiles")
@@ -168,6 +185,7 @@ model Document {
   name        String
   type        String
   status      DocumentStatus @default(PENDING)
+  source      String?
   storagePath String?        @map("storage_path")
   storageUrl  String?        @map("storage_url")
   bucket      String?
@@ -182,9 +200,27 @@ model Document {
 
   // Relations
   student StudentProfile @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  links   DocumentLink[]
 
   @@index([studentId, status])
   @@map("documents")
+}
+
+model DocumentLink {
+  id          String              @id @default(cuid())
+  studentId   String              @map("student_id")
+  documentId  String              @map("document_id")
+  contextType DocumentLinkContext @map("context_type")
+  contextKey  String              @map("context_key")
+  createdAt   DateTime            @default(now()) @map("created_at")
+  updatedAt   DateTime            @updatedAt @map("updated_at")
+
+  student  StudentProfile @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  document Document       @relation(fields: [documentId], references: [id], onDelete: Cascade)
+
+  @@unique([studentId, contextType, contextKey])
+  @@index([documentId])
+  @@map("document_links")
 }
 
 model Message {

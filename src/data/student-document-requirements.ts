@@ -1,4 +1,4 @@
-import type { StudentDocumentStatus } from "./student-documents";
+import type { StudentDocumentStatus } from "@/lib/documents/types";
 
 export type StudentRequirementStatus = StudentDocumentStatus | "STILL_NEEDED";
 

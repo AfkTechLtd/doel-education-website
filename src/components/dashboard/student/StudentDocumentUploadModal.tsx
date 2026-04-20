@@ -2,16 +2,19 @@
 
 import { useEffect } from "react";
 import { X } from "lucide-react";
+import type { SelectedDocumentReference } from "@/lib/documents/types";
 import StudentDocumentUploadZone from "./StudentDocumentUploadZone";
 
 type StudentDocumentUploadModalProps = {
   open: boolean;
   onClose: () => void;
+  onUploadComplete: (documents: SelectedDocumentReference[]) => void;
 };
 
 export default function StudentDocumentUploadModal({
   open,
   onClose,
+  onUploadComplete,
 }: StudentDocumentUploadModalProps) {
   useEffect(() => {
     if (!open) {
@@ -67,7 +70,10 @@ export default function StudentDocumentUploadModal({
           </button>
         </div>
 
-        <StudentDocumentUploadZone onCancel={onClose} />
+        <StudentDocumentUploadZone
+          onCancel={onClose}
+          onUploadComplete={onUploadComplete}
+        />
       </div>
     </div>
   );

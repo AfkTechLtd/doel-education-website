@@ -1,21 +1,25 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import DashboardPageHeader from "@/components/dashboard/shared/DashboardPageHeader";
 import type { StudentDocumentRequirement } from "@/data/student-document-requirements";
-import type { LocalStudentDocument } from "@/data/student-documents";
+import type { RequiredDocumentLinkItem, VaultDocumentListItem } from "@/lib/documents/types";
 import StudentDocumentUploadModal from "./StudentDocumentUploadModal";
 import StudentDocumentVault from "./StudentDocumentVault";
 
 type StudentDocumentVaultPageContentProps = {
-  documents: LocalStudentDocument[];
+  documents: VaultDocumentListItem[];
   requirements: StudentDocumentRequirement[];
+  requiredLinks: RequiredDocumentLinkItem[];
 };
 
 export default function StudentDocumentVaultPageContent({
   documents,
   requirements,
+  requiredLinks,
 }: StudentDocumentVaultPageContentProps) {
+  const router = useRouter();
   const [isUploadOpen, setIsUploadOpen] = useState(false);
 
   return (
@@ -34,11 +38,19 @@ export default function StudentDocumentVaultPageContent({
         }
       />
 
-      <StudentDocumentVault documents={documents} requirements={requirements} />
+      <StudentDocumentVault
+        documents={documents}
+        requirements={requirements}
+        requiredLinks={requiredLinks}
+      />
 
       <StudentDocumentUploadModal
         open={isUploadOpen}
         onClose={() => setIsUploadOpen(false)}
+        onUploadComplete={() => {
+          setIsUploadOpen(false);
+          router.refresh();
+        }}
       />
     </div>
   );
