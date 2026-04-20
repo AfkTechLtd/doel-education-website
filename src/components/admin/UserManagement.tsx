@@ -1,9 +1,10 @@
 "use client";
 
 import { useState, useTransition, useMemo } from "react";
-import { Search, Shield, ShieldOff, Loader2 } from "lucide-react";
+import { Search, Shield, ShieldOff, Loader2, UserPlus } from "lucide-react";
 import { toggleUserActive } from "@/actions/admin";
 import DashboardStatusBadge from "@/components/dashboard/shared/DashboardStatusBadge";
+import CreateAccountModal from "@/components/admin/CreateAccountModal";
 import type { getUsers } from "@/actions/admin";
 
 type UserRow = NonNullable<Awaited<ReturnType<typeof getUsers>>["data"]>[number];
@@ -61,6 +62,7 @@ export default function UserManagement({ users }: UserManagementProps) {
   const [query, setQuery] = useState("");
   const [roleFilter, setRoleFilter] = useState("ALL");
   const [statusFilter, setStatusFilter] = useState("ALL");
+  const [modalOpen, setModalOpen] = useState(false);
 
   const filtered = useMemo(() => {
     return users.filter((u) => {
@@ -88,6 +90,9 @@ export default function UserManagement({ users }: UserManagementProps) {
   };
 
   return (
+    <>
+      <CreateAccountModal open={modalOpen} onClose={() => setModalOpen(false)} />
+
     <div className="space-y-4">
       {/* Summary */}
       <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
@@ -147,6 +152,14 @@ export default function UserManagement({ users }: UserManagementProps) {
         <span className="whitespace-nowrap font-inter text-xs text-slate-400">
           {filtered.length} of {users.length}
         </span>
+        <button
+          type="button"
+          onClick={() => setModalOpen(true)}
+          className="ml-auto flex items-center gap-2 rounded-xl bg-primary px-4 py-2 font-inter text-sm font-semibold text-white shadow-sm transition-opacity hover:opacity-90"
+        >
+          <UserPlus className="h-4 w-4" />
+          Create Account
+        </button>
       </div>
 
       {/* Table */}
@@ -243,5 +256,6 @@ export default function UserManagement({ users }: UserManagementProps) {
         </div>
       </div>
     </div>
+    </>
   );
 }
