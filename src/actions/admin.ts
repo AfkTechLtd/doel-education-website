@@ -4,7 +4,76 @@ import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
 import { requireRole } from "@/lib/auth";
 import { ROLES } from "@/lib/constants";
+import { createAdminClient } from "@/lib/supabase/admin";
 import type { Role } from "@prisma/client";
+
+// ============================================================
+// createAccount
+// Admin provisions a new student or counselor account.
+// Creates the Supabase Auth user first, then the Prisma record.
+// Rolls back the auth user if the DB write fails.
+// ============================================================
+
+export async function createAccount(payload: {
+  name: string;
+  email: string;
+  password: string;
+  role: "STUDENT" | "COUNSELOR";
+}) {
+  await requireRole([ROLES.ADMIN]);
+
+  const supabaseAdmin = createAdminClient();
+
+  // 1. Create the Supabase Auth user (pre-confirmed, no email needed)
+  const { data: authData, error: authError } = await supabaseAdmin.auth.admin.createUser({
+    email: payload.email,
+    password: payload.password,
+    email_confirm: true,
+  });
+
+  if (authError || !authData.user) {
+    const msg = authError?.message ?? "Failed to create auth account";
+    // Surface readable Supabase errors
+    if (msg.includes("already registered") || msg.includes("already been registered")) {
+      return { success: false as const, error: "An account with this email already exists." };
+    }
+    return { success: false as const, error: msg };
+  }
+
+  const supabaseId = authData.user.id;
+
+  try {
+    // 2. Create the Prisma User record
+    const user = await prisma.user.create({
+      data: {
+        supabaseId,
+        email: payload.email,
+        name: payload.name,
+        role: payload.role,
+        isActive: true,
+      },
+    });
+
+    // 3. For students, bootstrap a StudentProfile so the app can use it immediately
+    if (payload.role === "STUDENT") {
+      await prisma.studentProfile.create({
+        data: { userId: user.id },
+      });
+    }
+
+    revalidatePath("/admin/users");
+    return { success: true as const };
+  } catch (err) {
+    // Roll back the Supabase Auth user to avoid orphan accounts
+    await supabaseAdmin.auth.admin.deleteUser(supabaseId);
+
+    const message = err instanceof Error ? err.message : "Unknown error";
+    if (message.includes("Unique constraint") || message.includes("unique")) {
+      return { success: false as const, error: "An account with this email already exists." };
+    }
+    return { success: false as const, error: "Failed to create account. Please try again." };
+  }
+}
 
 // ============================================================
 // getUsers
