@@ -38,17 +38,18 @@ export const studentNavItems: DashboardNavItem[] = [
   {
     label: "My Application",
     icon: ClipboardList,
+    href: "/student/application",
     comingSoon: true,
   },
   {
     label: "Document Vault",
     icon: FolderOpen,
-    comingSoon: true,
+    href: "/student/documents",
   },
   {
     label: "Resources",
     icon: BookOpen,
-    comingSoon: true,
+    href: "/student/resources",
   },
   {
     label: "Messages",

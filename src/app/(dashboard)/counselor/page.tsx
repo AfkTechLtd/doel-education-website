@@ -9,6 +9,7 @@ export default async function CounselorDashboardPage() {
   return (
     <div className="space-y-8">
       <DashboardPageHeader
+        eyebrow="Counselor Overview"
         title="Counselor Dashboard"
         description="Manage your students, track progress, and review applications."
       />

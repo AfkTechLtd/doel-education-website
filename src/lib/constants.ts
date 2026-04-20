@@ -38,10 +38,21 @@ export const APPLICATION_STATUS_LABELS: Record<string, string> = {
 
 export const DOCUMENT_STATUS = {
   PENDING: "PENDING",
-  UPLOADED: "UPLOADED",
+  UNDER_REVIEW: "UNDER_REVIEW",
+  RECEIVED: "RECEIVED",
   VERIFIED: "VERIFIED",
   REJECTED: "REJECTED",
+  WAIVED: "WAIVED",
 } as const;
+
+export const DOCUMENT_STATUS_LABELS: Record<string, string> = {
+  PENDING: "Pending",
+  UNDER_REVIEW: "Under Review",
+  RECEIVED: "Received",
+  VERIFIED: "Verified",
+  REJECTED: "Rejected",
+  WAIVED: "Waived",
+};
 
 // ============================================================
 // Application Section Numbers

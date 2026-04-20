@@ -9,6 +9,7 @@ export default async function StudentDashboardPage() {
   return (
     <div className="space-y-8">
       <DashboardPageHeader
+        eyebrow="Student Portal"
         title={`Welcome, ${user.name}`}
         description="Track your application progress and manage your documents."
       />
