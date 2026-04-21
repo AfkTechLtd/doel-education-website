@@ -24,7 +24,10 @@
       "Bash(npm run:*)",
       "Bash(rm:*)",
       "Bash(npm list:*)",
-      "Bash(npx tsc:*)"
+      "Bash(npx tsc:*)",
+      "Bash(find 'E:/Code V2/doel-education/src/app/\\(dashboard\\)/admin' -type f)",
+      "Bash(find:*)",
+      "Bash(grep -E \"\\\\.ts$\")"
     ]
   }
 }
