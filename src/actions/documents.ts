@@ -35,6 +35,9 @@ type CreateStudentDocumentRecordInput = {
   status?: StudentDocumentStatus;
 };
 
+/**
+ * Maps a raw Prisma `Document` row into the list item shape used by the vault UI.
+ */
 function mapDocumentToVaultItem(document: Document): VaultDocumentListItem {
   const documentWithSource = document as Document & { source?: string | null };
 
@@ -55,6 +58,10 @@ function mapDocumentToVaultItem(document: Document): VaultDocumentListItem {
   };
 }
 
+/**
+ * Maps a Prisma `Document` row into the normalized reference returned by the
+ * shared document picker and uploader system.
+ */
 function mapDocumentToReference(document: Document): SelectedDocumentReference {
   return {
     id: document.id,
@@ -68,6 +75,9 @@ function mapDocumentToReference(document: Document): SelectedDocumentReference {
   };
 }
 
+/**
+ * Lists all vault documents owned by the currently authenticated student.
+ */
 export async function listStudentDocuments(): Promise<ActionResult<VaultDocumentListItem[]>> {
   try {
     const { studentProfile } = await getCurrentStudentContext();
@@ -90,6 +100,10 @@ export async function listStudentDocuments(): Promise<ActionResult<VaultDocument
   }
 }
 
+/**
+ * Creates the database record for a file that has already been uploaded to
+ * Supabase Storage. This turns a raw upload into a reusable vault document.
+ */
 export async function createStudentDocumentRecord(
   input: CreateStudentDocumentRecordInput,
 ): Promise<ActionResult<SelectedDocumentReference>> {
@@ -125,6 +139,10 @@ export async function createStudentDocumentRecord(
   }
 }
 
+/**
+ * Deletes a vault document if it is not currently linked to any application
+ * context for the current student.
+ */
 export async function deleteStudentDocument(documentId: string): Promise<ActionResult<{ id: string }>> {
   try {
     const { studentProfile } = await getCurrentStudentContext();
@@ -190,6 +208,10 @@ export async function deleteStudentDocument(documentId: string): Promise<ActionR
   }
 }
 
+/**
+ * Returns all link usages for a document so the UI can explain delete blocking
+ * and show the impact of a hard delete.
+ */
 export async function getDocumentLinkUsage(
   documentId: string,
 ): Promise<ActionResult<DocumentLinkUsage>> {
@@ -245,6 +267,10 @@ export async function getDocumentLinkUsage(
   }
 }
 
+/**
+ * Removes all links for a document belonging to the current student and then
+ * permanently deletes the storage object and `Document` row.
+ */
 export async function hardDeleteStudentDocument(
   documentId: string,
 ): Promise<ActionResult<{ id: string; removedLinks: number }>> {
@@ -308,6 +334,9 @@ export async function hardDeleteStudentDocument(
   }
 }
 
+/**
+ * Lists persisted required-document links for the current student.
+ */
 export async function listRequiredDocumentLinks(): Promise<ActionResult<RequiredDocumentLinkItem[]>> {
   try {
     const { studentProfile } = await getCurrentStudentContext();
@@ -347,12 +376,30 @@ export async function listRequiredDocumentLinks(): Promise<ActionResult<Required
   }
 }
 
+/**
+ * Links a vault document to a required-document slot for the current student.
+ * Repeated selections replace the prior document for the same requirement key.
+ */
 export async function setRequiredDocumentLink(
   contextKey: string,
   documentId: string,
 ): Promise<ActionResult<{ contextKey: string; documentId: string }>> {
   try {
     const { studentProfile } = await getCurrentStudentContext();
+
+    if (!contextKey.trim()) {
+      return {
+        success: false,
+        error: "Required document context is missing.",
+      };
+    }
+
+    if (!documentId.trim()) {
+      return {
+        success: false,
+        error: "Selected document is missing.",
+      };
+    }
 
     const document = await prisma.document.findFirst({
       where: {
@@ -363,6 +410,11 @@ export async function setRequiredDocumentLink(
     });
 
     if (!document) {
+      console.error("[documents:setRequiredDocumentLink:not-found]", {
+        contextKey,
+        documentId,
+        studentProfileId: studentProfile.id,
+      });
       return {
         success: false,
         error: "Selected document was not found in your vault.",
@@ -396,14 +448,22 @@ export async function setRequiredDocumentLink(
       },
     };
   } catch (error) {
-    console.error("[documents:setRequiredDocumentLink]", error);
+    console.error("[documents:setRequiredDocumentLink]", {
+      error,
+      contextKey,
+      documentId,
+    });
     return {
       success: false,
-      error: "Failed to link required document.",
+      error: "Could not save the required document link.",
     };
   }
 }
 
+/**
+ * Attempts to auto-link a newly uploaded document to one required-document slot
+ * using filename aliases. Existing links are never overwritten automatically.
+ */
 export async function autoLinkRequiredDocumentByFileName(
   fileName: string,
   documentId: string,
@@ -465,6 +525,9 @@ export async function autoLinkRequiredDocumentByFileName(
   }
 }
 
+/**
+ * Lists persisted application-field document links for the current student.
+ */
 export async function listApplicationFieldDocumentLinks(): Promise<
   ActionResult<ApplicationFieldDocumentLinkItem[]>
 > {
@@ -497,12 +560,30 @@ export async function listApplicationFieldDocumentLinks(): Promise<
   }
 }
 
+/**
+ * Links a vault document to a reusable application-field context such as an SOP
+ * or LOR field.
+ */
 export async function setApplicationFieldDocumentLink(
   contextKey: string,
   documentId: string,
 ): Promise<ActionResult<{ contextKey: string; documentId: string }>> {
   try {
     const { studentProfile } = await getCurrentStudentContext();
+
+    if (!contextKey.trim()) {
+      return {
+        success: false,
+        error: "Application field context is missing.",
+      };
+    }
+
+    if (!documentId.trim()) {
+      return {
+        success: false,
+        error: "Selected document is missing.",
+      };
+    }
 
     const document = await prisma.document.findFirst({
       where: {
@@ -513,6 +594,11 @@ export async function setApplicationFieldDocumentLink(
     });
 
     if (!document) {
+      console.error("[documents:setApplicationFieldDocumentLink:not-found]", {
+        contextKey,
+        documentId,
+        studentProfileId: studentProfile.id,
+      });
       return {
         success: false,
         error: "Selected document was not found in your vault.",
@@ -546,14 +632,22 @@ export async function setApplicationFieldDocumentLink(
       },
     };
   } catch (error) {
-    console.error("[documents:setApplicationFieldDocumentLink]", error);
+    console.error("[documents:setApplicationFieldDocumentLink]", {
+      error,
+      contextKey,
+      documentId,
+    });
     return {
       success: false,
-      error: "Failed to link application field document.",
+      error: "Could not save the application field document link.",
     };
   }
 }
 
+/**
+ * Removes a document link for the current student without deleting the vault
+ * file itself.
+ */
 export async function removeDocumentLink(
   contextType: DocumentLinkContext,
   contextKey: string,

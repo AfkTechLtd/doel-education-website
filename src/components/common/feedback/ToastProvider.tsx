@@ -179,6 +179,12 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
   );
 }
 
+/**
+ * Accessor for the global toast system.
+ *
+ * Use this for user-facing event feedback such as upload success, link errors,
+ * delete failures, and other short-lived status messages.
+ */
 export function useToast() {
   const context = useContext(ToastContext);
 

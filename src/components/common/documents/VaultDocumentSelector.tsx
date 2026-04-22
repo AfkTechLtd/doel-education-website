@@ -8,16 +8,22 @@ import type { SelectedDocumentReference, VaultDocumentListItem } from "@/lib/doc
 
 type VaultDocumentSelectorProps = {
   onSelect: (document: SelectedDocumentReference) => void;
-  allowedTypes?: string[];
+  allowedDocumentTypes?: string[];
 };
 
 function normalize(value: string) {
   return value.trim().toLowerCase();
 }
 
+/**
+ * Loads the current student's vault documents and lets the caller choose one.
+ *
+ * The initial fetch is server-action backed, while search is client-side after
+ * the list has been loaded.
+ */
 export default function VaultDocumentSelector({
   onSelect,
-  allowedTypes,
+  allowedDocumentTypes,
 }: VaultDocumentSelectorProps) {
   const [query, setQuery] = useState("");
   const [documents, setDocuments] = useState<VaultDocumentListItem[]>([]);
@@ -57,7 +63,7 @@ export default function VaultDocumentSelector({
 
   const filteredDocuments = useMemo(() => {
     const normalizedQuery = normalize(query);
-    const normalizedAllowedTypes = (allowedTypes ?? []).map(normalize);
+    const normalizedAllowedTypes = (allowedDocumentTypes ?? []).map(normalize);
 
     return documents.filter((document) => {
       const matchesAllowedType =
@@ -78,7 +84,7 @@ export default function VaultDocumentSelector({
 
       return searchable.includes(normalizedQuery);
     });
-  }, [allowedTypes, documents, query]);
+  }, [allowedDocumentTypes, documents, query]);
 
   return (
     <div className="space-y-5">
@@ -106,7 +112,7 @@ export default function VaultDocumentSelector({
           {loadError}
         </div>
       ) : filteredDocuments.length ? (
-        <div className="max-h-[420px] space-y-3 overflow-y-auto pr-1">
+        <div className="max-h-[50vh] space-y-3 overflow-y-auto pr-1 sm:max-h-[420px]">
           {filteredDocuments.map((document) => (
             <div
               key={document.id}

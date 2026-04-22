@@ -14,6 +14,10 @@ type StudentDocumentDeleteModalProps = {
   onHardDelete: () => void;
 };
 
+function formatUsageLabel(contextKey: string) {
+  return contextKey.replaceAll("-", " ").replaceAll("_", " ");
+}
+
 export default function StudentDocumentDeleteModal({
   open,
   documentName,
@@ -68,6 +72,17 @@ export default function StudentDocumentDeleteModal({
             <p className="font-inter text-sm text-amber-700">
               Use Unlink and Delete to remove all links and permanently delete this file from your vault.
             </p>
+            {usage?.items.length ? (
+              <div className="space-y-2">
+                {usage.items.slice(0, 3).map((item) => (
+                  <p key={`${item.contextType}:${item.contextKey}`} className="font-inter text-sm text-amber-700">
+                    {item.contextType === "REQUIRED_DOCUMENT"
+                      ? `Required Document: ${formatUsageLabel(item.contextKey)}`
+                      : `Application Field: ${formatUsageLabel(item.contextKey)}`}
+                  </p>
+                ))}
+              </div>
+            ) : null}
           </div>
         ) : (
           <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 font-inter text-sm text-slate-600">
