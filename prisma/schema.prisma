@@ -83,6 +83,7 @@ enum KanbanStage {
   VISA_STAGE
 }
 
+
 enum DocumentLinkContext {
   REQUIRED_DOCUMENT
   APPLICATION_FIELD
@@ -118,17 +119,18 @@ model User {
 }
 
 model StudentProfile {
+
   id           String   @id @default(cuid())
   userId       String   @unique @map("user_id")
   counselorId  String?  @map("counselor_id")
   kanbanStage  KanbanStage @default(PENDING) @map("kanban_stage")
   nationality  String?
-  dateOfBirth  DateTime? @map("date_of_birth")
-  passportNo   String?  @map("passport_no")
+  dateOfBirth  DateTime?    @map("date_of_birth")
+  passportNo   String?      @map("passport_no")
   phone        String?
   address      String?
-  createdAt    DateTime @default(now()) @map("created_at")
-  updatedAt    DateTime @updatedAt @map("updated_at")
+  createdAt    DateTime     @default(now()) @map("created_at")
+  updatedAt    DateTime     @updatedAt @map("updated_at")
 
   // Relations
   user        User           @relation(fields: [userId], references: [id], onDelete: Cascade)
