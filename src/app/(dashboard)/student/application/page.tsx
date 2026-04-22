@@ -1,7 +1,7 @@
 // web application / stitch / projects / 10257255100198641693 / screens / eafc77e94321429baef11bd2897907f5
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
     CheckCircle2,
     ChevronRight,
@@ -104,19 +104,20 @@ const FormSection = ({ icon: Icon, title, children }: { icon: any, title: string
     </section>
 );
 
-const InputField = ({ label, placeholder, type = "text" }: { label: string, placeholder?: string, type?: string }) => (
+const InputField = ({ value, label, placeholder, type = "text" }: { value?: string, label: string, placeholder?: string, type?: string }) => (
     <div className="space-y-2">
         <label className="text-[10px] font-bold uppercase tracking-widest text-slate-400 ml-1">{label}</label>
         <input
             type={type}
             placeholder={placeholder}
+            value={value}
             className="w-full px-5 py-4 bg-slate-50 border-none rounded-2xl focus:ring-2 focus:ring-teal-500 transition-all outline-none"
         />
     </div>
 );
 
 // --- STEP 1: FOUNDATIONS ---
-const Step1Foundations = () => (
+const Step1Foundations = ({ student }: { student: any }) => (
     <div className="space-y-4">
         <div className="mb-10">
             <h1 className="text-4xl font-bold tracking-tight text-slate-900">Start Your Journey.</h1>
@@ -125,10 +126,10 @@ const Step1Foundations = () => (
 
         <FormSection icon={User} title="Personal Information">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <InputField label="Legal First Name" placeholder="e.g. Jane" />
-                <InputField label="Legal Last Name" placeholder="e.g. Doe" />
+                <InputField value={student?.firstName} label="Legal First Name" placeholder="e.g. Jane" />
+                <InputField value={student?.lastName} label="Legal Last Name" placeholder="e.g. Doe" />
                 <div className="md:col-span-2">
-                    <InputField label="Email Address" placeholder="jane.doe@example.com" type="email" />
+                    <InputField value={student?.user.email} label="Email Address" placeholder="jane.doe@example.com" type="email" />
                 </div>
                 <div className="md:col-span-2">
                     <InputField label="Primary Address" placeholder="Street Address, City, State, ZIP" />
@@ -374,6 +375,20 @@ export default function ApplicationPage() {
         setState(prev => ({ ...prev, status: "SUBMITTED" }));
     };
 
+    const [student, setStudent] = useState();
+
+    useEffect(() => {
+        fetch('/api/student/details').then(res => res.json()).then(data => {
+            console.log("Fetched student details:", data);
+            // Here you would typically set the fetched data into your form state
+            data.student.firstName = data.student.user.name.split(" ")[0];
+            data.student.lastName = data.student.user.name.split(" ")[1] || "";
+            setStudent(data.student);
+        }).catch(err => {
+            console.error("Error fetching student details:", err);
+        });
+    }, []);
+
     return (
         <div className="max-w-6xl mx-auto py-8 px-4 sm:px-6 lg:px-8 bg-slate-50 min-h-screen">
             <StepIndicator currentStep={state.currentStep} status={state.status} />
@@ -383,7 +398,7 @@ export default function ApplicationPage() {
                     <SubmittedView />
                 ) : (
                     <div className="transition-all duration-300">
-                        {state.currentStep === 1 && <Step1Foundations />}
+                        {state.currentStep === 1 && <Step1Foundations student={student} />}
                         {state.currentStep === 2 && <Step2Requirements />}
                         {state.currentStep === 3 && <Step3Support />}
                         {state.currentStep === 4 && <Step4Finalization />}
