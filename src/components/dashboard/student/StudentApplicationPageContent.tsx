@@ -1,15 +1,22 @@
 "use client";
 
-import { useMemo, useState, useTransition } from "react";
+import { useMemo, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { removeDocumentLink, setApplicationFieldDocumentLink } from "@/actions/documents";
-import DocumentAttachmentField from "@/components/common/documents/DocumentAttachmentField";
-import DocumentPickerModal from "@/components/common/documents/DocumentPickerModal";
+import DocumentInputField from "@/components/common/documents/DocumentInputField";
 import { useToast } from "@/components/common/feedback/ToastProvider";
 import DashboardPageHeader from "@/components/dashboard/shared/DashboardPageHeader";
 import type { ApplicationFieldDocumentLinkItem, SelectedDocumentReference } from "@/lib/documents/types";
 
 const SOP_CONTEXT_KEY = "SECTION_9:SOP_FILE";
+
+function buildDebugHint(contextKey: string, documentId?: string) {
+  if (process.env.NODE_ENV !== "development") {
+    return undefined;
+  }
+
+  return `[APPLICATION_FIELD/${contextKey}${documentId ? ` | doc: ${documentId}` : ""}]`;
+}
 
 type StudentApplicationPageContentProps = {
   links: ApplicationFieldDocumentLinkItem[];
@@ -19,7 +26,6 @@ export default function StudentApplicationPageContent({
   links,
 }: StudentApplicationPageContentProps) {
   const router = useRouter();
-  const [isPickerOpen, setIsPickerOpen] = useState(false);
   const [isLinking, startLinking] = useTransition();
   const { showToast } = useToast();
 
@@ -28,14 +34,33 @@ export default function StudentApplicationPageContent({
   }, [links]);
 
   function handleSelectDocument(document: SelectedDocumentReference) {
+    if (!document?.id) {
+      showToast({
+        variant: "error",
+        title: "Could not link SOP document",
+        description: [
+          "Selected document is missing.",
+          buildDebugHint(SOP_CONTEXT_KEY),
+        ]
+          .filter(Boolean)
+          .join(" "),
+      });
+      return;
+    }
+
     startLinking(async () => {
       const result = await setApplicationFieldDocumentLink(SOP_CONTEXT_KEY, document.id);
 
       if (!result.success) {
         showToast({
           variant: "error",
-          title: "Link failed",
-          description: result.error ?? "Failed to link SOP document.",
+          title: "Could not link SOP document",
+          description: [
+            result.error ?? "Failed to link SOP document.",
+            buildDebugHint(SOP_CONTEXT_KEY, document.id),
+          ]
+            .filter(Boolean)
+            .join(" "),
         });
         return;
       }
@@ -45,7 +70,6 @@ export default function StudentApplicationPageContent({
         title: "SOP document linked",
         description: document.name,
       });
-      setIsPickerOpen(false);
       router.refresh();
     });
   }
@@ -59,53 +83,49 @@ export default function StudentApplicationPageContent({
       />
 
       <section className="rounded-[1.8rem] border border-slate-200 bg-white p-6 shadow-sm sm:p-7">
-        <div>
-          <p className="font-inter text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-400">
-            Section 9
-          </p>
-          <h2 className="mt-2 font-poppins text-2xl font-semibold text-slate-900">
-            Statement of Purpose Document
-          </h2>
-          <p className="mt-2 max-w-2xl font-inter text-sm leading-relaxed text-slate-500">
-            Select your SOP from the vault or upload a new one. The selected document is saved for this application field.
-          </p>
-        </div>
+        <p className="font-inter text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-400">
+          Section 9
+        </p>
 
-        <DocumentAttachmentField
+        <DocumentInputField
+          label="Statement of Purpose Document"
+          description="Select your SOP from the vault or upload a new one. The selected document is saved for this application field."
           linkedDocument={sopDocument}
           status={sopDocument?.status ?? "PENDING"}
-          helperText="Attach the SOP file used for this application section."
-          onChoose={() => setIsPickerOpen(true)}
+          pickerTitle="Choose SOP Document"
           onUnlink={() => {
-            startLinking(async () => {
-              const result = await removeDocumentLink("APPLICATION_FIELD", SOP_CONTEXT_KEY);
+            return new Promise<void>((resolve) => {
+              startLinking(async () => {
+                const result = await removeDocumentLink("APPLICATION_FIELD", SOP_CONTEXT_KEY);
 
-              if (!result.success) {
+                if (!result.success) {
+                  showToast({
+                    variant: "error",
+                    title: "Could not unlink SOP document",
+                    description: [
+                      result.error ?? "Failed to unlink SOP document.",
+                      buildDebugHint(SOP_CONTEXT_KEY),
+                    ]
+                      .filter(Boolean)
+                      .join(" "),
+                  });
+                  resolve();
+                  return;
+                }
+
                 showToast({
-                  variant: "error",
-                  title: "Unlink failed",
-                  description: result.error ?? "Failed to unlink SOP document.",
+                  variant: "success",
+                  title: "SOP document unlinked",
                 });
-                return;
-              }
-
-              showToast({
-                variant: "success",
-                title: "SOP document unlinked",
+                router.refresh();
+                resolve();
               });
-              router.refresh();
             });
           }}
+          onSelect={handleSelectDocument}
           disabled={isLinking}
         />
       </section>
-
-      <DocumentPickerModal
-        open={isPickerOpen}
-        onClose={() => setIsPickerOpen(false)}
-        title="Choose SOP Document"
-        onSelect={handleSelectDocument}
-      />
     </div>
   );
 }

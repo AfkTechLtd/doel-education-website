@@ -16,6 +16,13 @@ type DocumentAttachmentFieldProps = {
   disabled?: boolean;
 };
 
+/**
+ * Shared field-level document UI used by required-document cards and
+ * application fields.
+ *
+ * Unlink removes only the field/context link. It does not delete the document
+ * from the vault.
+ */
 export default function DocumentAttachmentField({
   linkedDocument,
   status,
@@ -28,18 +35,6 @@ export default function DocumentAttachmentField({
 
   return (
     <div className="mt-4 space-y-3">
-      <div className="flex flex-wrap items-center justify-between gap-2">
-        <span
-          className={isLinked
-            ? "rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-1 font-inter text-[10px] font-semibold uppercase tracking-[0.14em] text-emerald-700"
-            : "rounded-full border border-slate-200 bg-slate-100 px-2.5 py-1 font-inter text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-500"
-          }
-        >
-          {isLinked ? "Linked" : "Not Linked"}
-        </span>
-        <DashboardStatusBadge status={status.replaceAll("_", " ")} />
-      </div>
-
       {isLinked && linkedDocument ? (
         <div className="flex items-center justify-between gap-3 rounded-2xl border border-slate-200 bg-slate-50 px-3.5 py-3">
           <div className="min-w-0 flex items-center gap-2">
@@ -68,7 +63,9 @@ export default function DocumentAttachmentField({
         </p>
       )}
 
-      <p className="font-inter text-sm leading-relaxed text-slate-500">{helperText}</p>
+      <p className="font-inter text-sm leading-relaxed text-slate-500">
+        {helperText}
+      </p>
 
       <div className="pt-1">
         <button

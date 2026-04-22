@@ -2,25 +2,34 @@
 
 import { useMemo, useState } from "react";
 import DocumentUploader from "@/components/common/documents/DocumentUploader";
-import type { SelectedDocumentReference } from "@/lib/documents/types";
+import type {
+  DocumentUploadConfig,
+  SelectedDocumentReference,
+} from "@/lib/documents/types";
 
 type UploadNewDocumentPanelProps = {
   onSelect: (document: SelectedDocumentReference) => void;
-  allowedTypes?: string[];
+  uploadConfig?: DocumentUploadConfig;
 };
 
 function normalize(value: string) {
   return value.trim().toLowerCase();
 }
 
+/**
+ * Upload tab for the shared document picker.
+ *
+ * New uploads are stored in the vault first and then returned back to the
+ * picker flow. If a single file is uploaded, it is auto-selected immediately.
+ */
 export default function UploadNewDocumentPanel({
   onSelect,
-  allowedTypes,
+  uploadConfig,
 }: UploadNewDocumentPanelProps) {
   const [uploadedDocuments, setUploadedDocuments] = useState<SelectedDocumentReference[]>([]);
 
   const filteredUploadedDocuments = useMemo(() => {
-    const normalizedAllowedTypes = (allowedTypes ?? []).map(normalize);
+    const normalizedAllowedTypes = (uploadConfig?.allowedDocumentTypes ?? []).map(normalize);
 
     if (!normalizedAllowedTypes.length) {
       return uploadedDocuments;
@@ -32,7 +41,7 @@ export default function UploadNewDocumentPanel({
         return normalizedDocumentType.includes(allowedType) || allowedType.includes(normalizedDocumentType);
       });
     });
-  }, [allowedTypes, uploadedDocuments]);
+  }, [uploadConfig?.allowedDocumentTypes, uploadedDocuments]);
 
   return (
     <div className="space-y-5">
@@ -42,6 +51,7 @@ export default function UploadNewDocumentPanel({
         }}
         showCancel={false}
         submitLabel="Upload New"
+        uploadConfig={uploadConfig}
         onUploadComplete={(documents) => {
           setUploadedDocuments(documents);
           if (documents.length === 1) {
@@ -56,7 +66,7 @@ export default function UploadNewDocumentPanel({
             Choose uploaded file
           </p>
 
-          <div className="space-y-3">
+          <div className="max-h-60 space-y-3 overflow-y-auto pr-1">
             {filteredUploadedDocuments.map((document) => (
               <div
                 key={document.id}
