@@ -14,8 +14,7 @@ import InputField from "@/components/dashboard/pages/application/InputField";
 import FormSection from "@/components/dashboard/pages/application/FormSection";
 
 // --- TYPES ---
-type ApplicationStatus = "NOT_STARTED" | "IN_PROGRESS" | "SUBMITTED";
-
+type ApplicationStatus = "NOT_STARTED" | "IN_PROGRESS" | "UNDER_REVIEW" | "APPROVED" | "REJECTED" | "ON_HOLD";
 interface AppState {
     currentStep: number;
     status: ApplicationStatus;
@@ -193,43 +192,83 @@ function ApplicationContent() {
     const [formData, setFormData] = useState<Record<string, any>>({});
     const [errors, setErrors] = useState<Record<string, string>>({});
     const [isLoading, setIsLoading] = useState(true);
-
-    // 1. Initial Fetch: Acquire Student & Application Status
+    const [student, setStudent] = useState<any>(null);
     useEffect(() => {
         const initApplication = async () => {
             try {
-                const res = await fetch('/api/student/details');
+                const res = await fetch('/api/student/application');
                 const data = await res.json();
-                const s = data.student;
 
-                // Merge student basic info
-                setFormData(prev => ({
-                    ...prev,
-                    name: s.user.name,
-                    email: s.user.email,
-                    ...s.application?.data // Assuming application sections are stored here
-                }));
+                // If no application exists yet (404 or specific status from your API)
+                if (!data.application) {
+                    setStatus("NOT_STARTED");
 
-                const appStatus = s.application?.status || "NOT_STARTED";
+                    if (!searchParams.get("step")) {
+                        router.replace("?step=1");
+                    }
+
+                    // FIX: Await the details fetch so we can use the result immediately
+                    try {
+                        const studentRes = await fetch('/api/student/details');
+                        const studentData = await studentRes.json();
+
+                        if (studentData.student) {
+                            setStudent(studentData.student); // Update state for other uses
+
+                            // Hydrate form directly from the fetched result, not the state variable
+                            setFormData(prev => ({
+                                ...prev,
+                                name: studentData.student.user.name || "",
+                                email: studentData.student.user.email || "",
+                            }));
+                        }
+                    } catch (err) {
+                        console.error("Failed to fetch student details:", err);
+                    }
+                    return;
+                }
+
+                const app = data.application;
+                const appStatus = app.status as ApplicationStatus;
                 setStatus(appStatus);
 
-                // 2. Routing Logic: If submitted, force the submitted view
-                if (appStatus === "SUBMITTED") {
+                // 1. Process FormData: Merge all section JSON data into one object
+                // Your API returns 'sections' as an array of { sectionNumber: 'ONE', data: {...} }
+                const mergedData: Record<string, any> = {};
+
+                if (app.sections && Array.isArray(app.sections)) {
+                    app.sections.forEach((section: any) => {
+                        // Spread the JSON 'data' field from each section into our flat formData
+                        Object.assign(mergedData, section.data);
+                    });
+                }
+
+                setFormData(prev => ({
+                    ...prev,
+                    ...mergedData
+                }));
+
+                // 2. Routing Logic
+                const hasSubmitted = !["NOT_STARTED", "IN_PROGRESS"].includes(appStatus);
+
+                if (hasSubmitted || searchParams.get("view") === "submitted") {
                     router.replace("?view=submitted");
+
                 } else if (!searchParams.get("step")) {
-                    // Resume at their last completed step or start at 1
-                    const resumeStep = s.application?.completedSections + 1 || 1;
+                    // If they just arrived at the page, resume at their last saved step
+                    // 'completedSections' is an Int in your schema (e.g., 2)
+                    const resumeStep = (app.completedSections || 0) + 1;
                     router.replace(`?step=${Math.min(resumeStep, 4)}`);
                 }
             } catch (err) {
-                console.error("Failed to load application:", err);
+                console.error("Failed to load application data:", err);
             } finally {
                 setIsLoading(false);
             }
         };
 
         initApplication();
-    }, []);
+    }, [router, searchParams]); // Added dependencies for stability
 
     const validateStep = () => {
         const newErrors: Record<string, string> = {};
@@ -270,9 +309,13 @@ function ApplicationContent() {
     const handleNext = async () => {
         if (validateStep()) {
             // PATCH API call to save current progress
-            await fetch('/api/student/application/save', {
+            await fetch('/api/student/application', {
                 method: 'PATCH',
-                body: JSON.stringify({ step: currentStep, data: formData })
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    step: currentStep,
+                    data: formData // The JSON object containing field values
+                })
             });
 
             window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -286,16 +329,32 @@ function ApplicationContent() {
     };
 
     const handleSubmit = async () => {
-        if (validateStep()) {
-            await fetch('/api/student/application/submit', { method: 'POST', body: JSON.stringify(formData) });
-            setStatus("SUBMITTED");
+        if (!validateStep()) return;
+        try {
+            const response = await fetch('/api/student/application', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(formData),
+            });
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.error || 'Submission failed');
+            }
+            setStatus("UNDER_REVIEW");
             router.push("?view=submitted");
+            console.log("Application submitted successfully");
+
+        } catch (err) {
+            console.error("Submission Error:", err);
+            alert("There was an error submitting your application. Please try again.");
         }
     };
 
     if (isLoading) return <div className="min-h-screen flex items-center justify-center font-bold text-slate-400">Loading Application...</div>;
 
-    if (isSubmittedView || status === "SUBMITTED") {
+    if (isSubmittedView || status === "UNDER_REVIEW" || status === "APPROVED" || status === "REJECTED" || status === "ON_HOLD") {
         return <SubmittedView />;
     }
 

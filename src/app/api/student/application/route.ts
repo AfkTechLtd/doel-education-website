@@ -1,125 +1,109 @@
-import type { NextApiRequest, NextApiResponse } from 'next'
-import { getUser } from "@/lib/auth"; // Ensure this helper works in API routes
+import { NextResponse } from "next/server";
+import { getUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  const user = await getUser();
+// --- GET: Fetch Application Progress & Data ---
+export async function GET() {
+  try {
+    const user = await getUser();
+    if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  if (!user) {
-    return res.status(401).json({ error: "Unauthorized" });
-  }
+    const studentProfile = await prisma.studentProfile.findUnique({
+      where: { userId: user.id },
+    });
 
-  // Find the student profile first
-  const studentProfile = await prisma.studentProfile.findUnique({
-    where: { userId: user.id },
-    include: { application: true }
-  });
+    if (!studentProfile) return NextResponse.json({ error: "Profile not found" }, { status: 404 });
 
-  if (!studentProfile) {
-    return res.status(404).json({ error: "Student profile not found." });
-  }
+    const application = await prisma.application.findUnique({
+      where: { studentId: studentProfile.id },
+      include: {
+        sections: true,
+        student: { include: { user: true } }
+      },
+    });
 
-  const studentId = studentProfile.id;
-
-  // --- GET: Fetch Application Progress & Data ---
-  if (req.method === 'GET') {
-    try {
-      const application = await prisma.application.findUnique({
-        where: { studentId },
-        include: {
-          sections: true, // Include the JSON data for each step
-        }
-      });
-
-      if (!application) {
-        // If no application exists yet, return NOT_STARTED status
-        return res.status(200).json({ status: "NOT_STARTED", completedSections: 0 });
-      }
-
-      return res.status(200).json({ application });
-    } catch (error) {
-      return res.status(500).json({ error: "Failed to fetch application." });
+    if (!application) {
+      return NextResponse.json({ application: null, status: "NOT_STARTED" });
     }
+
+    return NextResponse.json({ application });
+  } catch (error) {
+    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
   }
+}
 
-  // --- PATCH: Save Progress (Step by Step) ---
-  if (req.method === 'PATCH') {
-    const { step, data } = req.body;
+// --- PATCH: Save Progress (Upsert) ---
+export async function PATCH(req: Request) {
+  try {
+    const user = await getUser();
+    const { step, data } = await req.json();
+    if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-    try {
-      // 1. Ensure Application record exists
-      const application = await prisma.application.upsert({
-        where: { studentId },
-        update: { updatedAt: new Date() },
-        create: {
-          studentId,
-          status: "IN_PROGRESS"
-        },
-      });
+    const studentProfile = await prisma.studentProfile.findUnique({
+      where: { userId: user.id },
+    });
 
-      // 2. Map numeric step to Enum (Assuming your SectionNumber is ONE, TWO, etc.)
-      const sectionMap: Record<number, any> = {
-        1: "ONE", 2: "TWO", 3: "THREE", 4: "FOUR"
-      };
+    if (!studentProfile) return NextResponse.json({ error: "Profile not found" }, { status: 404 });
 
-      // 3. Upsert the specific section data
-      await prisma.applicationSection.upsert({
-        where: {
-          applicationId_sectionNumber: {
-            applicationId: application.id,
-            sectionNumber: sectionMap[step],
-          }
-        },
-        update: { data, isComplete: true },
-        create: {
+    const application = await prisma.application.upsert({
+      where: { studentId: studentProfile.id },
+      update: { updatedAt: new Date() },
+      create: { studentId: studentProfile.id, status: "IN_PROGRESS" },
+    });
+
+    const sectionMap: Record<number, any> = {
+      1: "ONE", 2: "TWO", 3: "THREE", 4: "FOUR"
+    };
+
+    await prisma.applicationSection.upsert({
+      where: {
+        applicationId_sectionNumber: {
           applicationId: application.id,
           sectionNumber: sectionMap[step],
-          data,
-          isComplete: true
         }
-      });
+      },
+      update: { data, isComplete: true },
+      create: {
+        applicationId: application.id,
+        sectionNumber: sectionMap[step],
+        data,
+        isComplete: true
+      }
+    });
 
-      // 4. Update overall progress on main Application table
-      await prisma.application.update({
-        where: { id: application.id },
-        data: { completedSections: step }
-      });
+    await prisma.application.update({
+      where: { id: application.id },
+      data: { completedSections: step }
+    });
 
-      return res.status(200).json({ message: "Progress saved." });
-    } catch (error) {
-      console.error(error);
-      return res.status(500).json({ error: "Failed to save progress." });
-    }
+    return NextResponse.json({ success: true });
+  } catch (error) {
+    return NextResponse.json({ error: "Update failed" }, { status: 500 });
   }
+}
 
-  // --- POST: Final Submission ---
-  if (req.method === 'POST') {
-    try {
-      const application = await prisma.application.findUnique({
-        where: { studentId }
-      });
+// --- POST: Final Submission ---
+export async function POST() {
+  try {
+    const user = await getUser();
+    if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-      if (!application) return res.status(404).json({ error: "No application to submit." });
+    const studentProfile = await prisma.studentProfile.findUnique({
+      where: { userId: user.id },
+    });
 
-      await prisma.application.update({
-        where: { id: application.id },
-        data: {
-          status: "SUBMITTED",
-          submittedAt: new Date()
-        }
-      });
+    if (!studentProfile) return NextResponse.json({ error: "Profile not found" }, { status: 404 });
 
-      // Optional: Update Student Profile Kanban Stage
-      await prisma.studentProfile.update({
-        where: { id: studentId },
-        data: { kanbanStage: "REVIEW" } // Or whatever your enum value is
-      });
+    await prisma.application.update({
+      where: { studentId: studentProfile.id },
+      data: {
+        status: "UNDER_REVIEW",
+        submittedAt: new Date()
+      }
+    });
 
-      return res.status(200).json({ message: "Application submitted successfully." });
-    } catch (error) {
-      return res.status(500).json({ error: "Submission failed." });
-    }
+    return NextResponse.json({ success: true });
+  } catch (error) {
+    return NextResponse.json({ error: "Submission failed" }, { status: 500 });
   }
-
-  return res.status(405).json({ error: "Method not allowed" });
 }
