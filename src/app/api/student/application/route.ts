@@ -52,10 +52,10 @@ export async function PATCH(req: Request) {
     });
 
     const sectionMap: Record<number, any> = {
-      1: "ONE", 2: "TWO", 3: "THREE", 4: "FOUR"
+      1: "SECTION_1", 2: "SECTION_2", 3: "SECTION_3", 4: "SECTION_4"
     };
 
-    await prisma.applicationSection.upsert({
+    const applicationSection = await prisma.applicationSection.upsert({
       where: {
         applicationId_sectionNumber: {
           applicationId: application.id,
@@ -70,11 +70,12 @@ export async function PATCH(req: Request) {
         isComplete: true
       }
     });
-
-    await prisma.application.update({
+    console.log("Upserted Section:", applicationSection);
+    const latestUpdate = await prisma.application.update({
       where: { id: application.id },
       data: { completedSections: step }
     });
+    console.log("Updated Application:", latestUpdate);
 
     return NextResponse.json({ success: true });
   } catch (error) {

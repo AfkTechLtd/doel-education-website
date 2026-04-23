@@ -67,14 +67,7 @@ const Step2Requirements = ({ formData, onChange, errors }: StepProps) => (
             <h1 className="text-4xl font-bold tracking-tight text-slate-900">Testing & Achievements</h1>
             <p className="text-slate-500 mt-2">Provide standardized scores and your personal statement.</p>
         </div>
-        <FormSection icon={FileCheck} title="Test Scores">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                <InputField name="satMath" value={formData.satMath} onChange={onChange} label="SAT Math" placeholder="750" error={errors.satMath} />
-                <InputField name="satReading" value={formData.satReading} onChange={onChange} label="SAT Reading" placeholder="710" error={errors.satReading} />
-                <InputField name="actComposite" value={formData.actComposite} onChange={onChange} label="ACT Composite" placeholder="32" error={errors.actComposite} />
-                <InputField name="testDate" value={formData.testDate} onChange={onChange} label="Test Date" type="date" error={errors.testDate} />
-            </div>
-        </FormSection>
+
         <FormSection icon={PenTool} title="Personal Statement">
             <div className="space-y-2">
                 <div className="flex items-center justify-between px-1">
@@ -104,6 +97,14 @@ const Step2Requirements = ({ formData, onChange, errors }: StepProps) => (
                 {errors.personalStatement && (
                     <p className="text-[10px] font-bold text-red-500 ml-1">{errors.personalStatement}</p>
                 )}
+            </div>
+        </FormSection>
+        <FormSection icon={FileCheck} title="Test Scores">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <InputField name="satMath" value={formData.satMath} onChange={onChange} label="SAT Math" placeholder="750" error={errors.satMath} />
+                <InputField name="satReading" value={formData.satReading} onChange={onChange} label="SAT Reading" placeholder="710" error={errors.satReading} />
+                <InputField name="actComposite" value={formData.actComposite} onChange={onChange} label="ACT Composite" placeholder="32" error={errors.actComposite} />
+                <InputField name="testDate" value={formData.testDate} onChange={onChange} label="Test Date" type="date" error={errors.testDate} />
             </div>
         </FormSection>
     </div>
