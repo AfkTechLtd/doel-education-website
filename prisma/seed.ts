@@ -46,6 +46,128 @@ const USERS = [
   },
 ] as const;
 
+const RESOURCE_FILE_URL = "/test_content/test_document.pdf";
+
+const RESOURCES = [
+  {
+    id: "resource_sop",
+    slug: "sop",
+    name: "SOP",
+    type: "SOP" as const,
+    description:
+      "Browse statement of purpose templates for academic, scholarship, and career-focused applications.",
+  },
+  {
+    id: "resource_lor",
+    slug: "lor",
+    name: "LOR",
+    type: "LOR" as const,
+    description:
+      "Explore recommendation letter templates for academic, professional, and leadership use cases.",
+  },
+  {
+    id: "resource_affidavit",
+    slug: "affidavit",
+    name: "Affidavit",
+    type: "AFFIDAVIT" as const,
+    description:
+      "Review affidavit templates for sponsorship, family support, and self-funding documentation.",
+  },
+] as const;
+
+const RESOURCE_TEMPLATES = [
+  {
+    slug: "research-goals-sop",
+    resourceSlug: "sop",
+    title: "Research Goals SOP",
+    description:
+      "A showcase SOP template focused on research interests, faculty alignment, and long-term academic plans.",
+    type: "SOP" as const,
+    content:
+      "Use this sample structure to introduce your academic background, explain your research motivation, connect with your target program, and close with future goals.",
+  },
+  {
+    slug: "career-pivot-sop",
+    resourceSlug: "sop",
+    title: "Career Pivot SOP",
+    description:
+      "A showcase SOP template for applicants changing discipline or moving from work experience into a new graduate path.",
+    type: "SOP" as const,
+    content:
+      "Use this sample structure to explain the turning point behind your transition, highlight transferable experience, and show why this degree is the right next step.",
+  },
+  {
+    slug: "scholarship-impact-sop",
+    resourceSlug: "sop",
+    title: "Scholarship Impact SOP",
+    description:
+      "A showcase SOP template emphasizing merit, financial context, and the impact you plan to create after graduation.",
+    type: "SOP" as const,
+    content:
+      "Use this sample structure to balance academic merit, scholarship fit, and the outcomes you want to achieve through graduate study.",
+  },
+  {
+    slug: "professor-evaluation-lor",
+    resourceSlug: "lor",
+    title: "Professor Evaluation LOR",
+    description:
+      "A showcase recommendation template highlighting academic performance, curiosity, and readiness for advanced study.",
+    type: "LOR" as const,
+    content:
+      "Use this sample structure to frame the recommender relationship, describe academic strengths, add concrete examples, and close with a clear endorsement.",
+  },
+  {
+    slug: "research-supervisor-lor",
+    resourceSlug: "lor",
+    title: "Research Supervisor LOR",
+    description:
+      "A showcase recommendation template for students who contributed to lab work, projects, or supervised research.",
+    type: "LOR" as const,
+    content:
+      "Use this sample structure to summarize the project context, the student’s role, their technical strengths, and their research potential.",
+  },
+  {
+    slug: "workplace-leadership-lor",
+    resourceSlug: "lor",
+    title: "Workplace Leadership LOR",
+    description:
+      "A showcase recommendation template for applicants using employer feedback to demonstrate initiative and professional growth.",
+    type: "LOR" as const,
+    content:
+      "Use this sample structure to describe the reporting relationship, workplace impact, leadership examples, and graduate-level readiness.",
+  },
+  {
+    slug: "parent-sponsorship-affidavit",
+    resourceSlug: "affidavit",
+    title: "Parent Sponsorship Affidavit",
+    description:
+      "A showcase affidavit template for tuition and living expense support provided by a parent sponsor.",
+    type: "AFFIDAVIT" as const,
+    content:
+      "Use this sample structure to declare the sponsor relationship, funding commitment, source of income, and signature requirements.",
+  },
+  {
+    slug: "family-support-affidavit",
+    resourceSlug: "affidavit",
+    title: "Family Support Affidavit",
+    description:
+      "A showcase affidavit template for students supported by siblings, relatives, or extended family members.",
+    type: "AFFIDAVIT" as const,
+    content:
+      "Use this sample structure to identify the sponsor, describe the support arrangement, summarize proof of funds, and complete the declaration block.",
+  },
+  {
+    slug: "self-funding-affidavit",
+    resourceSlug: "affidavit",
+    title: "Self-Funding Affidavit",
+    description:
+      "A showcase affidavit template for applicants who are financing their own degree through savings or income.",
+    type: "AFFIDAVIT" as const,
+    content:
+      "Use this sample structure to explain self-funding capacity, covered expenses, source of funds, and confirmation statements.",
+  },
+] as const;
+
 // ── Helpers ────────────────────────────────────────────────────────────────
 
 async function upsertAuthUser(email: string, name: string) {
@@ -97,6 +219,70 @@ async function upsertDbUser(
   return user;
 }
 
+async function seedResourcesAndTemplates() {
+  console.log("🌿 Seeding resource categories and showcase templates...\n");
+
+  const resourceIdBySlug = new Map<string, string>();
+
+  for (const resource of RESOURCES) {
+    const savedResource = await prisma.resource.upsert({
+      where: { slug: resource.slug },
+      update: {
+        name: resource.name,
+        description: resource.description,
+        type: resource.type,
+        isActive: true,
+      },
+      create: {
+        id: resource.id,
+        slug: resource.slug,
+        name: resource.name,
+        description: resource.description,
+        type: resource.type,
+        isActive: true,
+      },
+    });
+
+    resourceIdBySlug.set(resource.slug, savedResource.id);
+    console.log(`  ✔  Resource ready: ${resource.name}`);
+  }
+
+  for (const template of RESOURCE_TEMPLATES) {
+    const resourceId = resourceIdBySlug.get(template.resourceSlug);
+
+    if (!resourceId) {
+      throw new Error(`Missing resource mapping for template slug: ${template.slug}`);
+    }
+
+    await prisma.resourceTemplate.upsert({
+      where: { slug: template.slug },
+      update: {
+        title: template.title,
+        description: template.description,
+        type: template.type,
+        content: template.content,
+        fileUrl: RESOURCE_FILE_URL,
+        isPublic: true,
+        resourceId,
+      },
+      create: {
+        slug: template.slug,
+        title: template.title,
+        description: template.description,
+        type: template.type,
+        content: template.content,
+        fileUrl: RESOURCE_FILE_URL,
+        isPublic: true,
+        resourceId,
+      },
+    });
+
+    console.log(`  ✔  Template ready: ${template.title}`);
+  }
+
+  console.log();
+}
+
 // ── Main ───────────────────────────────────────────────────────────────────
 
 async function main() {
@@ -108,6 +294,8 @@ async function main() {
     await upsertDbUser(supabaseId, u.email, u.name, u.role);
     console.log();
   }
+
+  await seedResourcesAndTemplates();
 
   console.log("✅ Seed complete.\n");
   console.log("Credentials:");

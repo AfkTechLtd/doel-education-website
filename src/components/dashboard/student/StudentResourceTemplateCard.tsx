@@ -1,5 +1,5 @@
 import Link from "next/link";
-import type { LocalResourceTemplate } from "@/data/student-resource-templates";
+import type { LocalResourceTemplate } from "@/lib/resources/types";
 import StudentTemplatePreview from "./StudentTemplatePreview";
 
 type StudentResourceTemplateCardProps = {
@@ -11,7 +11,7 @@ export default function StudentResourceTemplateCard({
 }: StudentResourceTemplateCardProps) {
   return (
     <Link
-      href={`/student/resources/${template.categoryId}/${template.id}`}
+      href={`/student/resources/${template.categoryId}/${template.slug}`}
       className="
   group block overflow-hidden rounded-[1.45rem]
   border border-slate-200 bg-white

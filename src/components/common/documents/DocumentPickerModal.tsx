@@ -89,7 +89,7 @@ export default function DocumentPickerModal({
           <button
             type="button"
             onClick={handleClose}
-            className="inline-flex h-10 w-10 items-center justify-center rounded-2xl border border-slate-200 bg-white text-slate-500 transition hover:border-slate-300 hover:text-slate-900"
+            className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl border border-slate-200 bg-white text-slate-500 transition hover:border-slate-300 hover:text-slate-900"
             aria-label="Close document picker"
           >
             <X className="h-4 w-4" aria-hidden="true" />
@@ -97,12 +97,12 @@ export default function DocumentPickerModal({
         </div>
 
         <div className="border-b border-slate-200 px-5 py-4 sm:px-7">
-          <div className="inline-flex rounded-2xl border border-slate-200 bg-white p-1 shadow-sm">
+          <div className="flex w-full flex-col rounded-2xl border border-slate-200 bg-white p-1 shadow-sm sm:inline-flex sm:w-auto sm:flex-row">
             <button
               type="button"
               onClick={() => setActiveTab("VAULT")}
               className={cn(
-                "rounded-[0.9rem] px-4 py-2.5 font-inter text-sm font-semibold transition",
+                "flex-1 rounded-[0.9rem] px-4 py-2.5 font-inter text-sm font-semibold transition",
                 activeTab === "VAULT"
                   ? "bg-primary text-white"
                   : "text-slate-500 hover:text-slate-900",
@@ -114,7 +114,7 @@ export default function DocumentPickerModal({
               type="button"
               onClick={() => setActiveTab("UPLOAD")}
               className={cn(
-                "rounded-[0.9rem] px-4 py-2.5 font-inter text-sm font-semibold transition",
+                "flex-1 rounded-[0.9rem] px-4 py-2.5 font-inter text-sm font-semibold transition",
                 activeTab === "UPLOAD"
                   ? "bg-primary text-white"
                   : "text-slate-500 hover:text-slate-900",

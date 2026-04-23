@@ -18,6 +18,18 @@ function formatUsageLabel(contextKey: string) {
   return contextKey.replaceAll("-", " ").replaceAll("_", " ");
 }
 
+function getUsageCopy(contextType: DocumentLinkUsage["items"][number]["contextType"], contextKey: string) {
+  if (contextType === "REQUIRED_DOCUMENT") {
+    return `Required Document: ${formatUsageLabel(contextKey)}`;
+  }
+
+  if (contextType === "APPLICATION_FIELD") {
+    return `Application Field: ${formatUsageLabel(contextKey)}`;
+  }
+
+  return "Resource Template Draft";
+}
+
 export default function StudentDocumentDeleteModal({
   open,
   documentName,
@@ -76,9 +88,7 @@ export default function StudentDocumentDeleteModal({
               <div className="space-y-2">
                 {usage.items.slice(0, 3).map((item) => (
                   <p key={`${item.contextType}:${item.contextKey}`} className="font-inter text-sm text-amber-700">
-                    {item.contextType === "REQUIRED_DOCUMENT"
-                      ? `Required Document: ${formatUsageLabel(item.contextKey)}`
-                      : `Application Field: ${formatUsageLabel(item.contextKey)}`}
+                    {getUsageCopy(item.contextType, item.contextKey)}
                   </p>
                 ))}
               </div>

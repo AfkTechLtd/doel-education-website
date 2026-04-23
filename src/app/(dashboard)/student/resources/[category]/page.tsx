@@ -1,10 +1,9 @@
 import { notFound } from "next/navigation";
+import { listStudentResourceTemplatesByCategory } from "@/actions/resources";
 import StudentCategoryTemplateGallery from "@/components/dashboard/student/StudentCategoryTemplateGallery";
 import DashboardPageHeader from "@/components/dashboard/shared/DashboardPageHeader";
 import { requireRole } from "@/lib/auth";
 import { ROLES } from "@/lib/constants";
-import { getResourceCategoryById } from "@/data/student-resource-categories";
-import { getResourcesByCategory } from "@/data/student-resource-templates";
 
 export default async function StudentResourceCategoryPage({
   params,
@@ -14,24 +13,28 @@ export default async function StudentResourceCategoryPage({
   await requireRole([ROLES.STUDENT]);
 
   const { category } = await params;
-  const resourceCategory = getResourceCategoryById(category);
+  const resourcesResult = await listStudentResourceTemplatesByCategory(category);
 
-  if (!resourceCategory) {
+  if (!resourcesResult.success && resourcesResult.error === "Resource category not found.") {
     notFound();
   }
 
-  const templates = getResourcesByCategory(resourceCategory.id);
+  if (!resourcesResult.success || !resourcesResult.data) {
+    throw new Error(resourcesResult.error ?? "Failed to load resource templates.");
+  }
+
+  const { resource, templates } = resourcesResult.data;
 
   return (
     <div className="space-y-8">
       <DashboardPageHeader
-        title={`${resourceCategory.title} Templates`}
-        description={resourceCategory.description}
+        title={`${resource.title} Templates`}
+        description={resource.description}
       />
 
       <StudentCategoryTemplateGallery
         templates={templates}
-        placeholder={`Search ${resourceCategory.title} templates`}
+        placeholder={`Search ${resource.title} templates`}
       />
     </div>
   );
