@@ -8,8 +8,7 @@ import {
   History,
   Kanban,
   LayoutDashboard,
-  MessageSquare,
-  Plane,
+Plane,
   Settings,
   UserCog,
   Users,
@@ -50,11 +49,6 @@ export const studentNavItems: DashboardNavItem[] = [
     label: "Resources",
     icon: BookOpen,
     href: "/student/resources",
-  },
-  {
-    label: "Messages",
-    icon: MessageSquare,
-    comingSoon: true,
   },
   {
     label: "Application History",

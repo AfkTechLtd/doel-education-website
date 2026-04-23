@@ -176,7 +176,6 @@ async function upsertAuthUser(email: string, name: string) {
   const found = existing?.users?.find((u) => u.email === email);
 
   if (found) {
-    console.log(`  ↩  Auth user already exists: ${email}`);
     return found.id;
   }
 
@@ -188,7 +187,6 @@ async function upsertAuthUser(email: string, name: string) {
   });
 
   if (error) throw new Error(`Failed to create auth user ${email}: ${error.message}`);
-  console.log(`  ✔  Created auth user: ${email}`);
   return data.user.id;
 }
 
@@ -201,7 +199,6 @@ async function upsertDbUser(
   const existing = await prisma.user.findUnique({ where: { supabaseId } });
 
   if (existing) {
-    console.log(`  ↩  DB user already exists: ${email} (${role})`);
     return existing;
   }
 
@@ -215,12 +212,10 @@ async function upsertDbUser(
     },
   });
 
-  console.log(`  ✔  Created DB user: ${email} (${role})`);
   return user;
 }
 
 async function seedResourcesAndTemplates() {
-  console.log("🌿 Seeding resource categories and showcase templates...\n");
 
   const resourceIdBySlug = new Map<string, string>();
 
@@ -244,7 +239,6 @@ async function seedResourcesAndTemplates() {
     });
 
     resourceIdBySlug.set(resource.slug, savedResource.id);
-    console.log(`  ✔  Resource ready: ${resource.name}`);
   }
 
   for (const template of RESOURCE_TEMPLATES) {
@@ -277,32 +271,20 @@ async function seedResourcesAndTemplates() {
       },
     });
 
-    console.log(`  ✔  Template ready: ${template.title}`);
   }
 
-  console.log();
 }
 
 // ── Main ───────────────────────────────────────────────────────────────────
 
 async function main() {
-  console.log("\n🌱 Seeding users...\n");
 
   for (const u of USERS) {
-    console.log(`→ ${u.role}: ${u.email}`);
     const supabaseId = await upsertAuthUser(u.email, u.name);
     await upsertDbUser(supabaseId, u.email, u.name, u.role);
-    console.log();
   }
 
   await seedResourcesAndTemplates();
-
-  console.log("✅ Seed complete.\n");
-  console.log("Credentials:");
-  console.log("  Admin      → admin@doel.dev       / Seed@1234  → /admin");
-  console.log("  Counselor  → counselor@doel.dev   / Seed@1234  → /counselor");
-  console.log("  Student    → student@doel.dev     / Seed@1234  → /student");
-  console.log();
 }
 
 main()

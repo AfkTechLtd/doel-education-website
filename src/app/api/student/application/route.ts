@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import type { SectionNumber } from "@prisma/client";
 
 // --- GET: Fetch Application Progress & Data ---
 export async function GET() {
@@ -51,11 +52,11 @@ export async function PATCH(req: Request) {
       create: { studentId: studentProfile.id, status: "IN_PROGRESS" },
     });
 
-    const sectionMap: Record<number, any> = {
+    const sectionMap: Record<number, SectionNumber> = {
       1: "SECTION_1", 2: "SECTION_2", 3: "SECTION_3", 4: "SECTION_4"
     };
 
-    const applicationSection = await prisma.applicationSection.upsert({
+    await prisma.applicationSection.upsert({
       where: {
         applicationId_sectionNumber: {
           applicationId: application.id,
@@ -70,12 +71,10 @@ export async function PATCH(req: Request) {
         isComplete: true
       }
     });
-    console.log("Upserted Section:", applicationSection);
-    const latestUpdate = await prisma.application.update({
+    await prisma.application.update({
       where: { id: application.id },
       data: { completedSections: step }
     });
-    console.log("Updated Application:", latestUpdate);
 
     return NextResponse.json({ success: true });
   } catch (error) {
