@@ -96,7 +96,6 @@ export default function DocumentInputField({
         open={isPickerOpen}
         onClose={() => setIsPickerOpen(false)}
         title={pickerTitle ?? `Choose ${label}`}
-        allowedTypes={allowedTypes}
         onSelect={handleSelect}
       />
     </div>

@@ -21,10 +21,15 @@ const STATUS_CONFIG: Record<
     icon: Clock,
     classes: "border-amber-200 bg-amber-50 text-amber-700",
   },
-  UPLOADED: {
-    label: "Uploaded",
+  UNDER_REVIEW: {
+    label: "Under Review",
     icon: Clock,
     classes: "border-blue-200 bg-blue-50 text-blue-700",
+  },
+  RECEIVED: {
+    label: "Received",
+    icon: Clock,
+    classes: "border-sky-200 bg-sky-50 text-sky-700",
   },
   VERIFIED: {
     label: "Verified",
@@ -35,6 +40,11 @@ const STATUS_CONFIG: Record<
     label: "Rejected",
     icon: XCircle,
     classes: "border-red-200 bg-red-50 text-red-700",
+  },
+  WAIVED: {
+    label: "Waived",
+    icon: Clock,
+    classes: "border-slate-200 bg-slate-50 text-slate-500",
   },
 };
 

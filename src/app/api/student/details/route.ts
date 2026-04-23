@@ -1,6 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
-import { getSession, getUser } from "@/lib/auth";
+import { getUser } from "@/lib/auth";
 
 
 
@@ -17,7 +17,6 @@ export const GET = async () => {
         user: true
       }
     });
-    console.log("Fetched student details for userId:", userId, student);
     if (!student) {
       return NextResponse.json({ error: "Student not found." + student }, { status: 404 });
     }

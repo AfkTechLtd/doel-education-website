@@ -40,8 +40,6 @@ type CreateStudentDocumentRecordInput = {
  * Maps a raw Prisma `Document` row into the list item shape used by the vault UI.
  */
 function mapDocumentToVaultItem(document: Document): VaultDocumentListItem {
-  const documentWithSource = document as Document & { source?: string | null };
-
   return {
     id: document.id,
     name: document.name,
@@ -53,7 +51,7 @@ function mapDocumentToVaultItem(document: Document): VaultDocumentListItem {
     sizeBytes: document.sizeBytes,
     notes: document.notes,
     uploadedAt: document.uploadedAt?.toISOString() ?? null,
-    source: documentWithSource.source ?? null,
+    source: document.source ?? null,
     matchState: "UNASSIGNED",
     matchedLabel: null,
   };
@@ -118,7 +116,7 @@ export async function createStudentDocumentRecord(
         name: input.name,
         type: input.type,
         status: (input.status ?? "PENDING") as never,
-        ...(input.source ? ({ source: input.source } as object) : {}),
+        source: input.source ?? null,
         bucket: input.bucket ?? STORAGE_BUCKETS.DOCUMENTS,
         storagePath: input.storagePath ?? null,
         mimeType: input.mimeType ?? null,

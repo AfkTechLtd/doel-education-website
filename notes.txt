@@ -1,0 +1,4 @@
+- selection will have multiple degrees
+- Test scores should have multiple selection option and based on that give scores.
+- fix in family information
+- Post admission processing fixc

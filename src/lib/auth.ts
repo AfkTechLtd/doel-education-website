@@ -34,11 +34,16 @@ export async function getSession() {
 // ============================================================
 
 export async function getUser(): Promise<AuthUser | null> {
-  const session = await getSession();
-  if (!session) return null;
+  const supabase = await createClient();
+  const {
+    data: { user: supabaseUser },
+    error,
+  } = await supabase.auth.getUser();
+
+  if (error || !supabaseUser) return null;
 
   const user = await prisma.user.findUnique({
-    where: { supabaseId: session.user.id },
+    where: { supabaseId: supabaseUser.id },
   });
 
   return user;

@@ -1,12 +1,12 @@
 "use client";
 
-import { useState, useEffect, Suspense } from "react";
+import { useState, useEffect, useRef, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import {
     CheckCircle2, ChevronRight, ChevronLeft, FileText, User, GraduationCap,
-    ClipboardCheck, Send, Download, AlertCircle, Plus, BookOpen, Users,
-    Award, PenTool, History, Mail, HelpCircle, FileCheck
+    ClipboardCheck, Send, Users, Award, PenTool, HelpCircle, FileCheck,
+    Activity, Shield, MessageSquare,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import StepIndicator from "@/components/dashboard/pages/application/StepIndicator";
@@ -15,157 +15,523 @@ import FormSection from "@/components/dashboard/pages/application/FormSection";
 
 // --- TYPES ---
 type ApplicationStatus = "NOT_STARTED" | "IN_PROGRESS" | "UNDER_REVIEW" | "APPROVED" | "REJECTED" | "ON_HOLD";
-interface AppState {
-    currentStep: number;
-    status: ApplicationStatus;
-    formData: Record<string, any>;
-}
+type FormData = Record<string, string | undefined>;
 
 interface StepProps {
-    student?: any;
-    formData: any;
-    onChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
-    errors: Record<string, string>; // Added this}
+    formData: FormData;
+    onChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => void;
+    errors: Record<string, string>;
 }
-// --- STEP COMPONENTS ---
 
-// --- STEP 1: FOUNDATIONS ---
+interface ApplicationSectionData {
+    sectionNumber: string;
+    data: FormData;
+}
+
+// --- LOCAL FORM HELPERS ---
+
+const SelectField = ({ label, name, value, options, error, onChange }: {
+    label: string; name: string; value?: string;
+    options: { value: string; label: string }[];
+    error?: string;
+    onChange: (e: React.ChangeEvent<HTMLSelectElement>) => void;
+}) => (
+    <div className="space-y-2">
+        <label className="text-[10px] font-bold uppercase tracking-widest text-slate-400 ml-1">{label}</label>
+        <select
+            name={name} value={value || ""} onChange={onChange}
+            className={cn(
+                "w-full px-5 py-4 bg-slate-50 border-none rounded-2xl focus:ring-2 focus:ring-teal-500 transition-all outline-none",
+                error ? "ring-2 ring-red-500 bg-red-50" : ""
+            )}
+        >
+            <option value="">Select...</option>
+            {options.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
+        </select>
+        {error && <p className="text-[10px] font-bold text-red-500 ml-1">{error}</p>}
+    </div>
+);
+
+const TextareaField = ({ label, name, value, placeholder, rows = 6, error, hint, onChange }: {
+    label: string; name: string; value?: string; placeholder?: string;
+    rows?: number; error?: string; hint?: string;
+    onChange: (e: React.ChangeEvent<HTMLTextAreaElement>) => void;
+}) => (
+    <div className="space-y-2">
+        <div className="flex items-center justify-between px-1">
+            <label className="text-[10px] font-bold uppercase tracking-widest text-slate-400">{label}</label>
+            {hint && <span className="text-[10px] text-slate-400">{hint}</span>}
+        </div>
+        <textarea
+            name={name} value={value || ""} onChange={onChange} rows={rows} placeholder={placeholder}
+            className={cn(
+                "w-full px-5 py-4 bg-slate-50 border-none rounded-2xl focus:ring-2 transition-all outline-none resize-none",
+                error ? "ring-2 ring-red-500 bg-red-50" : "focus:ring-teal-500"
+            )}
+        />
+        {error && <p className="text-[10px] font-bold text-red-500 ml-1">{error}</p>}
+    </div>
+);
+
+const CheckboxField = ({ label, name, description, checked, onChange }: {
+    label: string; name: string; description?: string; checked: boolean;
+    onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+}) => (
+    <label className="flex items-start gap-4 p-5 bg-slate-50 rounded-2xl cursor-pointer hover:bg-slate-100 transition-colors group">
+        <input name={name} type="checkbox" checked={checked} onChange={onChange}
+            className="mt-0.5 h-5 w-5 rounded border-slate-300 text-teal-600 focus:ring-teal-600 shrink-0" />
+        <div>
+            <p className="text-sm font-semibold text-slate-800 group-hover:text-teal-700">{label}</p>
+            {description && <p className="text-xs text-slate-500 mt-0.5">{description}</p>}
+        </div>
+    </label>
+);
+
+// Synthetic event factory for checkbox → onChange pipeline
+function checkboxEvent(name: string, checked: boolean): React.ChangeEvent<HTMLInputElement> {
+    return { target: { name, value: String(checked) } } as unknown as React.ChangeEvent<HTMLInputElement>;
+}
+
+const EDUCATION_LEVELS = [
+    { value: "none", label: "No formal education" },
+    { value: "primary", label: "Primary School" },
+    { value: "secondary", label: "Secondary / High School" },
+    { value: "bachelor", label: "Bachelor's Degree" },
+    { value: "master", label: "Master's Degree" },
+    { value: "phd", label: "PhD / Doctorate" },
+];
+
+// ─── STEP 1 — Sections 1, 2, 3 ───────────────────────────────────────────────
 const Step1Foundations = ({ formData, onChange, errors }: StepProps) => (
     <div className="space-y-4">
         <div className="mb-10">
             <h1 className="text-4xl font-bold tracking-tight text-slate-900">Start Your Journey.</h1>
             <p className="text-slate-500 mt-2">Please provide accurate information as it appears on your official documents.</p>
         </div>
+
+        {/* Section 1 — Personal Information */}
         <FormSection icon={User} title="Personal Information">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <InputField name="name" value={formData.name} onChange={onChange} label="Legal Full Name" placeholder="e.g. Jane Doe" error={errors.name} />
                 <InputField name="email" value={formData.email} onChange={onChange} label="Email Address" placeholder="jane.doe@example.com" type="email" error={errors.email} />
+                <InputField name="dateOfBirth" value={formData.dateOfBirth} onChange={onChange} label="Date of Birth" type="date" error={errors.dateOfBirth} />
+                <InputField name="phone" value={formData.phone} onChange={onChange} label="Phone Number (with country code)" placeholder="+880 1XXX-XXXXXX" error={errors.phone} />
+                <InputField name="nationality" value={formData.nationality} onChange={onChange} label="Nationality" placeholder="e.g. Bangladeshi" error={errors.nationality} />
+                <SelectField
+                    name="gender" label="Gender" value={formData.gender} onChange={onChange}
+                    options={[
+                        { value: "male", label: "Male" },
+                        { value: "female", label: "Female" },
+                        { value: "other", label: "Other" },
+                        { value: "prefer_not", label: "Prefer not to say" },
+                    ]}
+                />
                 <div className="md:col-span-2">
                     <InputField name="address" value={formData.address} onChange={onChange} label="Primary Address" placeholder="Street Address, City, State, ZIP" error={errors.address} />
                 </div>
             </div>
         </FormSection>
+
+        {/* Section 2 — Academic History */}
         <FormSection icon={GraduationCap} title="Academic History">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <InputField name="schoolName" value={formData.schoolName} onChange={onChange} label="High School / College Name" placeholder="University of Excellence" error={errors.schoolName} />
-                <InputField name="gpa" value={formData.gpa} onChange={onChange} label="Cumulative GPA" placeholder="4.0" error={errors.gpa} />
+                <InputField name="schoolName" value={formData.schoolName} onChange={onChange} label="Institution Name" placeholder="University of Excellence" error={errors.schoolName} />
+                <InputField name="schoolCity" value={formData.schoolCity} onChange={onChange} label="Institution City" placeholder="Dhaka" />
+                <InputField name="schoolCountry" value={formData.schoolCountry} onChange={onChange} label="Institution Country" placeholder="Bangladesh" />
+                <SelectField
+                    name="degreeObtained" label="Highest Degree Obtained" value={formData.degreeObtained}
+                    onChange={onChange} error={errors.degreeObtained}
+                    options={[
+                        { value: "high_school", label: "High School Diploma / HSC" },
+                        { value: "associate", label: "Associate Degree" },
+                        { value: "bachelor", label: "Bachelor's Degree" },
+                        { value: "master", label: "Master's Degree" },
+                        { value: "other", label: "Other" },
+                    ]}
+                />
+                <InputField name="graduationDate" value={formData.graduationDate} onChange={onChange} label="Graduation Date" type="date" error={errors.graduationDate} />
+                <InputField name="fieldOfStudy" value={formData.fieldOfStudy} onChange={onChange} label="Field of Study / Major" placeholder="Computer Science" error={errors.fieldOfStudy} />
+                <InputField name="gpa" value={formData.gpa} onChange={onChange} label="Cumulative GPA (0.0 – 4.0)" placeholder="3.75" error={errors.gpa} />
             </div>
         </FormSection>
-        <FormSection icon={FileText} title=" Selection">
+
+        {/* Section 3 — Program Selection */}
+        <FormSection icon={FileText} title="Program Selection">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <InputField name="degreeProgram" value={formData.degreeProgram} onChange={onChange} label="Desired Degree Program" placeholder="B.S. Computer Science" error={errors.degreeProgram} />
-                <InputField name="startTerm" value={formData.startTerm} onChange={onChange} label="Intended Start Term" placeholder="Fall 2024" error={errors.startTerm} />
+                <InputField name="targetUniversity" value={formData.targetUniversity} onChange={onChange} label="Target University" placeholder="e.g. University of Texas at Dallas" error={errors.targetUniversity} />
+                <InputField name="degreeProgram" value={formData.degreeProgram} onChange={onChange} label="Desired Degree Program" placeholder="e.g. M.S. Computer Science" error={errors.degreeProgram} />
+                <SelectField
+                    name="startTerm" label="Intended Start Term" value={formData.startTerm}
+                    onChange={onChange} error={errors.startTerm}
+                    options={[
+                        { value: "Fall", label: "Fall" },
+                        { value: "Spring", label: "Spring" },
+                        { value: "Summer", label: "Summer" },
+                    ]}
+                />
+                <SelectField
+                    name="targetYear" label="Target Year" value={formData.targetYear}
+                    onChange={onChange} error={errors.targetYear}
+                    options={[
+                        { value: "2025", label: "2025" },
+                        { value: "2026", label: "2026" },
+                        { value: "2027", label: "2027" },
+                        { value: "2028", label: "2028" },
+                    ]}
+                />
             </div>
         </FormSection>
     </div>
 );
 
-// --- STEP 2: REQUIREMENTS ---
+// ─── STEP 2 — Sections 4, 5, 6, 7 ───────────────────────────────────────────
 const Step2Requirements = ({ formData, onChange, errors }: StepProps) => (
     <div className="space-y-4">
         <div className="mb-10">
             <h1 className="text-4xl font-bold tracking-tight text-slate-900">Testing & Achievements</h1>
-            <p className="text-slate-500 mt-2">Provide standardized scores and your personal statement.</p>
+            <p className="text-slate-500 mt-2">Indicate program requirements, provide your scores, statement, and extracurricular activities.</p>
         </div>
 
-        <FormSection icon={PenTool} title="Personal Statement">
-            <div className="space-y-2">
-                <div className="flex items-center justify-between px-1">
-                    <label className="text-[10px] font-bold uppercase tracking-widest text-slate-400">
-                        Statement of Purpose (MAX 500 words)
-                    </label>
+        {/* Section 4 — Test Requirements by Program */}
+        <FormSection icon={ClipboardCheck} title="Test Requirements by Program">
+            <p className="text-sm text-slate-500 mb-5">Select all standardized tests required by your target program.</p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+                {[
+                    { name: "requiresSAT", label: "SAT" },
+                    { name: "requiresACT", label: "ACT" },
+                    { name: "requiresTOEFL", label: "TOEFL" },
+                    { name: "requiresIELTS", label: "IELTS" },
+                    { name: "requiresGRE", label: "GRE" },
+                    { name: "requiresGMAT", label: "GMAT" },
+                ].map(({ name, label }) => (
+                    <CheckboxField key={name} name={name} label={label}
+                        checked={formData[name] === "true"}
+                        onChange={(e) => onChange(checkboxEvent(name, e.target.checked))}
+                    />
+                ))}
+            </div>
+        </FormSection>
 
-                    <Link
-                        href="/student/resources/sop"
-                        className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-[#0f766e] hover:text-teal-800 transition-colors bg-teal-50 px-3 py-1 rounded-full border border-teal-100"
+        {/* Section 5 — Test Information / Scores */}
+        <FormSection icon={FileCheck} title="Test Information / Scores">
+            <p className="text-sm text-slate-500 mb-5">Enter scores only for tests you have taken. Leave blank if not applicable.</p>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <InputField name="satMath" value={formData.satMath} onChange={onChange} label="SAT Math (200–800)" placeholder="750" error={errors.satMath} />
+                <InputField name="satReading" value={formData.satReading} onChange={onChange} label="SAT Reading (200–800)" placeholder="710" error={errors.satReading} />
+                <InputField name="actComposite" value={formData.actComposite} onChange={onChange} label="ACT Composite (1–36)" placeholder="32" error={errors.actComposite} />
+                <InputField name="toeflScore" value={formData.toeflScore} onChange={onChange} label="TOEFL (0–120)" placeholder="110" error={errors.toeflScore} />
+                <InputField name="ieltsScore" value={formData.ieltsScore} onChange={onChange} label="IELTS (0.0–9.0)" placeholder="7.5" error={errors.ieltsScore} />
+                <InputField name="greVerbal" value={formData.greVerbal} onChange={onChange} label="GRE Verbal (130–170)" placeholder="160" error={errors.greVerbal} />
+                <InputField name="greQuantitative" value={formData.greQuantitative} onChange={onChange} label="GRE Quantitative (130–170)" placeholder="165" error={errors.greQuantitative} />
+                <InputField name="testDate" value={formData.testDate} onChange={onChange} label="Most Recent Test Date" type="date" error={errors.testDate} />
+            </div>
+        </FormSection>
+
+        {/* Section 6 — Personal Statement / SOP */}
+        <FormSection icon={PenTool} title="Personal Statement / Statement of Purpose">
+            <div className="space-y-4">
+                <div className="flex justify-end">
+                    <Link href="/student/resources/sop"
+                        className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-teal-700 hover:text-teal-800 transition-colors bg-teal-50 px-3 py-1 rounded-full border border-teal-100"
                     >
                         <HelpCircle className="h-3 w-3" />
                         Writing Guide
                     </Link>
                 </div>
-                <textarea
-                    name="personalStatement"
-                    value={formData.personalStatement || ""}
-                    onChange={onChange}
-                    rows={15}
-                    placeholder="Your Statement of Purpose (SoP)"
-                    className={cn(
-                        "w-full px-5 py-4 bg-slate-50 border-none rounded-2xl focus:ring-2 transition-all outline-none resize-none",
-                        errors.personalStatement ? "ring-2 ring-red-500 bg-red-50" : "focus:ring-teal-500"
+                <TextareaField
+                    name="personalStatement" label="Statement of Purpose (max 500 words)"
+                    placeholder="Describe your academic background, research interests, career goals, and why you are applying to this program..."
+                    rows={15} error={errors.personalStatement} onChange={onChange} value={formData.personalStatement}
+                />
+            </div>
+        </FormSection>
+
+        {/* Section 7 — Extracurricular Activities */}
+        <FormSection icon={Activity} title="Extracurricular Activities">
+            <div className="space-y-6">
+                <TextareaField name="activities" label="Extracurricular Activities"
+                    placeholder="List clubs, sports, arts, or other organized activities you participated in..." rows={4}
+                    onChange={onChange} value={formData.activities} />
+                <TextareaField name="leadershipRoles" label="Leadership Roles & Positions"
+                    placeholder="Describe any leadership positions held (e.g. Club President, Team Captain, Student Council)..." rows={4}
+                    onChange={onChange} value={formData.leadershipRoles} />
+                <TextareaField name="awardsHonors" label="Awards & Honors"
+                    placeholder="List academic, extracurricular, or professional awards and honors received..." rows={4}
+                    onChange={onChange} value={formData.awardsHonors} />
+                <TextareaField name="communityService" label="Community Service & Volunteering"
+                    placeholder="Describe volunteer work or community service activities, including organization name and hours..." rows={4}
+                    onChange={onChange} value={formData.communityService} />
+            </div>
+        </FormSection>
+    </div>
+);
+
+// ─── STEP 3 — Sections 8, 9, 10, 11 ─────────────────────────────────────────
+const Step3Support = ({ formData, onChange, errors }: StepProps) => {
+    const recsRequired = parseInt(formData.recommendationsRequired || "0");
+    return (
+        <div className="space-y-4">
+            <div className="mb-10">
+                <h1 className="text-4xl font-bold tracking-tight text-slate-900">Family & Support</h1>
+                <p className="text-slate-500 mt-2">Provide family background, recommender contacts, and financial aid information.</p>
+            </div>
+
+            {/* Section 8 — Family Information */}
+            <FormSection icon={Users} title="Family Information">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <InputField name="fatherName" value={formData.fatherName} onChange={onChange} label="Father's Full Name" placeholder="e.g. Mohammad Rahman" />
+                    <InputField name="fatherOccupation" value={formData.fatherOccupation} onChange={onChange} label="Father's Occupation" placeholder="e.g. Engineer" />
+                    <SelectField name="fatherEducation" label="Father's Education Level" value={formData.fatherEducation} onChange={onChange} options={EDUCATION_LEVELS} />
+                    <InputField name="motherName" value={formData.motherName} onChange={onChange} label="Mother's Full Name" placeholder="e.g. Fatema Begum" />
+                    <InputField name="motherOccupation" value={formData.motherOccupation} onChange={onChange} label="Mother's Occupation" placeholder="e.g. Teacher" />
+                    <SelectField name="motherEducation" label="Mother's Education Level" value={formData.motherEducation} onChange={onChange} options={EDUCATION_LEVELS} />
+                    <InputField name="guardianName" value={formData.guardianName} onChange={onChange} label="Primary Guardian Full Name" placeholder="If different from parents" error={errors.guardianName} />
+                    <InputField name="guardianPhone" value={formData.guardianPhone} onChange={onChange} label="Guardian Phone Number" placeholder="+880 1XXX-XXXXXX" />
+                    <InputField name="guardianRelationship" value={formData.guardianRelationship} onChange={onChange} label="Guardian's Relationship to Applicant" placeholder="e.g. Father, Uncle" />
+                </div>
+            </FormSection>
+
+            {/* Section 9 — Recommendation Requirements */}
+            <FormSection icon={ClipboardCheck} title="Recommendation Requirements by Program">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <SelectField
+                        name="recommendationsRequired" label="Number of Recommendations Required"
+                        value={formData.recommendationsRequired} onChange={onChange} error={errors.recommendationsRequired}
+                        options={[
+                            { value: "0", label: "None required" },
+                            { value: "1", label: "1 Recommendation" },
+                            { value: "2", label: "2 Recommendations" },
+                            { value: "3", label: "3 Recommendations" },
+                        ]}
+                    />
+                    <TextareaField name="requirementNotes" label="Program-Specific Requirements (optional)"
+                        placeholder="Any specific instructions from the program regarding recommenders..."
+                        rows={3} onChange={onChange} value={formData.requirementNotes} />
+                </div>
+            </FormSection>
+
+            {/* Section 10 — Recommendations / LOR */}
+            <FormSection icon={MessageSquare} title="Recommendations / Letters of Recommendation">
+                <p className="text-sm text-slate-500 mb-6">Provide contact details for each recommender. They will be contacted by your counselor.</p>
+                <div className="space-y-8">
+                    {/* Recommender 1 — always shown */}
+                    <div>
+                        <h3 className="text-sm font-bold text-slate-700 mb-4 flex items-center gap-2">
+                            <span className="h-6 w-6 rounded-full bg-teal-50 border border-teal-200 text-teal-700 text-xs font-bold flex items-center justify-center">1</span>
+                            Recommender 1
+                        </h3>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <InputField name="rec1Name" value={formData.rec1Name} onChange={onChange} label="Full Name" placeholder="Dr. John Smith" error={errors.rec1Name} />
+                            <InputField name="rec1Title" value={formData.rec1Title} onChange={onChange} label="Title / Position" placeholder="Professor of Computer Science" />
+                            <InputField name="rec1Email" value={formData.rec1Email} onChange={onChange} label="Email Address" placeholder="j.smith@university.edu" type="email" error={errors.rec1Email} />
+                            <InputField name="rec1Institution" value={formData.rec1Institution} onChange={onChange} label="Institution / Organization" placeholder="MIT" />
+                        </div>
+                    </div>
+
+                    {/* Recommender 2 — shown when ≥ 2 required */}
+                    {recsRequired >= 2 && (
+                        <div>
+                            <h3 className="text-sm font-bold text-slate-700 mb-4 flex items-center gap-2">
+                                <span className="h-6 w-6 rounded-full bg-teal-50 border border-teal-200 text-teal-700 text-xs font-bold flex items-center justify-center">2</span>
+                                Recommender 2
+                            </h3>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <InputField name="rec2Name" value={formData.rec2Name} onChange={onChange} label="Full Name" placeholder="Prof. Jane Lee" />
+                                <InputField name="rec2Title" value={formData.rec2Title} onChange={onChange} label="Title / Position" placeholder="Associate Professor" />
+                                <InputField name="rec2Email" value={formData.rec2Email} onChange={onChange} label="Email Address" placeholder="j.lee@university.edu" type="email" />
+                                <InputField name="rec2Institution" value={formData.rec2Institution} onChange={onChange} label="Institution / Organization" placeholder="Stanford University" />
+                            </div>
+                        </div>
                     )}
-                />
-                {errors.personalStatement && (
-                    <p className="text-[10px] font-bold text-red-500 ml-1">{errors.personalStatement}</p>
+
+                    {/* Recommender 3 — shown when 3 required */}
+                    {recsRequired >= 3 && (
+                        <div>
+                            <h3 className="text-sm font-bold text-slate-700 mb-4 flex items-center gap-2">
+                                <span className="h-6 w-6 rounded-full bg-teal-50 border border-teal-200 text-teal-700 text-xs font-bold flex items-center justify-center">3</span>
+                                Recommender 3
+                            </h3>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <InputField name="rec3Name" value={formData.rec3Name} onChange={onChange} label="Full Name" placeholder="Mr. Alex Johnson" />
+                                <InputField name="rec3Title" value={formData.rec3Title} onChange={onChange} label="Title / Position" placeholder="Industry Mentor" />
+                                <InputField name="rec3Email" value={formData.rec3Email} onChange={onChange} label="Email Address" placeholder="a.johnson@company.com" type="email" />
+                                <InputField name="rec3Institution" value={formData.rec3Institution} onChange={onChange} label="Institution / Organization" placeholder="Google" />
+                            </div>
+                        </div>
+                    )}
+                </div>
+            </FormSection>
+
+            {/* Section 11 — Scholarships / Financial Aid */}
+            <FormSection icon={Award} title="Scholarships / Financial Aid">
+                <div className="space-y-4">
+                    <CheckboxField name="applyingForScholarship" label="I am applying for a scholarship"
+                        description="Check if you wish to be considered for any merit or need-based scholarship programs."
+                        checked={formData.applyingForScholarship === "true"}
+                        onChange={(e) => onChange(checkboxEvent("applyingForScholarship", e.target.checked))} />
+                    {formData.applyingForScholarship === "true" && (
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pl-4 pt-2 border-l-2 border-teal-100">
+                            <SelectField name="scholarshipType" label="Scholarship Type" value={formData.scholarshipType} onChange={onChange}
+                                options={[
+                                    { value: "merit", label: "Merit-Based" },
+                                    { value: "need", label: "Need-Based" },
+                                    { value: "athletic", label: "Athletic" },
+                                    { value: "other", label: "Other" },
+                                ]} />
+                            <InputField name="sponsorName" value={formData.sponsorName} onChange={onChange}
+                                label="Sponsor / Funding Source (if any)" placeholder="e.g. Government Scholarship, Self-funded" />
+                        </div>
+                    )}
+                    <CheckboxField name="financialAidRequired" label="I require financial aid"
+                        description="Check if you need financial assistance beyond scholarships."
+                        checked={formData.financialAidRequired === "true"}
+                        onChange={(e) => onChange(checkboxEvent("financialAidRequired", e.target.checked))} />
+                </div>
+            </FormSection>
+        </div>
+    );
+};
+
+// ─── STEP 4 — Sections 12, 13, 14 ────────────────────────────────────────────
+const Step4Finalization = ({ formData, onChange, errors }: StepProps) => {
+    const hasDisclosure =
+        formData.hasCriminalRecord === "true" ||
+        formData.hasAcademicViolation === "true" ||
+        formData.hasDisciplinaryAction === "true";
+
+    const isReadyToSubmit =
+        formData.agreeToTerms === "true" &&
+        formData.agreeToAccuracy === "true" &&
+        formData.agreeToConduct === "true" &&
+        !!formData.signature;
+
+    return (
+        <div className="space-y-4">
+            <div className="mb-10">
+                <h1 className="text-4xl font-bold tracking-tight text-slate-900">Finalization</h1>
+                <p className="text-slate-500 mt-2">Complete the final sections and submit your application.</p>
+            </div>
+
+            {/* Section 12 — Additional / Supplemental Questions */}
+            <FormSection icon={HelpCircle} title="Additional / Supplemental Questions">
+                <div className="space-y-6">
+                    <TextareaField name="whyThisUniversity" label="Why this university?"
+                        placeholder="Explain what specifically attracts you to this institution..."
+                        rows={5} onChange={onChange} value={formData.whyThisUniversity} error={errors.whyThisUniversity} />
+                    <TextareaField name="whyThisProgram" label="Why this program?"
+                        placeholder="Describe how this program aligns with your academic and career goals..."
+                        rows={5} onChange={onChange} value={formData.whyThisProgram} error={errors.whyThisProgram} />
+                    <SelectField name="hearAboutUs" label="How did you hear about us?" value={formData.hearAboutUs} onChange={onChange}
+                        options={[
+                            { value: "counselor", label: "School Counselor" },
+                            { value: "friend", label: "Friend / Family" },
+                            { value: "social_media", label: "Social Media" },
+                            { value: "event", label: "Education Fair / Event" },
+                            { value: "search", label: "Web Search" },
+                            { value: "other", label: "Other" },
+                        ]} />
+                    <TextareaField name="additionalInfo" label="Additional Information (optional)"
+                        placeholder="Any other information you would like to share with the admissions committee..."
+                        rows={4} onChange={onChange} value={formData.additionalInfo} />
+                </div>
+            </FormSection>
+
+            {/* Section 13 — Community Standards / Conduct Disclosure */}
+            <FormSection icon={Shield} title="Community Standards / Conduct Disclosure">
+                <p className="text-sm text-slate-500 mb-6">
+                    Please answer the following honestly. A Yes does not automatically disqualify your application.
+                </p>
+                <div className="space-y-3">
+                    <CheckboxField name="hasCriminalRecord"
+                        label="Have you ever been convicted of a felony or criminal offense?"
+                        checked={formData.hasCriminalRecord === "true"}
+                        onChange={(e) => onChange(checkboxEvent("hasCriminalRecord", e.target.checked))} />
+                    <CheckboxField name="hasAcademicViolation"
+                        label="Have you ever been found responsible for academic dishonesty?"
+                        checked={formData.hasAcademicViolation === "true"}
+                        onChange={(e) => onChange(checkboxEvent("hasAcademicViolation", e.target.checked))} />
+                    <CheckboxField name="hasDisciplinaryAction"
+                        label="Have you ever been subject to disciplinary action at an academic institution?"
+                        checked={formData.hasDisciplinaryAction === "true"}
+                        onChange={(e) => onChange(checkboxEvent("hasDisciplinaryAction", e.target.checked))} />
+                </div>
+                {hasDisclosure && (
+                    <div className="mt-6">
+                        <TextareaField name="conductExplanation" label="Please explain the circumstances"
+                            placeholder="Provide details about the incident(s) above, including dates, institutions, and outcomes..."
+                            rows={5} onChange={onChange} value={formData.conductExplanation} error={errors.conductExplanation} />
+                    </div>
                 )}
-            </div>
-        </FormSection>
-        <FormSection icon={FileCheck} title="Test Scores">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                <InputField name="satMath" value={formData.satMath} onChange={onChange} label="SAT Math" placeholder="750" error={errors.satMath} />
-                <InputField name="satReading" value={formData.satReading} onChange={onChange} label="SAT Reading" placeholder="710" error={errors.satReading} />
-                <InputField name="actComposite" value={formData.actComposite} onChange={onChange} label="ACT Composite" placeholder="32" error={errors.actComposite} />
-                <InputField name="testDate" value={formData.testDate} onChange={onChange} label="Test Date" type="date" error={errors.testDate} />
-            </div>
-        </FormSection>
-    </div>
-);
-
-// --- STEP 3: SUPPORT ---
-const Step3Support = ({ formData, onChange, errors }: StepProps) => (
-    <div className="space-y-4">
-        <div className="mb-10">
-            <h1 className="text-4xl font-bold tracking-tight text-slate-900">Family & Support</h1>
-        </div>
-        <FormSection icon={Users} title="Family Information">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <InputField name="guardianName" value={formData.guardianName} onChange={onChange} label="Guardian Full Name" error={errors.guardianName} />
-                <InputField name="guardianEducation" value={formData.guardianEducation} onChange={onChange} label="Education Level" error={errors.guardianEducation} />
-            </div>
-        </FormSection>
-        <FormSection icon={BookOpen} title="Financial Aid">
-            <label className="flex items-center gap-4 p-5 bg-slate-50 rounded-2xl cursor-pointer hover:bg-slate-100 transition-colors group">
-                <input
-                    name="meritScholarship"
-                    type="checkbox"
-                    checked={!!formData.meritScholarship}
-                    onChange={(e) => {
-                        const event = { target: { name: 'meritScholarship', value: e.target.checked } } as any;
-                        onChange(event);
-                    }}
-                    className="h-5 w-5 rounded-lg border-slate-300 text-[#0f766e] focus:ring-[#0f766e]"
-                />
-                <div>
-                    <p className="text-sm font-bold group-hover:text-[#0f766e]">Merit-Based Scholarship</p>
-                    <p className="text-xs text-slate-500">Check to apply for the Excellence award.</p>
+                <div className="mt-6">
+                    <CheckboxField name="agreeToConduct"
+                        label="I agree to uphold the community standards and code of conduct"
+                        description="By checking this box, you certify that you will abide by the institution's community standards."
+                        checked={formData.agreeToConduct === "true"}
+                        onChange={(e) => onChange(checkboxEvent("agreeToConduct", e.target.checked))} />
+                    {errors.agreeToConduct && <p className="text-[10px] font-bold text-red-500 ml-1 mt-1">{errors.agreeToConduct}</p>}
                 </div>
-            </label>
-        </FormSection>
-    </div>
-);
+            </FormSection>
 
-// --- STEP 4: FINALIZATION ---
-const Step4Finalization = ({ formData, onChange, errors }: StepProps) => (
-    <div className="space-y-4">
-        <div className="mb-10">
-            <h1 className="text-4xl font-bold tracking-tight text-slate-900">Finalization</h1>
-        </div>
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            <div className="lg:col-span-2 space-y-4">
-                <FormSection icon={PenTool} title="Electronic Signature">
-                    <InputField name="signature" value={formData.signature} onChange={onChange} label="Digital Signature" placeholder="Type full legal name" error={errors.signature} />
-                </FormSection>
-            </div>
-            <div className="bg-slate-50 rounded-[2.5rem] p-8 border border-slate-100 h-fit">
-                <h3 className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-6">Review Status</h3>
-                <div className="space-y-2">
-                    <p className="text-xs font-medium text-slate-600">Ready to submit: {formData.signature ? "✅ Yes" : "❌ No"}</p>
-                    {errors.signature && <p className="text-[10px] font-bold text-red-500 italic">Signature required to finish.</p>}
+            {/* Section 14 — Signature & Final Review */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <div className="lg:col-span-2">
+                    <FormSection icon={PenTool} title="Signature & Final Review">
+                        <div className="space-y-4">
+                            <CheckboxField name="agreeToTerms"
+                                label="I agree to the terms and conditions of this application"
+                                description="By submitting, you agree to all terms, policies, and requirements of the application process."
+                                checked={formData.agreeToTerms === "true"}
+                                onChange={(e) => onChange(checkboxEvent("agreeToTerms", e.target.checked))} />
+                            {errors.agreeToTerms && <p className="text-[10px] font-bold text-red-500 ml-1">{errors.agreeToTerms}</p>}
+
+                            <CheckboxField name="agreeToAccuracy"
+                                label="I certify that all information provided is true and accurate"
+                                description="You understand that false or misleading information may result in disqualification."
+                                checked={formData.agreeToAccuracy === "true"}
+                                onChange={(e) => onChange(checkboxEvent("agreeToAccuracy", e.target.checked))} />
+                            {errors.agreeToAccuracy && <p className="text-[10px] font-bold text-red-500 ml-1">{errors.agreeToAccuracy}</p>}
+
+                            <div className="pt-4">
+                                <InputField name="signature" value={formData.signature} onChange={onChange}
+                                    label="Digital Signature — Type your full legal name"
+                                    placeholder="Type full legal name as it appears on your ID"
+                                    error={errors.signature} />
+                            </div>
+                        </div>
+                    </FormSection>
+                </div>
+
+                {/* Submission checklist panel */}
+                <div className="bg-slate-50 rounded-[2.5rem] p-8 border border-slate-100 h-fit">
+                    <h3 className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-6">Submission Checklist</h3>
+                    <div className="space-y-3 text-xs text-slate-600">
+                        {[
+                            { label: "Terms agreed", key: "agreeToTerms" },
+                            { label: "Accuracy certified", key: "agreeToAccuracy" },
+                            { label: "Conduct agreed", key: "agreeToConduct" },
+                        ].map(({ label, key }) => (
+                            <div key={key} className="flex items-center justify-between">
+                                <span>{label}</span>
+                                <span>{formData[key] === "true" ? "✅" : "❌"}</span>
+                            </div>
+                        ))}
+                        <div className="flex items-center justify-between">
+                            <span>Signature</span>
+                            <span>{formData.signature ? "✅" : "❌"}</span>
+                        </div>
+                        <div className="mt-4 pt-4 border-t border-slate-200">
+                            <span className={cn("font-bold text-sm", isReadyToSubmit ? "text-emerald-600" : "text-slate-400")}>
+                                {isReadyToSubmit ? "Ready to submit!" : "Please complete all fields"}
+                            </span>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
-);
+    );
+};
 
+// ─── SUBMITTED VIEW ───────────────────────────────────────────────────────────
 const SubmittedView = () => (
     <div className="space-y-8 animate-in zoom-in duration-500 max-w-4xl mx-auto mt-10">
         <div className="bg-teal-50 border border-teal-100 rounded-[2.5rem] p-10 text-center">
@@ -174,49 +540,43 @@ const SubmittedView = () => (
             </div>
             <h2 className="text-3xl font-bold text-[#0f766e] mb-4">Application Submitted</h2>
             <p className="text-teal-700 text-lg">Your application is currently under review. You can no longer edit your responses.</p>
-            <Link href="/student/dashboard" className="mt-8 inline-block bg-[#0f766e] text-white px-8 py-3 rounded-xl font-bold">
+            <Link href="/student/" className="mt-8 inline-block bg-[#0f766e] text-white px-8 py-3 rounded-xl font-bold">
                 Return to Dashboard
             </Link>
         </div>
     </div>
 );
 
+// ─── MAIN COMPONENT ───────────────────────────────────────────────────────────
 function ApplicationContent() {
     const router = useRouter();
     const searchParams = useSearchParams();
 
-    // URL State
     const currentStep = parseInt(searchParams.get("step") || "1");
     const isSubmittedView = searchParams.get("view") === "submitted";
 
     const [status, setStatus] = useState<ApplicationStatus>("NOT_STARTED");
-    const [formData, setFormData] = useState<Record<string, any>>({});
+    const [formData, setFormData] = useState<FormData>({});
     const [errors, setErrors] = useState<Record<string, string>>({});
     const [isLoading, setIsLoading] = useState(true);
-    const [student, setStudent] = useState<any>(null);
+    const hasInitialized = useRef(false);
+
     useEffect(() => {
+        if (hasInitialized.current) return;
+        hasInitialized.current = true;
+
         const initApplication = async () => {
             try {
                 const res = await fetch('/api/student/application');
                 const data = await res.json();
 
-                // If no application exists yet (404 or specific status from your API)
                 if (!data.application) {
                     setStatus("NOT_STARTED");
-
-                    if (!searchParams.get("step")) {
-                        router.replace("?step=1");
-                    }
-
-                    // FIX: Await the details fetch so we can use the result immediately
+                    if (!searchParams.get("step")) router.replace("?step=1");
                     try {
                         const studentRes = await fetch('/api/student/details');
                         const studentData = await studentRes.json();
-
                         if (studentData.student) {
-                            setStudent(studentData.student); // Update state for other uses
-
-                            // Hydrate form directly from the fetched result, not the state variable
                             setFormData(prev => ({
                                 ...prev,
                                 name: studentData.student.user.name || "",
@@ -233,31 +593,18 @@ function ApplicationContent() {
                 const appStatus = app.status as ApplicationStatus;
                 setStatus(appStatus);
 
-                // 1. Process FormData: Merge all section JSON data into one object
-                // Your API returns 'sections' as an array of { sectionNumber: 'ONE', data: {...} }
-                const mergedData: Record<string, any> = {};
-
+                const mergedData: FormData = {};
                 if (app.sections && Array.isArray(app.sections)) {
-                    app.sections.forEach((section: any) => {
-                        // Spread the JSON 'data' field from each section into our flat formData
+                    app.sections.forEach((section: ApplicationSectionData) => {
                         Object.assign(mergedData, section.data);
                     });
                 }
+                setFormData(prev => ({ ...prev, ...mergedData }));
 
-                setFormData(prev => ({
-                    ...prev,
-                    ...mergedData
-                }));
-
-                // 2. Routing Logic
                 const hasSubmitted = !["NOT_STARTED", "IN_PROGRESS"].includes(appStatus);
-
                 if (hasSubmitted || searchParams.get("view") === "submitted") {
                     router.replace("?view=submitted");
-
                 } else if (!searchParams.get("step")) {
-                    // If they just arrived at the page, resume at their last saved step
-                    // 'completedSections' is an Int in your schema (e.g., 2)
                     const resumeStep = (app.completedSections || 0) + 1;
                     router.replace(`?step=${Math.min(resumeStep, 4)}`);
                 }
@@ -269,59 +616,115 @@ function ApplicationContent() {
         };
 
         initApplication();
-    }, [router, searchParams]); // Added dependencies for stability
+    }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-    const validateStep = () => {
-        const newErrors: Record<string, string> = {};
+    const validateStep = (): boolean => {
+        const e: Record<string, string> = {};
+
         if (currentStep === 1) {
-            if (!formData.name) newErrors.name = "Full Name is required";
-            if (!formData.email) newErrors.email = "Email is required";
-            if (!formData.address) newErrors.address = "Address is required";
-            if (!formData.schoolName) newErrors.schoolName = "School Name is required";
-            if (!formData.degreeProgram) newErrors.degreeProgram = "Program Name is required";
-            if (!formData.startTerm) newErrors.startTerm = "Start of Term is required";
-        }
-        if (currentStep === 2) {
-            if (!formData.satMath) newErrors.satMath = "SAT Math score is required";
-            if (!formData.personalStatement) newErrors.personalStatement = "Statement cannot be blank";
-        }
-        if (currentStep === 4) {
-            if (!formData.signature) newErrors.signature = "Please sign your application";
+            if (!formData.name) e.name = "Legal full name is required";
+            if (!formData.email) e.email = "Email address is required";
+            if (!formData.dateOfBirth) e.dateOfBirth = "Date of birth is required";
+            if (!formData.phone) e.phone = "Phone number is required";
+            if (!formData.nationality) e.nationality = "Nationality is required";
+            if (!formData.address) e.address = "Address is required";
+            if (!formData.schoolName) e.schoolName = "Institution name is required";
+            if (!formData.degreeObtained) e.degreeObtained = "Highest degree obtained is required";
+            if (!formData.graduationDate) e.graduationDate = "Graduation date is required";
+            if (!formData.fieldOfStudy) e.fieldOfStudy = "Field of study is required";
+            if (!formData.gpa) {
+                e.gpa = "GPA is required";
+            } else {
+                const gpa = parseFloat(formData.gpa);
+                if (isNaN(gpa) || gpa < 0 || gpa > 4.0) e.gpa = "GPA must be between 0.0 and 4.0";
+            }
+            if (!formData.targetUniversity) e.targetUniversity = "Target university is required";
+            if (!formData.degreeProgram) e.degreeProgram = "Desired degree program is required";
+            if (!formData.startTerm) e.startTerm = "Intended start term is required";
+            if (!formData.targetYear) e.targetYear = "Target year is required";
         }
 
-        const errorMessages = Object.values(newErrors);
-        if (errorMessages.length > 0) {
-            setErrors(newErrors);
-            alert(`Please fix the following:\n\n${errorMessages.join("\n")}`);
+        if (currentStep === 2) {
+            if (formData.satMath) {
+                const v = parseInt(formData.satMath);
+                if (isNaN(v) || v < 200 || v > 800) e.satMath = "SAT Math must be 200–800";
+            }
+            if (formData.satReading) {
+                const v = parseInt(formData.satReading);
+                if (isNaN(v) || v < 200 || v > 800) e.satReading = "SAT Reading must be 200–800";
+            }
+            if (formData.actComposite) {
+                const v = parseInt(formData.actComposite);
+                if (isNaN(v) || v < 1 || v > 36) e.actComposite = "ACT Composite must be 1–36";
+            }
+            if (formData.toeflScore) {
+                const v = parseInt(formData.toeflScore);
+                if (isNaN(v) || v < 0 || v > 120) e.toeflScore = "TOEFL must be 0–120";
+            }
+            if (formData.ieltsScore) {
+                const v = parseFloat(formData.ieltsScore);
+                if (isNaN(v) || v < 0 || v > 9.0) e.ieltsScore = "IELTS must be 0.0–9.0";
+            }
+            if (formData.greVerbal) {
+                const v = parseInt(formData.greVerbal);
+                if (isNaN(v) || v < 130 || v > 170) e.greVerbal = "GRE Verbal must be 130–170";
+            }
+            if (formData.greQuantitative) {
+                const v = parseInt(formData.greQuantitative);
+                if (isNaN(v) || v < 130 || v > 170) e.greQuantitative = "GRE Quantitative must be 130–170";
+            }
+            if (!formData.personalStatement) e.personalStatement = "Statement of Purpose is required";
+        }
+
+        if (currentStep === 3) {
+            const recsNeeded = parseInt(formData.recommendationsRequired || "0");
+            if (recsNeeded > 0) {
+                if (!formData.rec1Name) e.rec1Name = "Recommender 1 name is required";
+                if (!formData.rec1Email) e.rec1Email = "Recommender 1 email is required";
+            }
+        }
+
+        if (currentStep === 4) {
+            if (!formData.whyThisUniversity) e.whyThisUniversity = "Please explain why you chose this university";
+            if (!formData.whyThisProgram) e.whyThisProgram = "Please explain why you chose this program";
+            const hasDisclosure =
+                formData.hasCriminalRecord === "true" ||
+                formData.hasAcademicViolation === "true" ||
+                formData.hasDisciplinaryAction === "true";
+            if (hasDisclosure && !formData.conductExplanation) {
+                e.conductExplanation = "Please provide an explanation for the checked items";
+            }
+            if (formData.agreeToConduct !== "true") e.agreeToConduct = "You must agree to uphold community standards";
+            if (formData.agreeToTerms !== "true") e.agreeToTerms = "You must agree to the terms and conditions";
+            if (formData.agreeToAccuracy !== "true") e.agreeToAccuracy = "You must certify the accuracy of your information";
+            if (!formData.signature) e.signature = "Digital signature is required";
+        }
+
+        const messages = Object.values(e);
+        if (messages.length > 0) {
+            setErrors(e);
+            alert(`Please fix the following:\n\n${messages.join("\n")}`);
             return false;
         }
         setErrors({});
         return true;
     };
 
-    const updateFormData = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const updateFormData = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
         const { name, value } = e.target;
-        if (errors[name]) setErrors(prev => {
-            const n = { ...prev }; delete n[name]; return n;
-        });
+        if (errors[name]) setErrors(prev => { const n = { ...prev }; delete n[name]; return n; });
         setFormData(prev => ({ ...prev, [name]: value }));
     };
 
     const handleNext = async () => {
-        if (validateStep()) {
-            // PATCH API call to save current progress
-            await fetch('/api/student/application', {
-                method: 'PATCH',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    step: currentStep,
-                    data: formData // The JSON object containing field values
-                })
-            });
-
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-            router.push(`?step=${currentStep + 1}`);
-        }
+        if (!validateStep()) return;
+        await fetch('/api/student/application', {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ step: currentStep, data: formData }),
+        });
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        router.push(`?step=${currentStep + 1}`);
     };
 
     const handleBack = () => {
@@ -332,11 +735,14 @@ function ApplicationContent() {
     const handleSubmit = async () => {
         if (!validateStep()) return;
         try {
+            await fetch('/api/student/application', {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ step: currentStep, data: formData }),
+            });
             const response = await fetch('/api/student/application', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(formData),
             });
             if (!response.ok) {
@@ -345,17 +751,17 @@ function ApplicationContent() {
             }
             setStatus("UNDER_REVIEW");
             router.push("?view=submitted");
-            console.log("Application submitted successfully");
-
         } catch (err) {
             console.error("Submission Error:", err);
             alert("There was an error submitting your application. Please try again.");
         }
     };
 
-    if (isLoading) return <div className="min-h-screen flex items-center justify-center font-bold text-slate-400">Loading Application...</div>;
+    if (isLoading) {
+        return <div className="min-h-screen flex items-center justify-center font-bold text-slate-400">Loading Application...</div>;
+    }
 
-    if (isSubmittedView || status === "UNDER_REVIEW" || status === "APPROVED" || status === "REJECTED" || status === "ON_HOLD") {
+    if (isSubmittedView || ["UNDER_REVIEW", "APPROVED", "REJECTED", "ON_HOLD"].includes(status)) {
         return <SubmittedView />;
     }
 
@@ -373,28 +779,23 @@ function ApplicationContent() {
             </main>
 
             <div className="mt-16 flex items-center justify-between border-t border-slate-200 pt-10 pb-20">
-                <button
-                    onClick={handleBack}
-                    disabled={currentStep === 1}
-                    className="flex items-center gap-2 px-8 py-4 rounded-2xl font-bold text-slate-500 hover:bg-slate-100 disabled:opacity-20 transition-all"
-                >
+                <button onClick={handleBack} disabled={currentStep === 1}
+                    className="flex items-center gap-2 px-8 py-4 rounded-2xl font-bold text-slate-500 hover:bg-slate-100 disabled:opacity-20 transition-all">
                     <ChevronLeft className="h-5 w-5" /> Previous
                 </button>
-
-                <div className="flex gap-4">
-                    <button
-                        onClick={currentStep === 4 ? handleSubmit : handleNext}
-                        className="bg-[#0f766e] text-white px-5 py-3 md:px-10 md:py-4 rounded-2xl font-bold shadow-xl shadow-teal-100 hover:scale-[1.02] active:scale-95 transition-all flex items-center gap-2"
-                    >
-                        {currentStep === 4 ? <><Send className="h-5 w-5" /> Final Submit</> : <>Next Step <ChevronRight className="h-5 w-5" /></>}
-                    </button>
-                </div>
+                <button
+                    onClick={currentStep === 4 ? handleSubmit : handleNext}
+                    className="bg-[#0f766e] text-white px-5 py-3 md:px-10 md:py-4 rounded-2xl font-bold shadow-xl shadow-teal-100 hover:scale-[1.02] active:scale-95 transition-all flex items-center gap-2"
+                >
+                    {currentStep === 4
+                        ? <><Send className="h-5 w-5" /> Final Submit</>
+                        : <>Next Step <ChevronRight className="h-5 w-5" /></>}
+                </button>
             </div>
         </div>
     );
 }
 
-// Next.js requires Suspense for useSearchParams
 export default function ApplicationPage() {
     return (
         <Suspense fallback={<div>Loading...</div>}>

@@ -27,7 +27,10 @@
       "Bash(npx tsc:*)",
       "Bash(find 'E:/Code V2/doel-education/src/app/\\(dashboard\\)/admin' -type f)",
       "Bash(find:*)",
-      "Bash(grep -E \"\\\\.ts$\")"
+      "Bash(grep -E \"\\\\.ts$\")",
+      "Bash(npx next:*)",
+      "Bash(npx eslint:*)",
+      "Bash(xargs grep:*)"
     ]
   }
 }
