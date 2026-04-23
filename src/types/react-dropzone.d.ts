@@ -17,6 +17,7 @@ declare module "react-dropzone" {
     onDrop?: (acceptedFiles: File[], fileRejections: FileRejection[]) => void;
     multiple?: boolean;
     noClick?: boolean;
+    maxFiles?: number;
     maxSize?: number;
     accept?: Accept;
   };

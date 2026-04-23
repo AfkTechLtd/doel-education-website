@@ -1,4 +1,4 @@
-import type { ResourceTemplateType } from "@/data/student-resource-categories";
+import type { ResourceTemplateType } from "@/lib/resources/types";
 
 type StudentTemplatePreviewProps = {
   type: ResourceTemplateType;

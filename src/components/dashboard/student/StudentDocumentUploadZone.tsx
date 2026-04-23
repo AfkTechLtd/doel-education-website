@@ -10,7 +10,10 @@ import {
 import { useToast } from "@/components/common/feedback/ToastProvider";
 import { STORAGE_BUCKETS } from "@/lib/constants";
 import { buildStudentDocumentStoragePath, inferDocumentType } from "@/lib/documents/paths";
-import type { SelectedDocumentReference } from "@/lib/documents/types";
+import type {
+  DocumentUploadConfig,
+  SelectedDocumentReference,
+} from "@/lib/documents/types";
 import { createClient as createSupabaseBrowserClient } from "@/lib/supabase/client";
 import { cn } from "@/lib/utils";
 
@@ -19,9 +22,17 @@ type StudentDocumentUploadZoneProps = {
   onUploadComplete?: (documents: SelectedDocumentReference[]) => void;
   showCancel?: boolean;
   submitLabel?: string;
+  uploadConfig?: DocumentUploadConfig;
 };
 
-const MAX_FILE_SIZE_BYTES = 10 * 1024 * 1024;
+const DEFAULT_MAX_FILE_SIZE_BYTES = 10 * 1024 * 1024;
+const DEFAULT_ACCEPT = {
+  "application/pdf": [".pdf"],
+  "image/jpeg": [".jpg", ".jpeg"],
+  "image/png": [".png"],
+  "application/msword": [".doc"],
+  "application/vnd.openxmlformats-officedocument.wordprocessingml.document": [".docx"],
+};
 
 function formatFileSize(bytes: number) {
   if (bytes >= 1024 * 1024) {
@@ -36,7 +47,7 @@ function getFileExtension(fileName: string) {
   return parts.length > 1 ? parts.at(-1)?.toUpperCase() ?? "FILE" : "FILE";
 }
 
-function getRejectionMessage(rejection: FileRejection) {
+function getRejectionMessage(rejection: FileRejection, maxFileSizeBytes: number) {
   const firstError = rejection.errors[0];
 
   if (!firstError) {
@@ -44,7 +55,7 @@ function getRejectionMessage(rejection: FileRejection) {
   }
 
   if (firstError.code === "file-too-large") {
-    return `${rejection.file.name} is larger than 10 MB.`;
+    return `${rejection.file.name} is larger than ${formatFileSize(maxFileSizeBytes)}.`;
   }
 
   if (firstError.code === "file-invalid-type") {
@@ -59,11 +70,17 @@ export default function StudentDocumentUploadZone({
   onUploadComplete,
   showCancel = true,
   submitLabel = "Upload Files",
+  uploadConfig,
 }: StudentDocumentUploadZoneProps) {
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [rejectedFiles, setRejectedFiles] = useState<FileRejection[]>([]);
   const [isUploading, setIsUploading] = useState(false);
   const { showToast } = useToast();
+
+  const maxFileSizeBytes = uploadConfig?.maxFileSizeBytes ?? DEFAULT_MAX_FILE_SIZE_BYTES;
+  const multiple = uploadConfig?.multiple ?? true;
+  const maxFiles = uploadConfig?.maxFiles ?? 0;
+  const accept = uploadConfig?.accept ?? DEFAULT_ACCEPT;
 
   const onDrop = useCallback(
     (acceptedFiles: File[], fileRejections: FileRejection[]) => {
@@ -78,13 +95,21 @@ export default function StudentDocumentUploadZone({
         });
 
         const nextFiles = [...currentFiles, ...uniqueNewFiles];
+        if (!multiple) {
+          return nextFiles.slice(-1);
+        }
+
+        if (maxFiles > 0) {
+          return nextFiles.slice(0, maxFiles);
+        }
+
         return nextFiles;
       });
 
       setRejectedFiles(fileRejections);
 
       if (fileRejections.length) {
-        const firstMessage = getRejectionMessage(fileRejections[0]);
+        const firstMessage = getRejectionMessage(fileRejections[0], maxFileSizeBytes);
         showToast({
           variant: "error",
           title: "Some files were not added",
@@ -92,7 +117,7 @@ export default function StudentDocumentUploadZone({
         });
       }
     },
-    [showToast],
+    [maxFileSizeBytes, multiple, maxFiles, showToast],
   );
 
   const {
@@ -103,21 +128,16 @@ export default function StudentDocumentUploadZone({
     open,
   } = useDropzone({
     onDrop,
-    multiple: true,
+    multiple,
     noClick: true,
-    maxSize: MAX_FILE_SIZE_BYTES,
-    accept: {
-      "application/pdf": [".pdf"],
-      "image/jpeg": [".jpg", ".jpeg"],
-      "image/png": [".png"],
-      "application/msword": [".doc"],
-      "application/vnd.openxmlformats-officedocument.wordprocessingml.document": [".docx"],
-    },
+    maxFiles: maxFiles > 0 ? maxFiles : undefined,
+    maxSize: maxFileSizeBytes,
+    accept,
   });
 
   const rejectionMessages = useMemo(
-    () => rejectedFiles.map((rejection) => getRejectionMessage(rejection)),
-    [rejectedFiles],
+    () => rejectedFiles.map((rejection) => getRejectionMessage(rejection, maxFileSizeBytes)),
+    [maxFileSizeBytes, rejectedFiles],
   );
 
   function handleRemoveFile(fileToRemove: File) {
@@ -297,7 +317,7 @@ export default function StudentDocumentUploadZone({
             </p>
           </div>
 
-          <div className="space-y-3">
+          <div className="max-h-60 space-y-3 overflow-y-auto pr-1">
             {selectedFiles.map((file) => (
               <div
                 key={`${file.name}-${file.size}-${file.lastModified}`}
@@ -333,7 +353,7 @@ export default function StudentDocumentUploadZone({
             <p className="font-inter text-sm font-semibold">Some files were not added</p>
           </div>
 
-          <div className="space-y-2">
+          <div className="max-h-36 space-y-2 overflow-y-auto pr-1">
             {rejectionMessages.map((message) => (
               <p key={message} className="font-inter text-sm leading-relaxed text-red-700">
                 {message}

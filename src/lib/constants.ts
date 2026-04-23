@@ -129,6 +129,7 @@ export const STORAGE_BUCKETS = {
   DOCUMENTS: process.env.SUPABASE_BUCKET_DOCUMENTS ?? "documents",
   SOP: process.env.SUPABASE_BUCKET_SOP ?? "sop",
   LOR: process.env.SUPABASE_BUCKET_LOR ?? "lor",
+  RESOURCE_TEMPLATE: process.env.SUPABASE_BUCKET_RESOURCE_TEMPLATE ?? "resource_template",
   GENERAL: process.env.SUPABASE_BUCKET_GENERAL ?? "general",
 } as const;
 

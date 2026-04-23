@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { Search } from "lucide-react";
-import type { LocalResourceTemplate } from "@/data/student-resource-templates";
+import type { LocalResourceTemplate } from "@/lib/resources/types";
 import StudentResourceTemplateCard from "./StudentResourceTemplateCard";
 
 type StudentCategoryTemplateGalleryProps = {

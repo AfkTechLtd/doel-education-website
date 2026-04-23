@@ -84,9 +84,17 @@ enum KanbanStage {
 }
 
 
+enum ResourceType {
+  SOP
+  LOR
+  AFFIDAVIT
+}
+
+
 enum DocumentLinkContext {
   REQUIRED_DOCUMENT
   APPLICATION_FIELD
+  RESOURCE_TEMPLATE
 }
 
 // ============================================================
@@ -279,8 +287,27 @@ model CounselorNote {
   @@map("counselor_notes")
 }
 
+model Resource {
+  id          String       @id @default(cuid())
+  slug        String       @unique
+  name        String
+  description String?
+  type        ResourceType
+  isActive    Boolean      @default(true) @map("is_active")
+  createdAt   DateTime     @default(now()) @map("created_at")
+  updatedAt   DateTime     @updatedAt @map("updated_at")
+
+  // Relations
+  templates ResourceTemplate[]
+
+  @@index([isActive])
+  @@map("resources")
+}
+
 model ResourceTemplate {
   id          String   @id @default(cuid())
+  slug        String?  @unique
+  resourceId  String?  @map("resource_id")
   title       String
   description String?
   type        String   // "SOP" | "LOR" | "AFFIDAVIT" | "OTHER"
@@ -290,6 +317,12 @@ model ResourceTemplate {
   createdBy   String?  @map("created_by")
   createdAt   DateTime @default(now()) @map("created_at")
   updatedAt   DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  resource Resource? @relation(fields: [resourceId], references: [id], onDelete: SetNull)
+
+  @@index([resourceId, isPublic])
+  @@index([resourceId])
 
   @@map("resource_templates")
 }

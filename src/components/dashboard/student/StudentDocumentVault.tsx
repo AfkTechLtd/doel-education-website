@@ -9,13 +9,13 @@ import {
   removeDocumentLink,
   setRequiredDocumentLink,
 } from "@/actions/documents";
-import DocumentPickerModal from "@/components/common/documents/DocumentPickerModal";
 import { useToast } from "@/components/common/feedback/ToastProvider";
 import StudentDocumentDeleteModal from "@/components/dashboard/student/StudentDocumentDeleteModal";
 import { cn } from "@/lib/utils";
 import type { StudentDocumentRequirement } from "@/data/student-document-requirements";
 import type {
   DocumentLinkUsage,
+  DocumentLinkContext,
   RequiredDocumentLinkItem,
   SelectedDocumentReference,
   StudentDocumentStatus,
@@ -32,6 +32,18 @@ type StudentDocumentVaultProps = {
 };
 
 type VaultView = "ALL_FILES" | "REQUIRED_DOCUMENTS";
+
+function buildDebugHint(
+  contextType: DocumentLinkContext,
+  contextKey: string,
+  documentId?: string,
+) {
+  if (process.env.NODE_ENV !== "development") {
+    return undefined;
+  }
+
+  return `[${contextType}/${contextKey}${documentId ? ` | doc: ${documentId}` : ""}]`;
+}
 
 function matchesFilter(status: StudentDocumentStatus, filter: StudentDocumentFilter) {
   return filter === "ALL" || status === filter;
@@ -69,7 +81,6 @@ export default function StudentDocumentVault({
   const [deleteCandidate, setDeleteCandidate] = useState<{ id: string; name: string } | null>(null);
   const [deleteUsage, setDeleteUsage] = useState<DocumentLinkUsage | null>(null);
   const [isLoadingDeleteUsage, setIsLoadingDeleteUsage] = useState(false);
-  const [pickerRequirement, setPickerRequirement] = useState<StudentDocumentRequirement | null>(null);
   const [isLinking, startLinking] = useTransition();
   const { showToast } = useToast();
 
@@ -244,14 +255,37 @@ export default function StudentDocumentVault({
           </section>
         )
       ) : filteredRequirements.length ? (
-        <section className="grid grid-cols-1 gap-4 xl:grid-cols-2">
-          {filteredRequirements.map(({ requirement, effectiveStatus }) => (
-            <StudentRequiredDocumentCard
+          <section className="grid grid-cols-1 gap-4 xl:grid-cols-2">
+            {filteredRequirements.map(({ requirement, effectiveStatus }) => (
+              <StudentRequiredDocumentCard
               key={requirement.id}
               requirement={requirement}
               linkedDocument={requiredLinkMap[requirement.id] ?? null}
               effectiveStatus={effectiveStatus}
-              onChooseDocument={setPickerRequirement}
+              onSelectDocument={async (selectedRequirement, document) => {
+                const result = await setRequiredDocumentLink(selectedRequirement.id, document.id);
+
+                if (!result.success) {
+                  showToast({
+                    variant: "error",
+                    title: `Could not link document to ${selectedRequirement.label}`,
+                    description: [
+                      result.error ?? "Could not save the required document link.",
+                      buildDebugHint("REQUIRED_DOCUMENT", selectedRequirement.id, document.id),
+                    ]
+                      .filter(Boolean)
+                      .join(" "),
+                  });
+                  return;
+                }
+
+                showToast({
+                  variant: "success",
+                  title: "Document linked",
+                  description: `${document.name} linked to ${selectedRequirement.label}.`,
+                });
+                router.refresh();
+              }}
               onUnlinkDocument={(selectedRequirement) => {
                 startLinking(async () => {
                   const result = await removeDocumentLink(
@@ -287,42 +321,6 @@ export default function StudentDocumentVault({
           </p>
         </section>
       )}
-
-      <DocumentPickerModal
-        open={Boolean(pickerRequirement)}
-        onClose={() => setPickerRequirement(null)}
-        title={pickerRequirement
-          ? `Choose Document for ${pickerRequirement.label}`
-          : "Choose Document"}
-        onSelect={(document) => {
-          if (!pickerRequirement) {
-            return;
-          }
-          const selectedRequirement = pickerRequirement;
-
-          startLinking(async () => {
-            const result = await setRequiredDocumentLink(selectedRequirement.id, document.id);
-
-            if (!result.success) {
-              showToast({
-                variant: "error",
-                title: "Link failed",
-                description: result.error ?? "Failed to link required document.",
-              });
-              return;
-            }
-
-            showToast({
-              variant: "success",
-              title: "Document linked",
-              description: `${document.name} linked to ${selectedRequirement.label}.`,
-            });
-            setPickerRequirement(null);
-            router.refresh();
-          });
-        }}
-      />
-
       <StudentDocumentDeleteModal
         open={Boolean(deleteCandidate)}
         documentName={deleteCandidate?.name ?? ""}

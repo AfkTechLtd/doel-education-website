@@ -1,5 +1,5 @@
 import Link from "next/link";
-import type { StudentResourceCategory } from "@/data/student-resource-categories";
+import type { StudentResourceCategory } from "@/lib/resources/types";
 import StudentTemplatePreview from "./StudentTemplatePreview";
 
 type StudentResourceCategoryCardProps = {
@@ -11,7 +11,7 @@ export default function StudentResourceCategoryCard({
 }: StudentResourceCategoryCardProps) {
   return (
     <Link
-      href={`/student/resources/${category.id}`}
+      href={`/student/resources/${category.slug}`}
       className="
   group block overflow-hidden rounded-[1.45rem]
   border border-slate-200 bg-white

@@ -1,5 +1,9 @@
 import type { StudentDocumentRequirement } from "@/data/student-document-requirements";
 
+/**
+ * Normalizes filenames and aliases into a comparable token form used by the
+ * auto-link matcher. Extensions are stripped and separators are flattened.
+ */
 function normalizeName(value: string) {
   return value
     .toLowerCase()
@@ -10,6 +14,11 @@ function normalizeName(value: string) {
     .replace(/^_+|_+$/g, "");
 }
 
+/**
+ * Scores how strongly a normalized filename matches a single requirement alias.
+ * Higher scores are more confident. Equal top scores are treated as ambiguous
+ * and therefore do not auto-link.
+ */
 function scoreRequirementMatch(fileBaseName: string, alias: string) {
   const normalizedAlias = normalizeName(alias);
 
@@ -32,6 +41,11 @@ function scoreRequirementMatch(fileBaseName: string, alias: string) {
   return 0;
 }
 
+/**
+ * Finds the best required-document target for an uploaded filename.
+ *
+ * Returns `null` when there is no match or when the top score is ambiguous.
+ */
 export function findBestRequiredDocumentMatch(
   fileName: string,
   requirements: StudentDocumentRequirement[],
