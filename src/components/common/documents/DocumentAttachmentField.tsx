@@ -1,7 +1,6 @@
 "use client";
 
 import { FileText, X } from "lucide-react";
-import DashboardStatusBadge from "@/components/dashboard/shared/DashboardStatusBadge";
 import type {
   SelectedDocumentReference,
   StudentDocumentStatus,
@@ -23,20 +22,14 @@ type DocumentAttachmentFieldProps = {
  * Unlink removes only the field/context link. It does not delete the document
  * from the vault.
  */
-export default function DocumentAttachmentField({
-  linkedDocument,
-  status,
-  helperText,
-  onChoose,
-  onUnlink,
-  disabled = false,
-}: DocumentAttachmentFieldProps) {
+export default function DocumentAttachmentField(props: DocumentAttachmentFieldProps) {
+  const { linkedDocument, helperText, onChoose, onUnlink, disabled = false } = props;
   const isLinked = Boolean(linkedDocument);
 
   return (
     <div className="mt-4 space-y-3">
       {isLinked && linkedDocument ? (
-        <div className="flex items-center justify-between gap-3 rounded-2xl border border-slate-200 bg-slate-50 px-3.5 py-3">
+        <div className="flex flex-col gap-3 rounded-2xl border border-slate-200 bg-slate-50 px-3.5 py-3 sm:flex-row sm:items-center sm:justify-between">
           <div className="min-w-0 flex items-center gap-2">
             <FileText
               className="h-4 w-4 shrink-0 text-slate-500"
@@ -51,7 +44,7 @@ export default function DocumentAttachmentField({
             type="button"
             onClick={onUnlink}
             disabled={disabled}
-            className="inline-flex h-8 w-8 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-500 transition hover:border-red-200 hover:text-red-600 disabled:cursor-not-allowed disabled:opacity-60"
+            className="inline-flex h-10 w-10 shrink-0 items-center justify-center self-end rounded-xl border border-slate-200 bg-white text-slate-500 transition hover:border-red-200 hover:text-red-600 disabled:cursor-not-allowed disabled:opacity-60 sm:self-auto"
             aria-label={`Unlink ${linkedDocument.name}`}
           >
             <X className="h-4 w-4" aria-hidden="true" />
@@ -72,7 +65,7 @@ export default function DocumentAttachmentField({
           type="button"
           onClick={onChoose}
           disabled={disabled}
-          className="inline-flex items-center justify-center rounded-2xl border border-slate-200 bg-white px-4 py-2.5 font-inter text-sm font-semibold text-slate-700 transition hover:border-slate-300 hover:text-slate-900 disabled:cursor-not-allowed disabled:opacity-60"
+          className="inline-flex min-h-11 w-full items-center justify-center rounded-2xl border border-slate-200 bg-white px-4 py-2.5 font-inter text-sm font-semibold text-slate-700 transition hover:border-slate-300 hover:text-slate-900 disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto"
         >
           {isLinked ? "Change Document" : "Choose Document"}
         </button>

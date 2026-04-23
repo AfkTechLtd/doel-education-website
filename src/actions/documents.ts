@@ -12,6 +12,7 @@ import type {
   DocumentLinkUsage,
   DocumentLinkContext,
   RequiredDocumentLinkItem,
+  ResourceTemplateDocumentLinkItem,
   SelectedDocumentReference,
   StudentDocumentStatus,
   VaultDocumentListItem,
@@ -640,6 +641,125 @@ export async function setApplicationFieldDocumentLink(
     return {
       success: false,
       error: "Could not save the application field document link.",
+    };
+  }
+}
+
+/**
+ * Lists persisted resource-template document links for the current student.
+ */
+export async function listResourceTemplateDocumentLinks(): Promise<
+  ActionResult<ResourceTemplateDocumentLinkItem[]>
+> {
+  try {
+    const { studentProfile } = await getCurrentStudentContext();
+
+    const links = await prisma.documentLink.findMany({
+      where: {
+        studentId: studentProfile.id,
+        contextType: "RESOURCE_TEMPLATE",
+      },
+      include: {
+        document: true,
+      },
+    });
+
+    return {
+      success: true,
+      data: links.map((link) => ({
+        contextKey: link.contextKey,
+        document: mapDocumentToReference(link.document),
+      })),
+    };
+  } catch (error) {
+    console.error("[documents:listResourceTemplateDocumentLinks]", error);
+    return {
+      success: false,
+      error: "Failed to load resource template document links.",
+    };
+  }
+}
+
+/**
+ * Links a vault document to a resource template so students can keep their
+ * working draft associated with the sample they used.
+ */
+export async function setResourceTemplateDocumentLink(
+  contextKey: string,
+  documentId: string,
+): Promise<ActionResult<{ contextKey: string; documentId: string }>> {
+  try {
+    const { studentProfile } = await getCurrentStudentContext();
+
+    if (!contextKey.trim()) {
+      return {
+        success: false,
+        error: "Resource template context is missing.",
+      };
+    }
+
+    if (!documentId.trim()) {
+      return {
+        success: false,
+        error: "Selected document is missing.",
+      };
+    }
+
+    const document = await prisma.document.findFirst({
+      where: {
+        id: documentId,
+        studentId: studentProfile.id,
+      },
+      select: { id: true },
+    });
+
+    if (!document) {
+      console.error("[documents:setResourceTemplateDocumentLink:not-found]", {
+        contextKey,
+        documentId,
+        studentProfileId: studentProfile.id,
+      });
+      return {
+        success: false,
+        error: "Selected document was not found in your vault.",
+      };
+    }
+
+    await prisma.documentLink.upsert({
+      where: {
+        studentId_contextType_contextKey: {
+          studentId: studentProfile.id,
+          contextType: "RESOURCE_TEMPLATE",
+          contextKey,
+        },
+      },
+      update: {
+        documentId: document.id,
+      },
+      create: {
+        studentId: studentProfile.id,
+        documentId: document.id,
+        contextType: "RESOURCE_TEMPLATE",
+        contextKey,
+      },
+    });
+
+    return {
+      success: true,
+      data: {
+        contextKey,
+        documentId: document.id,
+      },
+    };
+  } catch (error) {
+    console.error("[documents:setResourceTemplateDocumentLink]", {
+      error,
+      contextKey,
+      documentId,
+    });
+    return {
+      success: false,
+      error: "Could not save the resource template document link.",
     };
   }
 }

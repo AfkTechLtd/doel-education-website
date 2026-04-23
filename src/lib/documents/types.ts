@@ -7,7 +7,7 @@ export type StudentDocumentStatus =
   | "REJECTED"
   | "WAIVED";
 
-export type DocumentLinkContext = "REQUIRED_DOCUMENT" | "APPLICATION_FIELD";
+export type DocumentLinkContext = "REQUIRED_DOCUMENT" | "APPLICATION_FIELD" | "RESOURCE_TEMPLATE";
 
 /** Single usage record describing where a document is linked. */
 export type DocumentLinkUsageItem = {
@@ -71,6 +71,12 @@ export type RequiredDocumentLinkItem = {
 
 /** Persisted application-field link returned from the server. */
 export type ApplicationFieldDocumentLinkItem = {
+  contextKey: string;
+  document: SelectedDocumentReference;
+};
+
+/** Persisted resource-template link returned from the server. */
+export type ResourceTemplateDocumentLinkItem = {
   contextKey: string;
   document: SelectedDocumentReference;
 };

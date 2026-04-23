@@ -61,12 +61,12 @@ export default function DocumentInputField({
   const isLinked = Boolean(linkedDocument);
   return (
     <div className="space-y-4">
-      <div className="flex  justify-between">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <h3 className="font-poppins text-lg font-semibold text-slate-900">
           {label}
         </h3>
 
-        <div className="flex flex-wrap items-center justify-between gap-2">
+        <div className="flex flex-wrap items-center gap-2 sm:justify-end">
           <span
             className={
               isLinked

@@ -1,13 +1,11 @@
 import Link from "next/link";
 import { ChevronLeft } from "lucide-react";
 import { notFound } from "next/navigation";
+import { getStudentResourceTemplateDetail } from "@/actions/resources";
 import StudentResourceDocumentPreview from "@/components/dashboard/student/StudentResourceDocumentPreview";
-import StudentResourceDownloadButton from "@/components/dashboard/student/StudentResourceDownloadButton";
 import DashboardPageHeader from "@/components/dashboard/shared/DashboardPageHeader";
 import { requireRole } from "@/lib/auth";
 import { ROLES } from "@/lib/constants";
-import { getResourceCategoryById } from "@/data/student-resource-categories";
-import { getResourceById } from "@/data/student-resource-templates";
 
 export default async function StudentResourcePreviewPage({
   params,
@@ -17,39 +15,49 @@ export default async function StudentResourcePreviewPage({
   await requireRole([ROLES.STUDENT]);
 
   const { category, resourceId } = await params;
-  const resourceCategory = getResourceCategoryById(category);
-  const resource = getResourceById(resourceId);
+  const templateResult = await getStudentResourceTemplateDetail(
+    category,
+    resourceId,
+  );
 
-  if (!resourceCategory || !resource || resource.categoryId !== resourceCategory.id) {
+  if (
+    !templateResult.success &&
+    templateResult.error === "Resource template not found."
+  ) {
     notFound();
   }
 
+  if (!templateResult.success || !templateResult.data) {
+    throw new Error(
+      templateResult.error ?? "Failed to load resource template.",
+    );
+  }
+
+  const { resource: resourceCategory, template: resource } =
+    templateResult.data;
+  const hasAttachedFile = Boolean(resource.fileUrl);
+  const detailDescription =
+    resource.description ??
+    (hasAttachedFile
+      ? "Review the live template preview and download the attached sample file."
+      : "Review this resource template and use the guidance below while preparing your document.");
+
   return (
-    <div className="space-y-8">
-      <div className="flex flex-wrap items-center justify-between gap-4">
+    <div className="space-y-6 sm:space-y-8">
+      <div className="flex">
         <Link
-          href={`/student/resources/${resourceCategory.id}`}
-          className="inline-flex items-center gap-2 rounded-2xl border border-slate-200 bg-white px-4 py-2.5 font-inter text-sm font-semibold text-slate-600 transition hover:border-slate-300 hover:text-slate-900"
+          href={`/student/resources/${resourceCategory.slug}`}
+          className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-2xl border border-slate-200 bg-white px-4 py-2.5 font-inter text-sm font-semibold text-slate-600 transition hover:border-slate-300 hover:text-slate-900 sm:w-auto"
         >
           <ChevronLeft className="h-4 w-4" aria-hidden="true" />
           Back to {resourceCategory.title} templates
         </Link>
-
-        <div className="flex items-center gap-3">
-          <p className="font-inter text-sm text-slate-400">Available soon</p>
-          <StudentResourceDownloadButton />
-        </div>
       </div>
 
       <DashboardPageHeader
-        eyebrow="Template Preview"
+        // eyebrow="Template Preview"
         title={resource.title}
-        description={resource.description ?? "Preview this template before downloads are enabled."}
-        action={
-          <span className="inline-flex rounded-full border border-primary/15 bg-primary/5 px-3 py-1.5 font-inter text-xs font-semibold uppercase tracking-[0.16em] text-primary">
-            {resource.type === "AFFIDAVIT" ? "Affidavit" : resource.type}
-          </span>
-        }
+        description={detailDescription}
       />
 
       <StudentResourceDocumentPreview resource={resource} />
