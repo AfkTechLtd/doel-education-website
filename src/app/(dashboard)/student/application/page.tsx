@@ -6,7 +6,7 @@ import Link from "next/link";
 import {
     CheckCircle2, ChevronRight, ChevronLeft, FileText, User, GraduationCap,
     ClipboardCheck, Send, Download, AlertCircle, Plus, BookOpen, Users,
-    Award, PenTool, History, Mail, HelpCircle, FileCheck
+    Award, PenTool, History, Mail, HelpCircle, FileCheck, Loader2
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import StepIndicator from "@/components/dashboard/pages/application/StepIndicator";
@@ -193,6 +193,7 @@ function ApplicationContent() {
     const [formData, setFormData] = useState<Record<string, any>>({});
     const [errors, setErrors] = useState<Record<string, string>>({});
     const [isLoading, setIsLoading] = useState(true);
+    const [isSaving, setIsSaving] = useState(false);
     const [student, setStudent] = useState<any>(null);
     useEffect(() => {
         const initApplication = async () => {
@@ -309,18 +310,65 @@ function ApplicationContent() {
 
     const handleNext = async () => {
         if (validateStep()) {
-            // PATCH API call to save current progress
+            setIsSaving(true); // Start loading
+            try {
+                // PATCH API call to save current progress
+                await fetch('/api/student/application', {
+                    method: 'PATCH',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        step: currentStep,
+                        data: formData
+                    })
+                });
+
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+                router.push(`?step=${currentStep + 1}`);
+            } catch (err) {
+                console.error("Failed to save step:", err);
+                alert("Failed to save your progress. Please try again.");
+            } finally {
+                setIsSaving(false); // Stop loading regardless of success or failure
+            }
+        }
+    };
+
+    const handleSubmit = async () => {
+        if (!validateStep()) return;
+
+        setIsSaving(true); // Start loading
+        try {
             await fetch('/api/student/application', {
                 method: 'PATCH',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     step: currentStep,
-                    data: formData // The JSON object containing field values
+                    data: formData
                 })
             });
 
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-            router.push(`?step=${currentStep + 1}`);
+            const response = await fetch('/api/student/application', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(formData),
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.error || 'Submission failed');
+            }
+
+            setStatus("UNDER_REVIEW");
+            router.push("?view=submitted");
+            console.log("Application submitted successfully");
+
+        } catch (err) {
+            console.error("Submission Error:", err);
+            alert("There was an error submitting your application. Please try again.");
+        } finally {
+            setIsSaving(false); // Stop loading
         }
     };
 
@@ -329,29 +377,7 @@ function ApplicationContent() {
         router.push(`?step=${currentStep - 1}`);
     };
 
-    const handleSubmit = async () => {
-        if (!validateStep()) return;
-        try {
-            const response = await fetch('/api/student/application', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(formData),
-            });
-            if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.error || 'Submission failed');
-            }
-            setStatus("UNDER_REVIEW");
-            router.push("?view=submitted");
-            console.log("Application submitted successfully");
 
-        } catch (err) {
-            console.error("Submission Error:", err);
-            alert("There was an error submitting your application. Please try again.");
-        }
-    };
 
     if (isLoading) return <div className="min-h-screen flex items-center justify-center font-bold text-slate-400">Loading Application...</div>;
 
@@ -384,9 +410,23 @@ function ApplicationContent() {
                 <div className="flex gap-4">
                     <button
                         onClick={currentStep === 4 ? handleSubmit : handleNext}
-                        className="bg-[#0f766e] text-white px-5 py-3 md:px-10 md:py-4 rounded-2xl font-bold shadow-xl shadow-teal-100 hover:scale-[1.02] active:scale-95 transition-all flex items-center gap-2"
+                        disabled={isSaving} // Disable the button while saving
+                        className="bg-[#0f766e] text-white px-5 py-3 md:px-10 md:py-4 rounded-2xl font-bold shadow-xl shadow-teal-100 hover:scale-[1.02] active:scale-95 transition-all flex items-center gap-2 disabled:opacity-70 disabled:hover:scale-100 disabled:cursor-not-allowed"
                     >
-                        {currentStep === 4 ? <><Send className="h-5 w-5" /> Final Submit</> : <>Next Step <ChevronRight className="h-5 w-5" /></>}
+                        {isSaving ? (
+                            <>
+                                <Loader2 className="h-5 w-5 animate-spin" />
+                                {currentStep === 4 ? "Submitting..." : "Saving..."}
+                            </>
+                        ) : currentStep === 4 ? (
+                            <>
+                                <Send className="h-5 w-5" /> Final Submit
+                            </>
+                        ) : (
+                            <>
+                                Next Step <ChevronRight className="h-5 w-5" />
+                            </>
+                        )}
                     </button>
                 </div>
             </div>
