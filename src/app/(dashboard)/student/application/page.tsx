@@ -559,6 +559,7 @@ function ApplicationContent() {
     const [formData, setFormData] = useState<FormData>({});
     const [errors, setErrors] = useState<Record<string, string>>({});
     const [isLoading, setIsLoading] = useState(true);
+    const [isSaving, setIsSaving] = useState(false);
     const hasInitialized = useRef(false);
 
     useEffect(() => {
@@ -734,6 +735,7 @@ function ApplicationContent() {
 
     const handleSubmit = async () => {
         if (!validateStep()) return;
+        setIsSaving(true);
         try {
             await fetch('/api/student/application', {
                 method: 'PATCH',
