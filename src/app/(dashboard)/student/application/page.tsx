@@ -745,15 +745,19 @@ function ApplicationContent() {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(formData),
             });
+
             if (!response.ok) {
                 const errorData = await response.json();
                 throw new Error(errorData.error || 'Submission failed');
             }
+
             setStatus("UNDER_REVIEW");
             router.push("?view=submitted");
         } catch (err) {
             console.error("Submission Error:", err);
             alert("There was an error submitting your application. Please try again.");
+        } finally {
+            setIsSaving(false); // Stop loading
         }
     };
 
