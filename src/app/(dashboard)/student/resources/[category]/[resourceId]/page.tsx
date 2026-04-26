@@ -1,7 +1,10 @@
 import Link from "next/link";
 import { ChevronLeft } from "lucide-react";
 import { notFound } from "next/navigation";
-import { getStudentResourceTemplateDetail } from "@/actions/resources";
+import {
+  getStudentResourceTemplateDetail,
+  getResourceTemplateSignedUrl,
+} from "@/actions/resources";
 import StudentResourceDocumentPreview from "@/components/dashboard/student/StudentResourceDocumentPreview";
 import DashboardPageHeader from "@/components/dashboard/shared/DashboardPageHeader";
 import { requireRole } from "@/lib/auth";
@@ -35,7 +38,16 @@ export default async function StudentResourcePreviewPage({
 
   const { resource: resourceCategory, template: resource } =
     templateResult.data;
-  const hasAttachedFile = Boolean(resource.fileUrl);
+
+  // Fetch signed URL for the template file if one exists
+  const signedUrlResult = await getResourceTemplateSignedUrl(
+    category,
+    resourceId,
+    3600,
+  );
+  const signedUrl = signedUrlResult.success ? signedUrlResult.data?.signedUrl ?? null : null;
+
+  const hasAttachedFile = Boolean(signedUrl);
   const detailDescription =
     resource.description ??
     (hasAttachedFile
@@ -55,12 +67,16 @@ export default async function StudentResourcePreviewPage({
       </div>
 
       <DashboardPageHeader
-        // eyebrow="Template Preview"
         title={resource.title}
         description={detailDescription}
       />
 
-      <StudentResourceDocumentPreview resource={resource} />
+      <StudentResourceDocumentPreview
+        resource={resource}
+        categorySlug={resourceCategory.slug}
+        templateSlug={resource.slug}
+        signedUrl={signedUrl}
+      />
     </div>
   );
 }

@@ -1,6 +1,7 @@
 "use server";
 
 import type { Resource, ResourceTemplate } from "@prisma/client";
+import { createClient as createSupabaseServerClient } from "@/lib/supabase/server";
 import { requireRole } from "@/lib/auth";
 import { ROLES } from "@/lib/constants";
 import { getCurrentStudentContext } from "@/lib/documents/ownership";
@@ -24,7 +25,7 @@ type ResourceSummary = Pick<Resource, "id" | "slug" | "name" | "description" | "
 
 type ResourceTemplateSummary = Pick<
   ResourceTemplate,
-  "id" | "slug" | "title" | "description" | "type" | "content" | "fileUrl" | "isPublic" | "createdAt" | "updatedAt"
+  "id" | "slug" | "title" | "description" | "type" | "content" | "isPublic" | "createdAt" | "updatedAt"
 >;
 
 function mapResource(resource: ResourceSummary): StudentResourceCategoryRecord {
@@ -50,7 +51,7 @@ function mapTemplate(
     description: template.description,
     type: normalizeStudentResourceTemplateType(template.type, resource.type),
     content: template.content,
-    fileUrl: template.fileUrl,
+    fileUrl: null, // Never expose raw fileUrl; use getResourceTemplateSignedUrl
     isPublic: template.isPublic,
     createdAt: template.createdAt.toISOString(),
     updatedAt: template.updatedAt.toISOString(),
@@ -77,6 +78,33 @@ function mapLinkedDocument(document: {
     sizeBytes: document.sizeBytes,
     status: document.status as SelectedDocumentReference["status"],
   };
+}
+
+/**
+ * Attempts to extract a Supabase storage bucket and path from a fileUrl.
+ * Supports public and signed object URLs.
+ */
+function extractSupabaseStoragePath(fileUrl: string): { bucket: string; path: string } | null {
+  try {
+    const url = new URL(fileUrl);
+    const pathname = url.pathname;
+
+    // Pattern: /storage/v1/object/public/{bucket}/{path}
+    const publicMatch = pathname.match(/\/storage\/v1\/object\/public\/([^/]+)\/(.+)/);
+    if (publicMatch) {
+      return { bucket: publicMatch[1], path: publicMatch[2] };
+    }
+
+    // Pattern: /storage/v1/object/sign/{bucket}/{path}
+    const signMatch = pathname.match(/\/storage\/v1\/object\/sign\/([^/]+)\/(.+)/);
+    if (signMatch) {
+      return { bucket: signMatch[1], path: signMatch[2] };
+    }
+
+    return null;
+  } catch {
+    return null;
+  }
 }
 
 export async function listStudentResources(): Promise<ActionResult<StudentResourceCategoryRecord[]>> {
@@ -125,7 +153,10 @@ export async function listStudentResourceTemplatesByCategory(
   try {
     const resource = await prisma.resource.findFirst({
       where: {
-        slug: normalizedCategorySlug,
+        slug: {
+          equals: normalizedCategorySlug,
+          mode: "insensitive",
+        },
         isActive: true,
       },
       select: {
@@ -143,7 +174,6 @@ export async function listStudentResourceTemplatesByCategory(
             description: true,
             type: true,
             content: true,
-            fileUrl: true,
             isPublic: true,
             createdAt: true,
             updatedAt: true,
@@ -195,16 +225,33 @@ export async function getStudentResourceTemplateDetail(
   try {
     const { studentProfile } = await getCurrentStudentContext();
 
+    // First resolve the resource by slug (case-insensitive)
+    const resource = await prisma.resource.findFirst({
+      where: {
+        slug: {
+          equals: normalizedCategorySlug,
+          mode: "insensitive",
+        },
+        isActive: true,
+      },
+      select: { id: true, slug: true, name: true, description: true, type: true },
+    });
+
+    if (!resource) {
+      return {
+        success: false,
+        error: "Resource template not found.",
+      };
+    }
+
     const template = await prisma.resourceTemplate.findFirst({
       where: {
-        slug: normalizedTemplateSlug,
-        isPublic: true,
-        resource: {
-          is: {
-            slug: normalizedCategorySlug,
-            isActive: true,
-          },
+        slug: {
+          equals: normalizedTemplateSlug,
+          mode: "insensitive",
         },
+        isPublic: true,
+        resourceId: resource.id,
       },
       select: {
         id: true,
@@ -213,23 +260,13 @@ export async function getStudentResourceTemplateDetail(
         description: true,
         type: true,
         content: true,
-        fileUrl: true,
         isPublic: true,
         createdAt: true,
         updatedAt: true,
-        resource: {
-          select: {
-            id: true,
-            slug: true,
-            name: true,
-            description: true,
-            type: true,
-          },
-        },
       },
     });
 
-    if (!template?.resource) {
+    if (!template) {
       return {
         success: false,
         error: "Resource template not found.",
@@ -263,8 +300,8 @@ export async function getStudentResourceTemplateDetail(
     return {
       success: true,
       data: {
-        resource: mapResource(template.resource),
-        template: mapTemplate(template, template.resource),
+        resource: mapResource(resource),
+        template: mapTemplate(template, resource),
         linkedDocument: resourceTemplateLink?.document
           ? mapLinkedDocument(resourceTemplateLink.document)
           : null,
@@ -275,6 +312,101 @@ export async function getStudentResourceTemplateDetail(
     return {
       success: false,
       error: "Failed to load resource template details.",
+    };
+  }
+}
+
+/**
+ * Generates a short-lived signed URL for a resource template file.
+ * Validates the template is public and its parent resource is active.
+ */
+export async function getResourceTemplateSignedUrl(
+  categorySlug: string,
+  templateSlug: string,
+  ttlSeconds: number = 3600,
+): Promise<ActionResult<{ signedUrl: string }>> {
+  await requireRole([ROLES.STUDENT]);
+
+  const normalizedCategorySlug = categorySlug.trim().toLowerCase();
+  const normalizedTemplateSlug = templateSlug.trim().toLowerCase();
+
+  if (!normalizedCategorySlug || !normalizedTemplateSlug) {
+    return {
+      success: false,
+      error: "Resource template details are missing.",
+    };
+  }
+
+  try {
+    const resource = await prisma.resource.findFirst({
+      where: {
+        slug: {
+          equals: normalizedCategorySlug,
+          mode: "insensitive",
+        },
+        isActive: true,
+      },
+      select: { id: true },
+    });
+
+    if (!resource) {
+      return {
+        success: false,
+        error: "Resource template not found.",
+      };
+    }
+
+    const template = await prisma.resourceTemplate.findFirst({
+      where: {
+        slug: {
+          equals: normalizedTemplateSlug,
+          mode: "insensitive",
+        },
+        isPublic: true,
+        resourceId: resource.id,
+      },
+      select: { fileUrl: true },
+    });
+
+    if (!template || !template.fileUrl) {
+      return {
+        success: false,
+        error: "Resource file not found.",
+      };
+    }
+
+    const extracted = extractSupabaseStoragePath(template.fileUrl);
+
+    if (extracted) {
+      const supabase = await createSupabaseServerClient();
+      const { data, error } = await supabase.storage
+        .from(extracted.bucket)
+        .createSignedUrl(extracted.path, ttlSeconds);
+
+      if (error || !data?.signedUrl) {
+        console.error("[resources:getResourceTemplateSignedUrl:storage]", error);
+        return {
+          success: false,
+          error: "Failed to generate file access link.",
+        };
+      }
+
+      return {
+        success: true,
+        data: { signedUrl: data.signedUrl },
+      };
+    }
+
+    // Fallback for non-Supabase URLs (external links)
+    return {
+      success: true,
+      data: { signedUrl: template.fileUrl },
+    };
+  } catch (error) {
+    console.error("[resources:getResourceTemplateSignedUrl]", error);
+    return {
+      success: false,
+      error: "Failed to generate file access link.",
     };
   }
 }

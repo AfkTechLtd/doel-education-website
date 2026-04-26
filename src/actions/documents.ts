@@ -24,22 +24,36 @@ type ActionResult<T> = {
   data?: T;
 };
 
-type CreateStudentDocumentRecordInput = {
-  id: string;
-  name: string;
-  type: string;
-  bucket?: string | null;
-  storagePath?: string | null;
-  mimeType?: string | null;
-  sizeBytes?: number | null;
-  source?: string | null;
-  status?: StudentDocumentStatus;
-};
+const ALLOWED_MIME_TYPES = [
+  "application/pdf",
+  "image/jpeg",
+  "image/png",
+  "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+];
+
+const MAX_FILE_SIZE_BYTES = 10 * 1024 * 1024;
+
+function isValidUUID(value: string) {
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(value);
+}
+
+function buildExpectedPathPrefix(supabaseUserId: string, documentId: string) {
+  return `students/${supabaseUserId}/${documentId}/`;
+}
 
 /**
  * Maps a raw Prisma `Document` row into the list item shape used by the vault UI.
  */
 function mapDocumentToVaultItem(document: Document): VaultDocumentListItem {
+  const matchedRequirementId = findBestRequiredDocumentMatch(
+    document.name,
+    studentDocumentRequirements,
+  );
+
+  const matchedRequirement = matchedRequirementId
+    ? studentDocumentRequirements.find((r) => r.id === matchedRequirementId)
+    : undefined;
+
   return {
     id: document.id,
     name: document.name,
@@ -52,8 +66,8 @@ function mapDocumentToVaultItem(document: Document): VaultDocumentListItem {
     notes: document.notes,
     uploadedAt: document.uploadedAt?.toISOString() ?? null,
     source: document.source ?? null,
-    matchState: "UNASSIGNED",
-    matchedLabel: null,
+    matchState: matchedRequirement ? "MATCHED" : "UNASSIGNED",
+    matchedLabel: matchedRequirement?.label ?? null,
   };
 }
 
@@ -99,15 +113,124 @@ export async function listStudentDocuments(): Promise<ActionResult<VaultDocument
   }
 }
 
+type CreateStudentDocumentRecordInput = {
+  id: string;
+  name: string;
+  type: string;
+  bucket?: string | null;
+  storagePath?: string | null;
+  mimeType?: string | null;
+  sizeBytes?: number | null;
+  source?: string | null;
+  status?: StudentDocumentStatus;
+};
+
 /**
  * Creates the database record for a file that has already been uploaded to
  * Supabase Storage. This turns a raw upload into a reusable vault document.
+ *
+ * Security: validates the uploaded object belongs to the current student,
+ * is in the correct bucket, has an allowed MIME type, and does not exceed
+ * the size limit.
  */
 export async function createStudentDocumentRecord(
   input: CreateStudentDocumentRecordInput,
 ): Promise<ActionResult<SelectedDocumentReference>> {
   try {
-    const { studentProfile } = await getCurrentStudentContext();
+    const { studentProfile, supabaseUserId } = await getCurrentStudentContext();
+
+    // 1. Validate ID format
+    if (!isValidUUID(input.id)) {
+      return {
+        success: false,
+        error: "Invalid document identifier.",
+      };
+    }
+
+    // 2. Enforce bucket
+    const bucket = input.bucket ?? STORAGE_BUCKETS.DOCUMENTS;
+    if (bucket !== STORAGE_BUCKETS.DOCUMENTS) {
+      return {
+        success: false,
+        error: "Invalid storage bucket.",
+      };
+    }
+
+    // 3. Validate storagePath ownership
+    const storagePath = input.storagePath ?? null;
+    if (!storagePath) {
+      return {
+        success: false,
+        error: "Storage path is required.",
+      };
+    }
+
+    const expectedPrefix = buildExpectedPathPrefix(supabaseUserId, input.id);
+    if (!storagePath.startsWith(expectedPrefix)) {
+      console.error("[documents:createStudentDocumentRecord:path-mismatch]", {
+        expectedPrefix,
+        storagePath,
+        supabaseUserId,
+      });
+      return {
+        success: false,
+        error: "Invalid storage path.",
+      };
+    }
+
+    // 4. Validate MIME type
+    const mimeType = input.mimeType ?? null;
+    if (mimeType && !ALLOWED_MIME_TYPES.includes(mimeType)) {
+      return {
+        success: false,
+        error: "Unsupported file type.",
+      };
+    }
+
+    // 5. Validate size
+    const sizeBytes = input.sizeBytes ?? null;
+    if (sizeBytes !== null && (sizeBytes <= 0 || sizeBytes > MAX_FILE_SIZE_BYTES)) {
+      return {
+        success: false,
+        error: "File size is invalid or exceeds the 10 MB limit.",
+      };
+    }
+
+    // 6. Verify the object exists in storage and size matches
+    const supabase = await createSupabaseServerClient();
+    const { data: objectData, error: objectError } = await supabase.storage
+      .from(bucket)
+      .list(storagePath.substring(0, storagePath.lastIndexOf("/")), {
+        search: storagePath.substring(storagePath.lastIndexOf("/") + 1),
+      });
+
+    if (objectError || !objectData || objectData.length === 0) {
+      console.error("[documents:createStudentDocumentRecord:object-not-found]", {
+        bucket,
+        storagePath,
+        objectError,
+      });
+      return {
+        success: false,
+        error: "Uploaded file was not found in storage.",
+      };
+    }
+
+    const storedObject = objectData[0];
+    if (sizeBytes !== null && storedObject.metadata?.size !== sizeBytes) {
+      // Supabase metadata size may differ slightly; allow small tolerance
+      const storedSize = Number(storedObject.metadata?.size ?? 0);
+      if (Math.abs(storedSize - sizeBytes) > 1024) {
+        console.error("[documents:createStudentDocumentRecord:size-mismatch]", {
+          expected: sizeBytes,
+          actual: storedSize,
+        });
+        return {
+          success: false,
+          error: "File size does not match the uploaded object.",
+        };
+      }
+    }
 
     const document = await prisma.document.create({
       data: {
@@ -117,10 +240,10 @@ export async function createStudentDocumentRecord(
         type: input.type,
         status: (input.status ?? "PENDING") as never,
         source: input.source ?? null,
-        bucket: input.bucket ?? STORAGE_BUCKETS.DOCUMENTS,
-        storagePath: input.storagePath ?? null,
-        mimeType: input.mimeType ?? null,
-        sizeBytes: input.sizeBytes ?? null,
+        bucket,
+        storagePath,
+        mimeType,
+        sizeBytes,
         uploadedAt: new Date(),
       },
     });
@@ -139,12 +262,62 @@ export async function createStudentDocumentRecord(
 }
 
 /**
+ * Generates a short-lived signed URL for a student's own document.
+ */
+export async function getStudentDocumentSignedUrl(
+  documentId: string,
+): Promise<ActionResult<{ signedUrl: string }>> {
+  try {
+    const { studentProfile } = await getCurrentStudentContext();
+
+    const document = await prisma.document.findFirst({
+      where: {
+        id: documentId,
+        studentId: studentProfile.id,
+      },
+      select: { bucket: true, storagePath: true },
+    });
+
+    if (!document || !document.bucket || !document.storagePath) {
+      return {
+        success: false,
+        error: "Document not found.",
+      };
+    }
+
+    const supabase = await createSupabaseServerClient();
+    const { data, error } = await supabase.storage
+      .from(document.bucket)
+      .createSignedUrl(document.storagePath, 3600);
+
+    if (error || !data?.signedUrl) {
+      console.error("[documents:getStudentDocumentSignedUrl]", error);
+      return {
+        success: false,
+        error: "Failed to generate document access link.",
+      };
+    }
+
+    return {
+      success: true,
+      data: { signedUrl: data.signedUrl },
+    };
+  } catch (error) {
+    console.error("[documents:getStudentDocumentSignedUrl]", error);
+    return {
+      success: false,
+      error: "Failed to generate document access link.",
+    };
+  }
+}
+
+/**
  * Deletes a vault document if it is not currently linked to any application
  * context for the current student.
  */
 export async function deleteStudentDocument(documentId: string): Promise<ActionResult<{ id: string }>> {
   try {
-    const { studentProfile } = await getCurrentStudentContext();
+    const { studentProfile, supabaseUserId } = await getCurrentStudentContext();
 
     const document = await prisma.document.findFirst({
       where: {
@@ -177,6 +350,19 @@ export async function deleteStudentDocument(documentId: string): Promise<ActionR
     const supabase = await createSupabaseServerClient();
 
     if (document.bucket && document.storagePath) {
+      // Security: verify the path belongs to this student before deleting
+      const expectedPrefix = `students/${supabaseUserId}/`;
+      if (!document.storagePath.startsWith(expectedPrefix)) {
+        console.error("[documents:deleteStudentDocument:path-mismatch]", {
+          expectedPrefix,
+          storagePath: document.storagePath,
+        });
+        return {
+          success: false,
+          error: "Invalid storage path.",
+        };
+      }
+
       const { error } = await supabase.storage
         .from(document.bucket)
         .remove([document.storagePath]);
@@ -274,7 +460,7 @@ export async function hardDeleteStudentDocument(
   documentId: string,
 ): Promise<ActionResult<{ id: string; removedLinks: number }>> {
   try {
-    const { studentProfile } = await getCurrentStudentContext();
+    const { studentProfile, supabaseUserId } = await getCurrentStudentContext();
 
     const document = await prisma.document.findFirst({
       where: {
@@ -300,6 +486,19 @@ export async function hardDeleteStudentDocument(
     const supabase = await createSupabaseServerClient();
 
     if (document.bucket && document.storagePath) {
+      // Security: verify the path belongs to this student before deleting
+      const expectedPrefix = `students/${supabaseUserId}/`;
+      if (!document.storagePath.startsWith(expectedPrefix)) {
+        console.error("[documents:hardDeleteStudentDocument:path-mismatch]", {
+          expectedPrefix,
+          storagePath: document.storagePath,
+        });
+        return {
+          success: false,
+          error: "Invalid storage path.",
+        };
+      }
+
       const { error } = await supabase.storage
         .from(document.bucket)
         .remove([document.storagePath]);

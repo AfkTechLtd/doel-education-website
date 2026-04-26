@@ -4,29 +4,35 @@ import StudentResourceDownloadButton from "./StudentResourceDownloadButton";
 
 type StudentResourceDocumentPreviewProps = {
   resource: LocalResourceTemplate;
+  categorySlug: string;
+  templateSlug: string;
+  signedUrl: string | null;
 };
 
-function isPdfFile(fileUrl: string | null) {
-  return fileUrl ? /\.pdf($|\?)/i.test(fileUrl) : false;
+function isPdfFile(url: string | null) {
+  return url ? /\.pdf($|\?)/i.test(url) : false;
 }
 
-function isImageFile(fileUrl: string | null) {
-  return fileUrl ? /\.(png|jpe?g|gif|webp|svg)($|\?)/i.test(fileUrl) : false;
+function isImageFile(url: string | null) {
+  return url ? /\.(png|jpe?g|gif|webp|svg)($|\?)/i.test(url) : false;
 }
 
 export default function StudentResourceDocumentPreview({
   resource,
+  categorySlug,
+  templateSlug,
+  signedUrl,
 }: StudentResourceDocumentPreviewProps) {
   function getSuggestedDownloadName(
     resourceSlug: string,
-    fileUrl: string | null,
+    url: string | null,
   ) {
-    if (!fileUrl) {
+    if (!url) {
       return resourceSlug;
     }
 
-    const sanitizedFileUrl = fileUrl.split("?")[0] ?? fileUrl;
-    const extensionMatch = sanitizedFileUrl.match(/\.[a-z0-9]+$/i);
+    const sanitizedUrl = url.split("?")[0] ?? url;
+    const extensionMatch = sanitizedUrl.match(/\.[a-z0-9]+$/i);
 
     return `${resourceSlug}${extensionMatch?.[0] ?? ""}`;
   }
@@ -40,16 +46,16 @@ export default function StudentResourceDocumentPreview({
               Live Preview
             </p>
             <p className="mt-1 font-inter text-sm text-slate-500">
-              {resource.fileUrl
+              {signedUrl
                 ? "The attached sample file is loaded below."
                 : "No file is attached yet, so a visual template preview is shown instead."}
             </p>
           </div>
 
           <div className="flex w-full flex-col gap-3 sm:flex-row lg:w-auto lg:justify-end">
-            {resource.fileUrl ? (
+            {signedUrl ? (
               <a
-                href={resource.fileUrl}
+                href={signedUrl}
                 target="_blank"
                 rel="noreferrer"
                 className="inline-flex min-h-11 w-full items-center justify-center rounded-2xl border border-slate-200 bg-white px-4 py-2.5 text-center font-inter text-sm font-semibold text-slate-700 transition hover:border-primary/30 hover:text-primary sm:min-w-[9rem] sm:w-auto"
@@ -58,32 +64,34 @@ export default function StudentResourceDocumentPreview({
               </a>
             ) : null}
             <StudentResourceDownloadButton
-              href={resource.fileUrl}
+              categorySlug={categorySlug}
+              templateSlug={templateSlug}
               downloadName={getSuggestedDownloadName(
                 resource.slug,
-                resource.fileUrl,
+                signedUrl,
               )}
+              disabled={!signedUrl}
             />
           </div>
         </div>
 
-        {resource.fileUrl ? (
-          isPdfFile(resource.fileUrl) ? (
+        {signedUrl ? (
+          isPdfFile(signedUrl) ? (
             <div className="overflow-x-auto overscroll-x-contain bg-slate-950">
               <div className="min-w-[720px] sm:min-w-0">
                 <iframe
-                  src={resource.fileUrl}
+                  src={signedUrl}
                   title={`${resource.title} document preview`}
                   className="block h-[24rem] w-full bg-white sm:h-[32rem] md:h-[40rem] xl:h-[46rem]"
                 />
               </div>
             </div>
-          ) : isImageFile(resource.fileUrl) ? (
+          ) : isImageFile(signedUrl) ? (
             <div className="flex items-center justify-center bg-slate-50 p-6">
               {/* Resource files may come from dynamic storage URLs, so use a plain image tag here. */}
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
-                src={resource.fileUrl}
+                src={signedUrl}
                 alt={`${resource.title} preview`}
                 className="max-h-[46rem] w-full rounded-[1.2rem] object-contain"
               />
