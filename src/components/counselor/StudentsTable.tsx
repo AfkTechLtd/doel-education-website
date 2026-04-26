@@ -17,7 +17,7 @@ interface StudentsTableProps {
 function DocumentSummary({ documents }: { documents: Student["documents"] }) {
   const verified = documents.filter((d) => d.status === "VERIFIED").length;
   const rejected = documents.filter((d) => d.status === "REJECTED").length;
-  const pending = documents.filter((d) => d.status === "PENDING" || d.status === "UPLOADED").length;
+  const pending = documents.filter((d) => d.status === "PENDING" || d.status === "UNDER_REVIEW").length;
 
   if (documents.length === 0) {
     return <span className="font-inter text-xs text-slate-400">No documents</span>;

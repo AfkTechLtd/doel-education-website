@@ -65,7 +65,7 @@ function StudentCard({
   index: number;
 }) {
   const pendingDocs = student.documents.filter(
-    (d) => d.status === "PENDING" || d.status === "UPLOADED",
+    (d) => d.status === "PENDING" || d.status === "UNDER_REVIEW",
   ).length;
   const verifiedDocs = student.documents.filter((d) => d.status === "VERIFIED").length;
   const rejectedDocs = student.documents.filter((d) => d.status === "REJECTED").length;
