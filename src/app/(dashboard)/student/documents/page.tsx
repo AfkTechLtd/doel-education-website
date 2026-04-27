@@ -1,19 +1,21 @@
 import StudentDocumentVaultPageContent from "@/components/dashboard/student/StudentDocumentVaultPageContent";
 import { studentDocumentRequirements } from "@/data/student-document-requirements";
-import { listRequiredDocumentLinks, listStudentDocuments } from "@/actions/documents";
-import { requireRole } from "@/lib/auth";
-import { ROLES } from "@/lib/constants";
+import { getCachedStudentDocuments, getCachedRequiredDocumentLinks } from "@/lib/data/documents";
+import { getCurrentStudentContext } from "@/lib/documents/ownership";
 
 export default async function StudentDocumentsPage() {
-  await requireRole([ROLES.STUDENT]);
-  const documentsResult = await listStudentDocuments();
-  const requiredLinksResult = await listRequiredDocumentLinks();
+  const { studentProfile } = await getCurrentStudentContext();
+
+  const [documents, requiredLinks] = await Promise.all([
+    getCachedStudentDocuments(studentProfile.id),
+    getCachedRequiredDocumentLinks(studentProfile.id),
+  ]);
 
   return (
     <StudentDocumentVaultPageContent
-      documents={documentsResult.data ?? []}
+      documents={documents}
       requirements={studentDocumentRequirements}
-      requiredLinks={requiredLinksResult.data ?? []}
+      requiredLinks={requiredLinks}
     />
   );
 }

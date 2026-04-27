@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { ChevronLeft } from "lucide-react";
 import { notFound } from "next/navigation";
-import { getStudentResourceTemplateDetail } from "@/actions/resources";
+import { getCachedResourceTemplateDetail } from "@/lib/data/resources";
 import StudentResourceDocumentPreview from "@/components/dashboard/student/StudentResourceDocumentPreview";
 import DashboardPageHeader from "@/components/dashboard/shared/DashboardPageHeader";
 import { requireRole } from "@/lib/auth";
@@ -15,26 +15,11 @@ export default async function StudentResourcePreviewPage({
   await requireRole([ROLES.STUDENT]);
 
   const { category, resourceId } = await params;
-  const templateResult = await getStudentResourceTemplateDetail(
-    category,
-    resourceId,
-  );
+  const detail = await getCachedResourceTemplateDetail(category, resourceId);
 
-  if (
-    !templateResult.success &&
-    templateResult.error === "Resource template not found."
-  ) {
-    notFound();
-  }
+  if (!detail) notFound();
 
-  if (!templateResult.success || !templateResult.data) {
-    throw new Error(
-      templateResult.error ?? "Failed to load resource template.",
-    );
-  }
-
-  const { resource: resourceCategory, template: resource } =
-    templateResult.data;
+  const { resource: resourceCategory, template: resource } = detail;
   const hasAttachedFile = Boolean(resource.fileUrl);
   const detailDescription =
     resource.description ??

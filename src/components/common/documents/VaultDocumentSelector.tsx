@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { Search } from "lucide-react";
+import { Loader2, Search } from "lucide-react";
 import { listStudentDocuments } from "@/actions/documents";
 import DashboardStatusBadge from "@/components/dashboard/shared/DashboardStatusBadge";
 import type { SelectedDocumentReference, VaultDocumentListItem } from "@/lib/documents/types";
@@ -104,8 +104,9 @@ export default function VaultDocumentSelector({
       </label>
 
       {isLoading ? (
-        <div className="rounded-[1.6rem] border border-slate-200 bg-slate-50 p-6 font-inter text-sm text-slate-500">
-          Loading documents...
+        <div className="flex items-center justify-center gap-2.5 rounded-[1.6rem] border border-slate-200 bg-slate-50 p-6">
+          <Loader2 className="h-4 w-4 animate-spin text-slate-400" />
+          <span className="animate-pulse font-inter text-sm text-slate-500">Loading documents...</span>
         </div>
       ) : loadError ? (
         <div className="rounded-[1.6rem] border border-red-200 bg-red-50 p-6 font-inter text-sm text-red-700">
