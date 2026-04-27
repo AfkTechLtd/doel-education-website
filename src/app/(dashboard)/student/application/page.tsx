@@ -6,7 +6,7 @@ import Link from "next/link";
 import {
     CheckCircle2, ChevronRight, ChevronLeft, FileText, User, GraduationCap,
     ClipboardCheck, Send, Users, Award, PenTool, HelpCircle, FileCheck,
-    Activity, Shield, MessageSquare, X, AlertTriangle, Info, XCircle,
+    Activity, Shield, MessageSquare, X, AlertTriangle, Info, XCircle, Loader2,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import StepIndicator from "@/components/dashboard/pages/application/StepIndicator";
@@ -891,7 +891,12 @@ function ApplicationContent() {
     };
 
     if (isLoading) {
-        return <div className="min-h-screen flex items-center justify-center font-bold text-slate-400">Loading Application...</div>;
+        return (
+            <div className="flex min-h-[60vh] flex-col items-center justify-center gap-4">
+                <Loader2 className="h-10 w-10 animate-spin text-primary" />
+                <p className="animate-pulse font-inter text-sm font-medium text-slate-500">Loading application...</p>
+            </div>
+        );
     }
 
     if (isSubmittedView || ["UNDER_REVIEW", "APPROVED", "REJECTED", "ON_HOLD"].includes(status)) {
@@ -934,7 +939,12 @@ function ApplicationContent() {
 
 export default function ApplicationPage() {
     return (
-        <Suspense fallback={<div>Loading...</div>}>
+        <Suspense fallback={
+            <div className="flex min-h-[60vh] flex-col items-center justify-center gap-4">
+                <Loader2 className="h-10 w-10 animate-spin text-primary" />
+                <p className="animate-pulse font-inter text-sm font-medium text-slate-500">Loading application...</p>
+            </div>
+        }>
             <ApplicationContent />
         </Suspense>
     );
