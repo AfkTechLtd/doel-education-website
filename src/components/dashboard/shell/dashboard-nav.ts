@@ -53,7 +53,7 @@ export const studentNavItems: DashboardNavItem[] = [
   {
     label: "Application History",
     icon: History,
-    comingSoon: true,
+    href: "/student/application/history",
   },
   // ── Post-Admission ──────────────────────────────────────────────────────
   {

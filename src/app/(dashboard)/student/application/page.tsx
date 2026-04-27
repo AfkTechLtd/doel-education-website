@@ -1,19 +1,92 @@
 "use client";
 
-import { useState, useEffect, useRef, Suspense } from "react";
+import { useState, useEffect, useRef, useCallback, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import {
     CheckCircle2, ChevronRight, ChevronLeft, FileText, User, GraduationCap,
     ClipboardCheck, Send, Users, Award, PenTool, HelpCircle, FileCheck,
-    Activity, Shield, MessageSquare,
+    Activity, Shield, MessageSquare, X, AlertTriangle, Info, XCircle,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import StepIndicator from "@/components/dashboard/pages/application/StepIndicator";
 import InputField from "@/components/dashboard/pages/application/InputField";
 import FormSection from "@/components/dashboard/pages/application/FormSection";
 
-// --- TYPES ---
+// ─── TOAST SYSTEM ─────────────────────────────────────────────────────────────
+type ToastType = "error" | "success" | "warning" | "info";
+interface ToastItem {
+    id: string;
+    type: ToastType;
+    title: string;
+    messages?: string[];
+}
+
+const TOAST_CONFIG: Record<ToastType, { icon: React.ReactNode; bar: string; bg: string; title: string }> = {
+    error:   { icon: <XCircle className="h-5 w-5" />,       bar: "bg-red-500",     bg: "bg-white",      title: "text-red-700"     },
+    success: { icon: <CheckCircle2 className="h-5 w-5" />,  bar: "bg-emerald-500", bg: "bg-white",      title: "text-emerald-700" },
+    warning: { icon: <AlertTriangle className="h-5 w-5" />, bar: "bg-amber-500",   bg: "bg-white",      title: "text-amber-700"   },
+    info:    { icon: <Info className="h-5 w-5" />,          bar: "bg-blue-500",    bg: "bg-white",      title: "text-blue-700"    },
+};
+
+const ICON_COLOR: Record<ToastType, string> = {
+    error: "text-red-500", success: "text-emerald-500", warning: "text-amber-500", info: "text-blue-500",
+};
+
+function ToastContainer({ toasts, onRemove }: { toasts: ToastItem[]; onRemove: (id: string) => void }) {
+    return (
+        <div className="fixed top-6 right-6 z-[9999] flex flex-col gap-3 w-[360px] max-w-[calc(100vw-2rem)] pointer-events-none">
+            {toasts.map((toast) => {
+                const cfg = TOAST_CONFIG[toast.type];
+                return (
+                    <div
+                        key={toast.id}
+                        className={cn(
+                            "pointer-events-auto flex items-start gap-0 rounded-2xl shadow-2xl shadow-slate-200/80 border border-slate-100 overflow-hidden",
+                            "animate-in slide-in-from-right-5 fade-in duration-300",
+                            cfg.bg,
+                        )}
+                    >
+                        {/* Colored left bar */}
+                        <div className={cn("w-1 self-stretch shrink-0 rounded-l-2xl", cfg.bar)} />
+
+                        <div className="flex items-start gap-3 px-4 py-4 flex-1 min-w-0">
+                            {/* Icon */}
+                            <span className={cn("mt-0.5 shrink-0", ICON_COLOR[toast.type])}>
+                                {cfg.icon}
+                            </span>
+
+                            {/* Content */}
+                            <div className="flex-1 min-w-0">
+                                <p className={cn("text-sm font-bold leading-snug", cfg.title)}>{toast.title}</p>
+                                {toast.messages && toast.messages.length > 0 && (
+                                    <ul className="mt-2 space-y-1">
+                                        {toast.messages.map((msg, i) => (
+                                            <li key={i} className="flex items-start gap-1.5 text-xs text-slate-600">
+                                                <span className="mt-1 h-1.5 w-1.5 rounded-full bg-slate-400 shrink-0" />
+                                                {msg}
+                                            </li>
+                                        ))}
+                                    </ul>
+                                )}
+                            </div>
+
+                            {/* Close */}
+                            <button
+                                onClick={() => onRemove(toast.id)}
+                                className="shrink-0 ml-1 p-1 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors"
+                            >
+                                <X className="h-3.5 w-3.5" />
+                            </button>
+                        </div>
+                    </div>
+                );
+            })}
+        </div>
+    );
+}
+
+// ─── TYPES ────────────────────────────────────────────────────────────────────
 type ApplicationStatus = "NOT_STARTED" | "IN_PROGRESS" | "UNDER_REVIEW" | "APPROVED" | "REJECTED" | "ON_HOLD";
 type FormData = Record<string, string | undefined>;
 
@@ -212,19 +285,53 @@ const Step2Requirements = ({ formData, onChange, errors }: StepProps) => (
             </div>
         </FormSection>
 
-        {/* Section 5 — Test Information / Scores */}
+        {/* Section 5 — Test Information / Scores (dynamic based on Section 4 selections) */}
         <FormSection icon={FileCheck} title="Test Information / Scores">
-            <p className="text-sm text-slate-500 mb-5">Enter scores only for tests you have taken. Leave blank if not applicable.</p>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                <InputField name="satMath" value={formData.satMath} onChange={onChange} label="SAT Math (200–800)" placeholder="750" error={errors.satMath} />
-                <InputField name="satReading" value={formData.satReading} onChange={onChange} label="SAT Reading (200–800)" placeholder="710" error={errors.satReading} />
-                <InputField name="actComposite" value={formData.actComposite} onChange={onChange} label="ACT Composite (1–36)" placeholder="32" error={errors.actComposite} />
-                <InputField name="toeflScore" value={formData.toeflScore} onChange={onChange} label="TOEFL (0–120)" placeholder="110" error={errors.toeflScore} />
-                <InputField name="ieltsScore" value={formData.ieltsScore} onChange={onChange} label="IELTS (0.0–9.0)" placeholder="7.5" error={errors.ieltsScore} />
-                <InputField name="greVerbal" value={formData.greVerbal} onChange={onChange} label="GRE Verbal (130–170)" placeholder="160" error={errors.greVerbal} />
-                <InputField name="greQuantitative" value={formData.greQuantitative} onChange={onChange} label="GRE Quantitative (130–170)" placeholder="165" error={errors.greQuantitative} />
-                <InputField name="testDate" value={formData.testDate} onChange={onChange} label="Most Recent Test Date" type="date" error={errors.testDate} />
-            </div>
+            {(() => {
+                const anySelected = ["requiresSAT", "requiresACT", "requiresTOEFL", "requiresIELTS", "requiresGRE", "requiresGMAT"]
+                    .some(k => formData[k] === "true");
+
+                if (!anySelected) {
+                    return (
+                        <p className="text-sm text-slate-400 italic py-4 text-center">
+                            No tests selected above. Select the required tests in the section above to enter your scores.
+                        </p>
+                    );
+                }
+
+                return (
+                    <>
+                        <p className="text-sm text-slate-500 mb-5">Enter your scores for the selected tests.</p>
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                            {formData.requiresSAT === "true" && (
+                                <>
+                                    <InputField name="satMath" value={formData.satMath} onChange={onChange} label="SAT Math (200–800)" placeholder="750" error={errors.satMath} />
+                                    <InputField name="satReading" value={formData.satReading} onChange={onChange} label="SAT Reading (200–800)" placeholder="710" error={errors.satReading} />
+                                </>
+                            )}
+                            {formData.requiresACT === "true" && (
+                                <InputField name="actComposite" value={formData.actComposite} onChange={onChange} label="ACT Composite (1–36)" placeholder="32" error={errors.actComposite} />
+                            )}
+                            {formData.requiresTOEFL === "true" && (
+                                <InputField name="toeflScore" value={formData.toeflScore} onChange={onChange} label="TOEFL (0–120)" placeholder="110" error={errors.toeflScore} />
+                            )}
+                            {formData.requiresIELTS === "true" && (
+                                <InputField name="ieltsScore" value={formData.ieltsScore} onChange={onChange} label="IELTS (0.0–9.0)" placeholder="7.5" error={errors.ieltsScore} />
+                            )}
+                            {formData.requiresGRE === "true" && (
+                                <>
+                                    <InputField name="greVerbal" value={formData.greVerbal} onChange={onChange} label="GRE Verbal (130–170)" placeholder="160" error={errors.greVerbal} />
+                                    <InputField name="greQuantitative" value={formData.greQuantitative} onChange={onChange} label="GRE Quantitative (130–170)" placeholder="165" error={errors.greQuantitative} />
+                                </>
+                            )}
+                            {formData.requiresGMAT === "true" && (
+                                <InputField name="gmatScore" value={formData.gmatScore} onChange={onChange} label="GMAT (200–800)" placeholder="700" error={errors.gmatScore} />
+                            )}
+                            <InputField name="testDate" value={formData.testDate} onChange={onChange} label="Most Recent Test Date" type="date" error={errors.testDate} />
+                        </div>
+                    </>
+                );
+            })()}
         </FormSection>
 
         {/* Section 6 — Personal Statement / SOP */}
@@ -559,7 +666,19 @@ function ApplicationContent() {
     const [formData, setFormData] = useState<FormData>({});
     const [errors, setErrors] = useState<Record<string, string>>({});
     const [isLoading, setIsLoading] = useState(true);
+    const [isSaving, setIsSaving] = useState(false);
+    const [toasts, setToasts] = useState<ToastItem[]>([]);
     const hasInitialized = useRef(false);
+
+    const removeToast = useCallback((id: string) => {
+        setToasts(prev => prev.filter(t => t.id !== id));
+    }, []);
+
+    const addToast = useCallback((type: ToastType, title: string, messages?: string[], duration = 6000) => {
+        const id = crypto.randomUUID();
+        setToasts(prev => [...prev, { id, type, title, messages }]);
+        if (duration > 0) setTimeout(() => removeToast(id), duration);
+    }, [removeToast]);
 
     useEffect(() => {
         if (hasInitialized.current) return;
@@ -673,6 +792,10 @@ function ApplicationContent() {
                 const v = parseInt(formData.greQuantitative);
                 if (isNaN(v) || v < 130 || v > 170) e.greQuantitative = "GRE Quantitative must be 130–170";
             }
+            if (formData.gmatScore) {
+                const v = parseInt(formData.gmatScore);
+                if (isNaN(v) || v < 200 || v > 800) e.gmatScore = "GMAT must be 200–800";
+            }
             if (!formData.personalStatement) e.personalStatement = "Statement of Purpose is required";
         }
 
@@ -703,7 +826,12 @@ function ApplicationContent() {
         const messages = Object.values(e);
         if (messages.length > 0) {
             setErrors(e);
-            alert(`Please fix the following:\n\n${messages.join("\n")}`);
+            addToast(
+                "error",
+                `${messages.length} issue${messages.length > 1 ? "s" : ""} found — please review`,
+                messages,
+                8000,
+            );
             return false;
         }
         setErrors({});
@@ -734,6 +862,7 @@ function ApplicationContent() {
 
     const handleSubmit = async () => {
         if (!validateStep()) return;
+        setIsSaving(true);
         try {
             await fetch('/api/student/application', {
                 method: 'PATCH',
@@ -755,7 +884,7 @@ function ApplicationContent() {
             router.push("?view=submitted");
         } catch (err) {
             console.error("Submission Error:", err);
-            alert("There was an error submitting your application. Please try again.");
+            addToast("error", "Submission failed", ["There was an error submitting your application. Please try again."]);
         } finally {
             setIsSaving(false); // Stop loading
         }
@@ -770,6 +899,8 @@ function ApplicationContent() {
     }
 
     return (
+        <>
+        <ToastContainer toasts={toasts} onRemove={removeToast} />
         <div className="max-w-6xl mx-auto py-8 px-2 md:px-6 lg:px-8 bg-slate-50 min-h-screen">
             <StepIndicator currentStep={currentStep} status="IN_PROGRESS" />
 
@@ -797,6 +928,7 @@ function ApplicationContent() {
                 </button>
             </div>
         </div>
+        </>
     );
 }
 
