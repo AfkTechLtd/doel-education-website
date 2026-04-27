@@ -83,17 +83,6 @@ function LoginFormContent() {
           </p>
         ) : null
       }
-      footer={
-        <p className="text-center font-inter text-sm text-slate-500">
-          New student?{" "}
-          <Link
-            href="/register"
-            className="font-semibold text-primary transition-colors hover:text-primary/80"
-          >
-            Create an account
-          </Link>
-        </p>
-      }
     >
       <form className="space-y-5" onSubmit={handleSubmit}>
         <FormField

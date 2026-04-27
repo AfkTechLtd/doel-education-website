@@ -15,7 +15,8 @@ import {
     Loader2,
     AlertTriangle,
     PauseCircle,
-    XCircle
+    XCircle,
+    type LucideIcon
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -32,6 +33,15 @@ interface Application {
     dateValue: string;
     requiresAttention?: boolean;
     dueDate?: string;
+}
+
+interface RawApplication {
+    id: string;
+    status: string;
+    submittedAt: string | null;
+    updatedAt: string;
+    intendedProgram?: string;
+    intendedUniversity?: string;
 }
 
 // --- COMPONENTS ---
@@ -54,7 +64,7 @@ const StatusBadge = ({ status }: { status: ApplicationStatus }) => {
         ON_HOLD: "On Hold",
     };
 
-    const IconMap: Record<ApplicationStatus, any> = {
+    const IconMap: Record<ApplicationStatus, LucideIcon> = {
         NOT_STARTED: Clock,
         IN_PROGRESS: Clock,
         UNDER_REVIEW: Search,
@@ -141,9 +151,9 @@ export default function ApplicationHistoryPage() {
                 const data = await response.json();
 
                 // Transform DB data into frontend UI format
-                const formattedApps = data.applications.map((app: any) => {
+                const formattedApps = data.applications.map((app: RawApplication) => {
                     const hasSubmitted = app.submittedAt !== null;
-                    const dateToUse = hasSubmitted ? app.submittedAt : app.updatedAt;
+                    const dateToUse = app.submittedAt ?? app.updatedAt;
 
                     // Fallback title if intended program/university is empty
                     const title = app.intendedProgram && app.intendedUniversity
@@ -165,9 +175,9 @@ export default function ApplicationHistoryPage() {
                 });
 
                 setApplications(formattedApps);
-            } catch (err: any) {
+            } catch (err: unknown) {
                 console.error("Fetch Error:", err);
-                setError(err.message || "An unexpected error occurred.");
+                setError(err instanceof Error ? err.message : "An unexpected error occurred.");
             } finally {
                 setIsLoading(false);
             }
@@ -235,7 +245,7 @@ export default function ApplicationHistoryPage() {
                     <div className="text-center py-12 bg-white rounded-[2rem] border border-slate-100 shadow-sm">
                         <FileText className="h-12 w-12 text-slate-300 mx-auto mb-4" />
                         <h3 className="text-lg font-bold text-slate-900">No applications found</h3>
-                        <p className="text-slate-500 mt-1">You haven't started any applications yet.</p>
+                        <p className="text-slate-500 mt-1">You have not started any applications yet.</p>
                     </div>
                 )}
             </div>
