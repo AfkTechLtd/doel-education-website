@@ -30,7 +30,14 @@
       "Bash(grep -E \"\\\\.ts$\")",
       "Bash(npx next:*)",
       "Bash(npx eslint:*)",
-      "Bash(xargs grep:*)"
+      "Bash(xargs grep:*)",
+      "Bash(ls \"E:/Code V2/doel-education/src/app/\\(dashboard\\)/\")",
+      "Bash(sed -n '185,205p' \"E:/Code V2/doel-education/src/app/\\(dashboard\\)/student/application/history/page.tsx\")",
+      "Bash(sed -n '115,130p' \"E:/Code V2/doel-education/src/app/\\(dashboard\\)/student/application/details/[id]/page.tsx\")",
+      "Bash(sed -n '100,115p' \"E:/Code V2/doel-education/src/components/common/documents/VaultDocumentSelector.tsx\")",
+      "Bash(sed -n '70,90p' \"E:/Code V2/doel-education/src/components/dashboard/student/StudentDocumentDeleteModal.tsx\")",
+      "Bash(sed -n '890,896p' \"E:/Code V2/doel-education/src/app/\\(dashboard\\)/student/application/page.tsx\")",
+      "Bash(sed -n '933,940p' \"E:/Code V2/doel-education/src/app/\\(dashboard\\)/student/application/page.tsx\")"
     ]
   }
 }

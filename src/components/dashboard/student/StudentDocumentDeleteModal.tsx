@@ -1,6 +1,6 @@
 "use client";
 
-import { X } from "lucide-react";
+import { Loader2, X } from "lucide-react";
 import type { DocumentLinkUsage } from "@/lib/documents/types";
 
 type StudentDocumentDeleteModalProps = {
@@ -73,8 +73,9 @@ export default function StudentDocumentDeleteModal({
         </div>
 
         {isLoadingUsage ? (
-          <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 font-inter text-sm text-slate-500">
-            Checking document usage...
+          <div className="flex items-center gap-2.5 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3">
+            <Loader2 className="h-4 w-4 animate-spin text-slate-400" />
+            <span className="animate-pulse font-inter text-sm text-slate-500">Checking document usage...</span>
           </div>
         ) : isLinked ? (
           <div className="space-y-3 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3">

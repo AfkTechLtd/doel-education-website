@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation";
-import { listStudentResourceTemplatesByCategory } from "@/actions/resources";
+import { getCachedResourceTemplatesByCategory } from "@/lib/data/resources";
 import StudentCategoryTemplateGallery from "@/components/dashboard/student/StudentCategoryTemplateGallery";
 import DashboardPageHeader from "@/components/dashboard/shared/DashboardPageHeader";
 import { requireRole } from "@/lib/auth";
@@ -13,17 +13,11 @@ export default async function StudentResourceCategoryPage({
   await requireRole([ROLES.STUDENT]);
 
   const { category } = await params;
-  const resourcesResult = await listStudentResourceTemplatesByCategory(category);
+  const payload = await getCachedResourceTemplatesByCategory(category);
 
-  if (!resourcesResult.success && resourcesResult.error === "Resource category not found.") {
-    notFound();
-  }
+  if (!payload) notFound();
 
-  if (!resourcesResult.success || !resourcesResult.data) {
-    throw new Error(resourcesResult.error ?? "Failed to load resource templates.");
-  }
-
-  const { resource, templates } = resourcesResult.data;
+  const { resource, templates } = payload;
 
   return (
     <div className="space-y-8">
