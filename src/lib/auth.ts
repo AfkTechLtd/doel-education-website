@@ -1,3 +1,4 @@
+import { cache } from "react";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { prisma } from "@/lib/prisma";
@@ -33,7 +34,9 @@ export async function getSession() {
 // Returns null if no session or user not found in DB.
 // ============================================================
 
-export async function getUser(): Promise<AuthUser | null> {
+// Wrapped with React cache() so that multiple callers within the same request
+// (e.g. requireRole + getCurrentStudentContext + API middleware) share one result.
+export const getUser = cache(async (): Promise<AuthUser | null> => {
   const supabase = await createClient();
   const {
     data: { user: supabaseUser },
@@ -47,7 +50,7 @@ export async function getUser(): Promise<AuthUser | null> {
   });
 
   return user;
-}
+});
 
 // ============================================================
 // requireAuth
