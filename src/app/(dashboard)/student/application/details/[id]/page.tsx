@@ -1,7 +1,5 @@
-"use client";
-
-import { useEffect, useState } from "react";
-import { useParams } from "next/navigation";
+import Link from "next/link";
+import { notFound } from "next/navigation";
 import {
     User,
     GraduationCap,
@@ -10,8 +8,6 @@ import {
     CheckCircle2,
     ClipboardCheck,
     ChevronLeft,
-    Loader2,
-    AlertTriangle,
     Activity,
     Users,
     MessageSquare,
@@ -21,25 +17,13 @@ import {
     type LucideIcon,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import Link from "next/link";
+import { requireRole } from "@/lib/auth";
+import { ROLES } from "@/lib/constants";
+import { prisma } from "@/lib/prisma";
 
 // --- TYPES ---
 
 type SectionData = Record<string, string | undefined>;
-
-interface ApplicationSection {
-    id: string;
-    sectionNumber: string;
-    data: SectionData;
-    isComplete: boolean;
-}
-
-interface Application {
-    id: string;
-    status: string;
-    submittedAt: string | null;
-    sections: ApplicationSection[];
-}
 
 // --- HELPERS ---
 
@@ -76,77 +60,51 @@ const LongField = ({ label, value }: { label: string; value?: string }) => (
     </div>
 );
 
-function getSectionData(sections: ApplicationSection[], sectionNumber: string): SectionData {
+function getSectionData(sections: { sectionNumber: string; data: SectionData }[], sectionNumber: string): SectionData {
     return sections.find(s => s.sectionNumber === sectionNumber)?.data ?? {};
 }
 
-// --- MAIN PAGE ---
+// --- DATA FETCHING ---
 
-export default function ApplicationDetailsPage() {
-    const params = useParams();
-    const id = params?.id as string;
+async function getApplication(id: string, userId: string) {
+    const application = await prisma.application.findUnique({
+        where: { id },
+        include: {
+            sections: { select: { sectionNumber: true, data: true, isComplete: true } },
+            student: { select: { userId: true } },
+        },
+    });
 
-    const [application, setApplication] = useState<Application | null>(null);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState<string | null>(null);
+    if (!application) return null;
 
-    useEffect(() => {
-        if (!id) return;
+    // IDOR check — student may only view their own application
+    if (application.student.userId !== userId) return null;
 
-        const fetchApplicationDetails = async () => {
-            setLoading(true);
-            setError(null);
-            try {
-                const response = await fetch(`/api/student/application/details/${id}`);
-                if (!response.ok) {
-                    throw new Error("Failed to fetch application details");
-                }
-                const data = await response.json();
-                setApplication(data);
-            } catch (err: unknown) {
-                console.error("Fetch error:", err);
-                setError(err instanceof Error ? err.message : "An unexpected error occurred");
-            } finally {
-                setLoading(false);
-            }
-        };
+    return application;
+}
 
-        fetchApplicationDetails();
-    }, [id]);
+// --- PAGE ---
 
-    if (loading) {
-        return (
-            <div className="flex flex-col items-center justify-center min-h-[60vh] space-y-4">
-                <Loader2 className="h-12 w-12 text-[#0f766e] animate-spin" />
-                <p className="text-slate-500 font-medium animate-pulse">Loading application details...</p>
-            </div>
-        );
-    }
+export default async function ApplicationDetailsPage({
+    params,
+}: {
+    params: Promise<{ id: string }>;
+}) {
+    const [user, { id }] = await Promise.all([
+        requireRole([ROLES.STUDENT]),
+        params,
+    ]);
 
-    if (error || !application) {
-        return (
-            <div className="max-w-xl mx-auto py-20 text-center">
-                <div className="h-20 w-20 bg-red-50 text-red-500 rounded-full flex items-center justify-center mx-auto mb-6">
-                    <AlertTriangle className="h-10 w-10" />
-                </div>
-                <h2 className="text-2xl font-bold text-slate-900 mb-2">Something went wrong</h2>
-                <p className="text-slate-500 mb-8">{error || "We couldn't find the application you're looking for."}</p>
-                <Link
-                    href="/student/application/history"
-                    className="bg-[#0f766e] text-white px-8 py-3 rounded-2xl font-bold shadow-lg shadow-teal-100 hover:scale-[1.02] transition-all inline-block"
-                >
-                    Back to History
-                </Link>
-            </div>
-        );
-    }
+    const application = await getApplication(id, user.id);
+    if (!application) notFound();
 
-    const s1 = getSectionData(application.sections, "SECTION_1");
-    const s2 = getSectionData(application.sections, "SECTION_2");
-    const s3 = getSectionData(application.sections, "SECTION_3");
-    const s4 = getSectionData(application.sections, "SECTION_4");
+    const sections = application.sections as { sectionNumber: string; data: SectionData; isComplete: boolean }[];
+    const s1 = getSectionData(sections, "SECTION_1");
+    const s2 = getSectionData(sections, "SECTION_2");
+    const s3 = getSectionData(sections, "SECTION_3");
+    const s4 = getSectionData(sections, "SECTION_4");
 
-    const recsRequired = parseInt(s3.recommendationsRequired || "0");
+    const recsRequired = parseInt(s3.recommendationsRequired ?? "0");
     const hasDisclosure =
         s4.hasCriminalRecord === "true" ||
         s4.hasAcademicViolation === "true" ||
@@ -185,7 +143,7 @@ export default function ApplicationDetailsPage() {
                 </div>
             </div>
 
-            {/* ── STEP 1: Personal, Academic, Program ── */}
+            {/* ── STEP 1 ── */}
             <DetailSection icon={User} title="Personal Information">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-y-8 gap-x-12">
                     <Field label="Legal Full Name" value={s1.name} />
@@ -221,7 +179,7 @@ export default function ApplicationDetailsPage() {
                 </div>
             </DetailSection>
 
-            {/* ── STEP 2: Tests, Scores, SOP, Extracurricular ── */}
+            {/* ── STEP 2 ── */}
             <DetailSection icon={ClipboardCheck} title="Test Requirements by Program">
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-4">
                     {(["SAT", "ACT", "TOEFL", "IELTS", "GRE", "GMAT"] as const).map((test) => {
@@ -267,7 +225,7 @@ export default function ApplicationDetailsPage() {
                 </div>
             </DetailSection>
 
-            {/* ── STEP 3: Family, Recommendations, Scholarships ── */}
+            {/* ── STEP 3 ── */}
             <DetailSection icon={Users} title="Family Information">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-y-8 gap-x-12">
                     <Field label="Father's Full Name" value={s3.fatherName} />
@@ -287,9 +245,7 @@ export default function ApplicationDetailsPage() {
                     <Field label="Number of Recommendations Required" value={s3.recommendationsRequired} />
                     {s3.requirementNotes && <LongField label="Program-Specific Requirements" value={s3.requirementNotes} />}
                 </div>
-
                 <div className="space-y-8">
-                    {/* Recommender 1 — always shown if name exists */}
                     {s3.rec1Name && (
                         <div className="p-6 bg-slate-50 rounded-2xl">
                             <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4">Recommender 1</p>
@@ -340,7 +296,7 @@ export default function ApplicationDetailsPage() {
                 </div>
             </DetailSection>
 
-            {/* ── STEP 4: Supplemental, Conduct, Signature ── */}
+            {/* ── STEP 4 ── */}
             <DetailSection icon={HelpCircle} title="Additional / Supplemental Questions">
                 <div className="space-y-8">
                     <LongField label="Why this university?" value={s4.whyThisUniversity} />
@@ -366,7 +322,7 @@ export default function ApplicationDetailsPage() {
                 </div>
             </DetailSection>
 
-            {/* Signature card */}
+            {/* Signature */}
             <div className="bg-white rounded-[2.5rem] p-8 border border-slate-100 shadow-sm">
                 <div className="flex items-center gap-4 mb-8">
                     <div className="p-3 bg-teal-50 rounded-2xl text-[#0f766e]"><PenTool className="h-6 w-6" /></div>
