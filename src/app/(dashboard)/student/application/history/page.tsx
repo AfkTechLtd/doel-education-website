@@ -1,6 +1,3 @@
-"use client";
-
-import { useState, useEffect } from "react";
 import Link from "next/link";
 import {
     FileText,
@@ -12,16 +9,17 @@ import {
     Calendar,
     Search,
     Filter,
-    Loader2,
-    AlertTriangle,
     PauseCircle,
     XCircle,
     type LucideIcon
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { requireRole } from "@/lib/auth";
+import { ROLES } from "@/lib/constants";
+import { prisma } from "@/lib/prisma";
 
 // --- TYPES ---
-// Matches your Prisma ApplicationStatus enum
+
 type ApplicationStatus = "NOT_STARTED" | "IN_PROGRESS" | "UNDER_REVIEW" | "APPROVED" | "REJECTED" | "ON_HOLD";
 
 interface Application {
@@ -31,20 +29,10 @@ interface Application {
     status: ApplicationStatus;
     dateLabel: string;
     dateValue: string;
-    requiresAttention?: boolean;
-    dueDate?: string;
-}
-
-interface RawApplication {
-    id: string;
-    status: string;
-    submittedAt: string | null;
-    updatedAt: string;
-    intendedProgram?: string;
-    intendedUniversity?: string;
 }
 
 // --- COMPONENTS ---
+
 const StatusBadge = ({ status }: { status: ApplicationStatus }) => {
     const styles: Record<ApplicationStatus, string> = {
         NOT_STARTED: "bg-slate-50 text-slate-700 border-slate-200",
@@ -73,7 +61,7 @@ const StatusBadge = ({ status }: { status: ApplicationStatus }) => {
         ON_HOLD: PauseCircle,
     };
 
-    const Icon = IconMap[status] || AlertCircle;
+    const Icon = IconMap[status] ?? AlertCircle;
 
     return (
         <span className={cn(
@@ -113,12 +101,6 @@ const ApplicationCard = ({ app }: { app: Application }) => {
                     </div>
                 </div>
                 <div className="flex flex-col md:items-end gap-4">
-                    {app.requiresAttention && (
-                        <div className="flex items-center gap-2 text-red-600">
-                            <span className="text-[10px] font-bold uppercase tracking-tighter">Requires Attention</span>
-                            <span className="text-xs font-medium text-slate-500">Due in {app.dueDate}</span>
-                        </div>
-                    )}
                     <Link href={destinationUrl}>
                         {isDraft ? (
                             <button className="bg-[#0f766e] text-white px-8 py-3.5 rounded-2xl font-bold text-sm shadow-lg shadow-teal-100 hover:scale-[1.02] active:scale-95 transition-all flex items-center gap-2">
@@ -136,82 +118,50 @@ const ApplicationCard = ({ app }: { app: Application }) => {
     );
 };
 
-export default function ApplicationHistoryPage() {
-    const [applications, setApplications] = useState<Application[]>([]);
-    const [isLoading, setIsLoading] = useState(true);
-    const [error, setError] = useState<string | null>(null);
+// --- DATA FETCHING ---
 
-    useEffect(() => {
-        const fetchApplications = async () => {
-            try {
-                const response = await fetch('/api/student/application/list');
-                if (!response.ok) {
-                    throw new Error("Failed to load applications");
-                }
-                const data = await response.json();
+async function getApplications(userId: string): Promise<Application[]> {
+    const profile = await prisma.studentProfile.findUnique({
+        where: { userId },
+        select: {
+            application: {
+                select: {
+                    id: true,
+                    status: true,
+                    submittedAt: true,
+                    updatedAt: true,
+                    intendedProgram: true,
+                    intendedUniversity: true,
+                },
+            },
+        },
+    });
 
-                // Transform DB data into frontend UI format
-                const formattedApps = data.applications.map((app: RawApplication) => {
-                    const hasSubmitted = app.submittedAt !== null;
-                    const dateToUse = app.submittedAt ?? app.updatedAt;
+    if (!profile?.application) return [];
 
-                    // Fallback title if intended program/university is empty
-                    const title = app.intendedProgram && app.intendedUniversity
-                        ? `${app.intendedProgram} at ${app.intendedUniversity}`
-                        : "General Admission Application";
+    const app = profile.application;
+    const hasSubmitted = app.submittedAt !== null;
+    const dateToUse = app.submittedAt ?? app.updatedAt;
 
-                    return {
-                        id: app.id,
-                        title: title,
-                        type: "UNIVERSITY", // You can update this later if you add scholarship types to DB
-                        status: app.status as ApplicationStatus,
-                        dateLabel: hasSubmitted ? "Submitted" : "Last edited",
-                        dateValue: new Date(dateToUse).toLocaleDateString(undefined, {
-                            year: 'numeric',
-                            month: 'short',
-                            day: 'numeric'
-                        }),
-                    };
-                });
+    return [{
+        id: app.id,
+        title: app.intendedProgram && app.intendedUniversity
+            ? `${app.intendedProgram} at ${app.intendedUniversity}`
+            : "General Admission Application",
+        type: "UNIVERSITY",
+        status: app.status as ApplicationStatus,
+        dateLabel: hasSubmitted ? "Submitted" : "Last edited",
+        dateValue: new Date(dateToUse).toLocaleDateString(undefined, {
+            year: "numeric", month: "short", day: "numeric",
+        }),
+    }];
+}
 
-                setApplications(formattedApps);
-            } catch (err: unknown) {
-                console.error("Fetch Error:", err);
-                setError(err instanceof Error ? err.message : "An unexpected error occurred.");
-            } finally {
-                setIsLoading(false);
-            }
-        };
+// --- PAGE ---
 
-        fetchApplications();
-    }, []);
-
-    if (isLoading) {
-        return (
-            <div className="flex flex-col items-center justify-center min-h-[60vh] space-y-4">
-                <Loader2 className="h-12 w-12 text-[#0f766e] animate-spin" />
-                <p className="text-slate-500 font-medium animate-pulse">Loading your applications...</p>
-            </div>
-        );
-    }
-
-    if (error) {
-        return (
-            <div className="max-w-xl mx-auto py-20 text-center">
-                <div className="h-20 w-20 bg-red-50 text-red-500 rounded-full flex items-center justify-center mx-auto mb-6">
-                    <AlertTriangle className="h-10 w-10" />
-                </div>
-                <h2 className="text-2xl font-bold text-slate-900 mb-2">Failed to load history</h2>
-                <p className="text-slate-500 mb-8">{error}</p>
-                <button
-                    onClick={() => window.location.reload()}
-                    className="bg-[#0f766e] text-white px-8 py-3 rounded-2xl font-bold shadow-lg shadow-teal-100 hover:scale-[1.02] transition-all inline-block"
-                >
-                    Try Again
-                </button>
-            </div>
-        );
-    }
+export default async function ApplicationHistoryPage() {
+    const user = await requireRole([ROLES.STUDENT]);
+    const applications = await getApplications(user.id);
 
     return (
         <div className="max-w-6xl mx-auto py-8 px-4 sm:px-6 lg:px-8 bg-slate-50 min-h-screen">
@@ -250,7 +200,6 @@ export default function ApplicationHistoryPage() {
                 )}
             </div>
 
-            {/* Only show the 'Start New Application' block if they don't have an active one */}
             {applications.length === 0 && (
                 <div className="mt-16 text-center py-12 border-2 border-dashed border-slate-200 rounded-[3rem]">
                     <div className="h-16 w-16 bg-slate-50 rounded-2xl flex items-center justify-center text-slate-300 mx-auto mb-4">
