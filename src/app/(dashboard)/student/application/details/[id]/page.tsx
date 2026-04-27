@@ -25,7 +25,6 @@ import { prisma } from "@/lib/prisma";
 
 type SectionData = Record<string, string | undefined>;
 
-// --- HELPERS ---
 
 const DetailSection = ({ icon: Icon, title, children }: { icon: LucideIcon; title: string; children: React.ReactNode }) => (
     <section className="bg-white rounded-[2.5rem] border border-slate-100 p-8 shadow-sm mb-8">
