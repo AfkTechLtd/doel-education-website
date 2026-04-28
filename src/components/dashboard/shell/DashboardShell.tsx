@@ -45,7 +45,7 @@ export default function DashboardShell({
       ) : null}
 
       <div className="lg:pl-72">
-        <DashboardTopbar onOpenSidebar={() => setMobileOpen(true)} />
+        {/* <DashboardTopbar onOpenSidebar={() => setMobileOpen(true)} /> */}
         <main className="px-4 py-6 sm:px-6 lg:px-8 lg:py-8">{children}</main>
       </div>
     </div>

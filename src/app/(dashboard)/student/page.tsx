@@ -51,7 +51,7 @@ const StatusBadge = ({ status, type }: { status: string; type: string }) => {
 
   return (
     <span className={cn(
-      "flex items-center gap-1.5 px-3 py-1 rounded-full border text-[10px] font-bold uppercase tracking-wider whitespace-nowrap",
+      "flex items-center gap-1.5 px-2.5 py-0.5 rounded-full border text-[9px] font-bold uppercase tracking-wider whitespace-nowrap",
       styles[type as keyof typeof styles]
     )}>
       <div className={cn("h-1.5 w-1.5 rounded-full", type === 'success' ? 'bg-[#0f766e]' : type === 'warning' ? 'bg-orange-500' : 'bg-red-500')} />
@@ -61,18 +61,18 @@ const StatusBadge = ({ status, type }: { status: string; type: string }) => {
 };
 
 const DashboardCard = ({ title, value, subtext, icon: Icon, actionLabel, actionHref }: any) => (
-  <div className="bg-white rounded-[2.5rem] border border-slate-100 p-8 shadow-sm hover:shadow-md transition-all group">
-    <div className="flex items-start justify-between mb-6">
-      <div className="p-3 bg-teal-50 rounded-2xl text-[#0f766e]">
-        <Icon className="h-6 w-6" />
+  <div className="bg-white rounded-3xl border border-slate-100 p-5 shadow-sm hover:shadow-md transition-all group">
+    <div className="flex items-start justify-between mb-3">
+      <div className="p-2 bg-teal-50 rounded-xl text-[#0f766e]">
+        <Icon className="h-5 w-5" />
       </div>
-      {value && <span className="text-3xl font-bold text-slate-900">{value}</span>}
+      {value && <span className="text-2xl font-bold text-slate-900">{value}</span>}
     </div>
-    <h3 className="text-xl font-bold text-slate-900 mb-2">{title}</h3>
-    <p className="text-slate-500 text-sm mb-6 leading-relaxed">{subtext}</p>
+    <h3 className="text-lg font-bold text-slate-900 mb-1">{title}</h3>
+    <p className="text-slate-500 text-xs mb-3 leading-relaxed">{subtext}</p>
     {actionLabel && (
-      <Link href={actionHref ? actionHref : ""} className="flex items-center gap-2 text-[#0f766e] font-bold text-sm group-hover:gap-3 transition-all">
-        {actionLabel} <ArrowRight className="h-4 w-4" />
+      <Link href={actionHref ? actionHref : ""} className="flex items-center gap-1.5 text-[#0f766e] font-bold text-xs group-hover:gap-2 transition-all">
+        {actionLabel} <ArrowRight className="h-3 w-3" />
       </Link>
     )}
   </div>
@@ -84,48 +84,49 @@ export default async function StudentDashboardPage() {
   const user = await requireRole([ROLES.STUDENT]);
 
   return (
-    <div className="max-w-7xl mx-auto space-y-8 py-4">
+    <div className="max-w-7xl mx-auto space-y-6 py-2">
       {/* Header Section */}
-      <div className="space-y-2 text-center">
+      <div className="space-y-1 text-center">
         <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#0f766e]">Dashboard</p>
-        <h1 className="text-3xl font-bold tracking-tighter text-slate-900">
-          Welcome back, <br /><span className="text-5xl text-[#0f766e]">{user.name}.</span>
+        <h1 className="text-2xl font-bold tracking-tighter text-slate-900">
+          Welcome back, <span className="text-3xl text-[#0f766e]">{user.name}.</span>
         </h1>
       </div>
 
-
       {/* Left/Main Column */}
+      {/* Left/Main Column & Sidebar Grid */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
 
-      {/* Progress Tracker Card */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        <div className="lg:col-span-2 space-y-8">
-          <div className="bg-white rounded-[2.5rem] border border-slate-100 p-10 shadow-sm relative overflow-hidden">
-            <div className="flex justify-between items-end mb-8">
+        {/* Left Column (2 Cards) */}
+        <div className="lg:col-span-2 space-y-5 flex flex-col">
+          {/* Progress Tracker Card */}
+          <div className="bg-white rounded-3xl border border-slate-100 p-6 shadow-sm relative overflow-hidden">
+            <div className="flex justify-between items-end mb-5">
               <div>
-                <div className="flex items-center gap-3">
-                  <Target className="h-7 w-7 text-[#0f766e]" strokeWidth={2.5} />
-                  <h2 className="text-2xl font-bold text-slate-900">Application Progress</h2>
-                </div>                <p className="text-slate-500 mt-2 max-w-md">You are on track to complete your primary application by Nov 1st.</p>
-                {/* CONDITIONAL EDIT/CONTINUE BUTTON */}
+                <div className="flex items-center gap-2">
+                  <Target className="h-5 w-5 text-[#0f766e]" strokeWidth={2.5} />
+                  <h2 className="text-lg font-bold text-slate-900">Application Progress</h2>
+                </div>
+                <p className="text-slate-500 mt-1 text-xs max-w-sm">You are on track to complete your primary application by Nov 1st.</p>
                 {90 < 100 && (
                   <Link
                     href="/student/application"
-                    className="mt-6 inline-flex items-center gap-2 bg-[#0f766e] text-white px-6 py-3 rounded-2xl font-bold text-sm shadow-lg shadow-teal-100 hover:scale-[1.02] active:scale-95 transition-all"
+                    className="mt-4 inline-flex items-center gap-2 bg-[#0f766e] text-white px-4 py-2 rounded-xl font-bold text-xs shadow-md shadow-teal-100 hover:scale-[1.02] active:scale-95 transition-all"
                   >
-                    <Edit3 className="h-4 w-4" /> Continue Application
+                    <Edit3 className="h-3.5 w-3.5" /> Continue Application
                   </Link>
                 )}
               </div>
-              <div className="text-7xl font-black text-[#0f766e] tracking-tighter">
-                65<span className="text-4xl opacity-40">%</span>
+              <div className="text-5xl font-black text-[#0f766e] tracking-tighter leading-none">
+                65<span className="text-2xl opacity-40">%</span>
               </div>
             </div>
 
-            <div className="space-y-3">
-              <div className="h-3 w-full bg-slate-100 rounded-full overflow-hidden">
+            <div className="space-y-2">
+              <div className="h-2 w-full bg-slate-100 rounded-full overflow-hidden">
                 <div className="h-full bg-[#0f766e] rounded-full transition-all duration-1000" style={{ width: '65%' }} />
               </div>
-              <div className="flex justify-between text-[10px] font-bold uppercase tracking-widest text-slate-400">
+              <div className="flex justify-between text-[9px] font-bold uppercase tracking-widest text-slate-400">
                 <span>Started</span>
                 <span>Submission Goal</span>
               </div>
@@ -143,37 +144,39 @@ export default async function StudentDashboardPage() {
         </div>
 
         {/* Sidebar Column: Notification Center */}
-        <div className="bg-white rounded-[2.5rem] border border-slate-100 p-8 shadow-sm flex flex-col h-full hover:shadow-md transition-shadow">
+        <div className="bg-white rounded-3xl border border-slate-100 p-5 shadow-sm flex flex-col h-full hover:shadow-md transition-shadow">
           {/* Header */}
-          <div className="flex items-center gap-4 mb-6">
-            <div className="p-3 bg-teal-50 rounded-2xl text-[#0f766e]">
-              <Bell className="h-6 w-6" />
+          <div className="flex items-center gap-3 mb-4">
+            <div className="p-2 bg-teal-50 rounded-xl text-[#0f766e]">
+              <Bell className="h-5 w-5" />
             </div>
             <div>
-              <h3 className="text-xl font-bold text-slate-900">Notifications</h3>
-              <p className="text-slate-500 text-sm">2 unread updates</p>
+              <h3 className="text-lg font-bold text-slate-900">Notifications</h3>
+              <p className="text-slate-500 text-xs">2 unread updates</p>
             </div>
           </div>
 
-          {/* List of Notifications */}
-          <div className="flex-1 space-y-4 mb-6">
-            {NOTIFICATIONS.map((note) => (
-              <div key={note.id} className="group flex gap-3 items-start p-3 -mx-3 rounded-2xl hover:bg-slate-50 transition-colors">
+          {/* List of Notifications (Limited to 2 items!) */}
+          <div className="flex-1 space-y-2 mb-4">
+            {NOTIFICATIONS.slice(0, 2).map((note) => (
+              <div key={note.id}
+                className="group relative flex gap-2.5 items-start p-2 -mx-2 rounded-xl hover:bg-slate-50 transition-colors mb-2 pb-4 last:mb-0 last:pb-2 after:absolute after:bottom-0 after:left-1/2 after:-translate-x-1/2 after:w-1/2 after:h-px after:bg-gradient-to-r after:from-transparent after:via-slate-200 after:to-transparent last:after:hidden"
+              >
                 <div className={cn(
-                  "mt-1.5 h-2 w-2 rounded-full shrink-0",
+                  "mt-1.5 h-1.5 w-1.5 rounded-full shrink-0",
                   note.unread ? "bg-[#0f766e]" : "bg-slate-200"
                 )} />
                 <div>
                   <h4 className={cn(
-                    "text-sm font-bold",
+                    "text-xs font-bold",
                     note.unread ? "text-slate-900" : "text-slate-600"
                   )}>
                     {note.title}
                   </h4>
-                  <p className="text-slate-500 text-xs mt-1 leading-relaxed line-clamp-2">
+                  <p className="text-slate-500 text-[11px] mt-0.5 leading-relaxed line-clamp-2">
                     {note.message}
                   </p>
-                  <span className="text-slate-400 text-[10px] font-bold uppercase tracking-wider mt-2 block">
+                  <span className="text-slate-400 text-[9px] font-bold uppercase tracking-wider mt-1 block">
                     {note.time}
                   </span>
                 </div>
@@ -184,43 +187,40 @@ export default async function StudentDashboardPage() {
           {/* Action Button */}
           <Link
             href="/student/notifications"
-            className="flex items-center justify-center gap-2 text-[#0f766e] bg-teal-50/50 hover:bg-teal-50 py-3.5 rounded-2xl font-bold text-sm transition-all group mt-auto"
+            className="flex items-center justify-center gap-2 text-[#0f766e] bg-teal-50/50 hover:bg-teal-50 py-2.5 rounded-xl font-bold text-xs transition-all group mt-auto"
           >
-            View All Notifications <ArrowRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
+            View All <ArrowRight className="h-3.5 w-3.5 group-hover:translate-x-1 transition-transform" />
           </Link>
         </div>
 
       </div>
-
       {/* Requirement Checklist (Status Table) */}
-      <div className="bg-white rounded-[2.5rem] border border-slate-100 shadow-sm overflow-hidden">
-        <div className="p-8 border-b border-slate-50 flex justify-between items-center">
-          <div className="flex items-center gap-4">
-            <div className="p-2.5 bg-teal-50 rounded-xl text-[#0f766e]">
+      <div className="bg-white rounded-3xl border border-slate-100 shadow-sm overflow-hidden">
+        <div className="p-5 border-b border-slate-50 flex justify-between items-center">
+          <div className="flex items-center gap-3">
+            <div className="p-2 bg-teal-50 rounded-xl text-[#0f766e]">
               <ListChecks className="h-5 w-5" />
             </div>
-            <h2 className="text-2xl font-bold text-slate-900">Requirement Checklist</h2>
-          </div>          <button className="text-[#0f766e] font-bold text-sm flex items-center gap-2 hover:opacity-70">
-
-          </button>
+            <h2 className="text-lg font-bold text-slate-900">Requirement Checklist</h2>
+          </div>
         </div>
         <div className="overflow-x-auto">
           <table className="w-full text-left">
             <thead>
-              <tr className="text-[10px] font-bold uppercase tracking-widest text-slate-400">
-                <th className="px-8 py-6">Status</th>
-                <th className="px-8 py-6">Details</th>
-                <th className="px-8 py-6 text-right">Date</th>
+              <tr className="text-[9px] font-bold uppercase tracking-widest text-slate-400 bg-slate-50/50">
+                <th className="px-5 py-3">Status</th>
+                <th className="px-5 py-3">Details</th>
+                <th className="px-5 py-3 text-right">Date</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-50">
               {CHECKLIST_ITEMS.map((item, idx) => (
                 <tr key={idx} className="group hover:bg-slate-50/50 transition-colors">
-                  <td className="px-8 py-6">
+                  <td className="px-5 py-3">
                     <StatusBadge status={item.status} type={item.type} />
                   </td>
-                  <td className="px-8 py-6 font-medium text-slate-700">{item.details}</td>
-                  <td className="px-8 py-6 text-right text-sm text-slate-400 font-medium">{item.date}</td>
+                  <td className="px-5 py-3 text-xs font-medium text-slate-700">{item.details}</td>
+                  <td className="px-5 py-3 text-right text-xs text-slate-400 font-medium">{item.date}</td>
                 </tr>
               ))}
             </tbody>
