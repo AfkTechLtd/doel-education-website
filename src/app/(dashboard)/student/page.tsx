@@ -84,12 +84,12 @@ export default async function StudentDashboardPage() {
   const user = await requireRole([ROLES.STUDENT]);
 
   return (
-    <div className="max-w-7xl mx-auto space-y-10 py-6">
+    <div className="max-w-7xl mx-auto space-y-8 py-4">
       {/* Header Section */}
       <div className="space-y-2 text-center">
         <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#0f766e]">Dashboard</p>
-        <h1 className="text-5xl font-bold tracking-tighter text-slate-900">
-          Welcome back, <br /><span className="text-6xl text-[#0f766e]">{user.name}.</span>
+        <h1 className="text-3xl font-bold tracking-tighter text-slate-900">
+          Welcome back, <br /><span className="text-5xl text-[#0f766e]">{user.name}.</span>
         </h1>
       </div>
 
