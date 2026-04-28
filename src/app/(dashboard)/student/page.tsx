@@ -1,18 +1,15 @@
 import {
-
   ArrowRight,
   Edit3,
   FolderOpen,
   Bell,
-  School,
-  Plus
+  ListChecks,
+  Target
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { requireRole } from "@/lib/auth";
 import { ROLES } from "@/lib/constants";
 import Link from "next/link";
-
-
 
 const CHECKLIST_ITEMS = [
   { status: "Received", details: "Official Transcript (High School)", date: "Oct 12, 2023", type: "success" },
@@ -21,6 +18,29 @@ const CHECKLIST_ITEMS = [
   { status: "Action Required", details: "SAT Scores (Official Report)", date: "Pending", type: "error" },
 ];
 
+const NOTIFICATIONS = [
+  {
+    id: 1,
+    title: "Financial Aid Update",
+    message: "Your FAFSA application has been successfully processed by the office.",
+    time: "2 hours ago",
+    unread: true,
+  },
+  {
+    id: 2,
+    title: "Action Required",
+    message: "Please submit your official SAT scores by Nov 1st.",
+    time: "1 day ago",
+    unread: true,
+  },
+  {
+    id: 3,
+    title: "Essay Reviewed",
+    message: "Your counselor has left preliminary comments on your personal essay draft.",
+    time: "3 days ago",
+    unread: false,
+  }
+];
 
 const StatusBadge = ({ status, type }: { status: string; type: string }) => {
   const styles = {
@@ -73,16 +93,19 @@ export default async function StudentDashboardPage() {
         </h1>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* Left/Main Column */}
-        <div className="lg:col-span-2 space-y-8">
 
-          {/* Progress Tracker Card */}
+      {/* Left/Main Column */}
+
+      {/* Progress Tracker Card */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="lg:col-span-2 space-y-8">
           <div className="bg-white rounded-[2.5rem] border border-slate-100 p-10 shadow-sm relative overflow-hidden">
             <div className="flex justify-between items-end mb-8">
               <div>
-                <h2 className="text-3xl font-bold text-slate-900">Application Progress</h2>
-                <p className="text-slate-500 mt-2 max-w-md">You are on track to complete your primary application by Nov 1st.</p>
+                <div className="flex items-center gap-3">
+                  <Target className="h-7 w-7 text-[#0f766e]" strokeWidth={2.5} />
+                  <h2 className="text-2xl font-bold text-slate-900">Application Progress</h2>
+                </div>                <p className="text-slate-500 mt-2 max-w-md">You are on track to complete your primary application by Nov 1st.</p>
                 {/* CONDITIONAL EDIT/CONTINUE BUTTON */}
                 {90 < 100 && (
                   <Link
@@ -109,48 +132,6 @@ export default async function StudentDashboardPage() {
             </div>
           </div>
 
-          {/* Requirement Checklist (Status Table) */}
-          <div className="bg-white rounded-[2.5rem] border border-slate-100 shadow-sm overflow-hidden">
-            <div className="p-8 border-b border-slate-50 flex justify-between items-center">
-              <h2 className="text-2xl font-bold text-slate-900">Requirement Checklist</h2>
-              <button className="text-[#0f766e] font-bold text-sm flex items-center gap-2 hover:opacity-70">
-
-              </button>
-            </div>
-            <div className="overflow-x-auto">
-              <table className="w-full text-left">
-                <thead>
-                  <tr className="text-[10px] font-bold uppercase tracking-widest text-slate-400">
-                    <th className="px-8 py-6">Status</th>
-                    <th className="px-8 py-6">Details</th>
-                    <th className="px-8 py-6 text-right">Date</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-50">
-                  {CHECKLIST_ITEMS.map((item, idx) => (
-                    <tr key={idx} className="group hover:bg-slate-50/50 transition-colors">
-                      <td className="px-8 py-6">
-                        <StatusBadge status={item.status} type={item.type} />
-                      </td>
-                      <td className="px-8 py-6 font-medium text-slate-700">{item.details}</td>
-                      <td className="px-8 py-6 text-right text-sm text-slate-400 font-medium">{item.date}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </div>
-
-        {/* Sidebar Column */}
-        <div className="space-y-8">
-          <DashboardCard
-            title="Notification Center"
-            value="2"
-            subtext="Important updates regarding your financial aid application are waiting."
-            icon={Bell}
-            actionLabel="View All Notifications"
-          />
           <DashboardCard
             title="Document Vault"
             value="4"
@@ -159,22 +140,91 @@ export default async function StudentDashboardPage() {
             actionLabel="View all documents"
             actionHref={"/student/documents"}
           />
+        </div>
 
-
-
-          {/* Quick Action Banner */}
-          <div className="bg-[#0f766e] rounded-[2.5rem] p-10 text-white shadow-xl shadow-teal-100 relative overflow-hidden group">
-            <div className="relative z-10">
-              <h3 className="text-2xl font-bold mb-2">Campus Tour Scheduling Open</h3>
-              <p className="text-teal-100 text-sm mb-6 leading-relaxed">Book your fall visit today to meet with admissions counselors in person.</p>
-              <button className="bg-white text-[#0f766e] px-8 py-4 rounded-2xl font-bold text-sm hover:scale-[1.02] transition-all">
-                Schedule Visit
-              </button>
+        {/* Sidebar Column: Notification Center */}
+        <div className="bg-white rounded-[2.5rem] border border-slate-100 p-8 shadow-sm flex flex-col h-full hover:shadow-md transition-shadow">
+          {/* Header */}
+          <div className="flex items-center gap-4 mb-6">
+            <div className="p-3 bg-teal-50 rounded-2xl text-[#0f766e]">
+              <Bell className="h-6 w-6" />
             </div>
-            <div className="absolute -right-10 -bottom-10 opacity-10 group-hover:scale-110 transition-transform duration-700">
-              <School size={200} />
+            <div>
+              <h3 className="text-xl font-bold text-slate-900">Notifications</h3>
+              <p className="text-slate-500 text-sm">2 unread updates</p>
             </div>
           </div>
+
+          {/* List of Notifications */}
+          <div className="flex-1 space-y-4 mb-6">
+            {NOTIFICATIONS.map((note) => (
+              <div key={note.id} className="group flex gap-3 items-start p-3 -mx-3 rounded-2xl hover:bg-slate-50 transition-colors">
+                <div className={cn(
+                  "mt-1.5 h-2 w-2 rounded-full shrink-0",
+                  note.unread ? "bg-[#0f766e]" : "bg-slate-200"
+                )} />
+                <div>
+                  <h4 className={cn(
+                    "text-sm font-bold",
+                    note.unread ? "text-slate-900" : "text-slate-600"
+                  )}>
+                    {note.title}
+                  </h4>
+                  <p className="text-slate-500 text-xs mt-1 leading-relaxed line-clamp-2">
+                    {note.message}
+                  </p>
+                  <span className="text-slate-400 text-[10px] font-bold uppercase tracking-wider mt-2 block">
+                    {note.time}
+                  </span>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Action Button */}
+          <Link
+            href="/student/notifications"
+            className="flex items-center justify-center gap-2 text-[#0f766e] bg-teal-50/50 hover:bg-teal-50 py-3.5 rounded-2xl font-bold text-sm transition-all group mt-auto"
+          >
+            View All Notifications <ArrowRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
+          </Link>
+        </div>
+
+      </div>
+
+      {/* Requirement Checklist (Status Table) */}
+      <div className="bg-white rounded-[2.5rem] border border-slate-100 shadow-sm overflow-hidden">
+        <div className="p-8 border-b border-slate-50 flex justify-between items-center">
+          <div className="flex items-center gap-4">
+            <div className="p-2.5 bg-teal-50 rounded-xl text-[#0f766e]">
+              <ListChecks className="h-5 w-5" />
+            </div>
+            <h2 className="text-2xl font-bold text-slate-900">Requirement Checklist</h2>
+          </div>          <button className="text-[#0f766e] font-bold text-sm flex items-center gap-2 hover:opacity-70">
+
+          </button>
+        </div>
+        <div className="overflow-x-auto">
+          <table className="w-full text-left">
+            <thead>
+              <tr className="text-[10px] font-bold uppercase tracking-widest text-slate-400">
+                <th className="px-8 py-6">Status</th>
+                <th className="px-8 py-6">Details</th>
+                <th className="px-8 py-6 text-right">Date</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-50">
+              {CHECKLIST_ITEMS.map((item, idx) => (
+                <tr key={idx} className="group hover:bg-slate-50/50 transition-colors">
+                  <td className="px-8 py-6">
+                    <StatusBadge status={item.status} type={item.type} />
+                  </td>
+                  <td className="px-8 py-6 font-medium text-slate-700">{item.details}</td>
+                  <td className="px-8 py-6 text-right text-sm text-slate-400 font-medium">{item.date}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
       </div>
     </div>

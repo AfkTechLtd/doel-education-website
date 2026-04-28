@@ -138,19 +138,19 @@ export default function DashboardSidebar({
       </nav>
 
       {/* User card + logout */}
-      <div className="mt-6 border-t border-slate-200 pt-5">
-        <div className="rounded-[1.5rem] border border-slate-200 bg-slate-50 p-4">
-          <div className="flex items-center gap-3">
-            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-primary font-inter text-sm font-semibold text-white">
+      {/* User card + logout */}
+      <div className="mt-auto border-t border-slate-200 pt-4">
+        <div className="flex items-center justify-between gap-2 rounded-2xl p-2 transition-colors hover:bg-slate-50">
+          <div className="flex min-w-0 items-center gap-3">
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary font-inter text-xs font-semibold text-white shadow-sm">
               {initials}
             </div>
             <div className="min-w-0">
               <p className="truncate font-inter text-sm font-semibold text-slate-900">
                 {userName}
               </p>
-              <p className="truncate font-inter text-xs text-slate-500">{userEmail}</p>
-              <p className="mt-0.5 font-inter text-[11px] uppercase tracking-[0.16em] text-slate-400">
-                {roleLabel}
+              <p className="truncate font-inter text-xs text-slate-500">
+                {userEmail}
               </p>
             </div>
           </div>
@@ -158,13 +158,15 @@ export default function DashboardSidebar({
           <button
             type="button"
             onClick={handleLogout}
-            className="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-2xl border border-slate-200 bg-white px-4 py-3 font-inter text-sm font-semibold text-slate-600 transition-colors hover:border-red-200 hover:bg-red-50 hover:text-red-700"
+            title="Log out"
+            className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-xl text-slate-400 transition-colors hover:bg-red-50 hover:text-red-600"
           >
             <LogOut className="h-4 w-4" strokeWidth={2} aria-hidden="true" />
-            Log out
           </button>
         </div>
       </div>
+
+
     </aside>
   );
 }
