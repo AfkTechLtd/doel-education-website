@@ -46,7 +46,8 @@ export default function DashboardSidebar({
   async function handleLogout() {
     const supabase = createClient();
     await supabase.auth.signOut();
-    router.push("/login");
+    const dest = role === "STUDENT" ? "/login" : "/staff-login";
+    router.push(dest);
     router.refresh();
   }
 
