@@ -7,6 +7,7 @@ import {
     CheckCircle2, ChevronRight, ChevronLeft, FileText, User, GraduationCap,
     ClipboardCheck, Send, Users, Award, PenTool, HelpCircle, FileCheck,
     Activity, Shield, MessageSquare, X, AlertTriangle, Info, XCircle, Loader2,
+    Banknote,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import StepIndicator from "@/components/dashboard/pages/application/StepIndicator";
@@ -349,6 +350,178 @@ const Step2Requirements = ({ formData, onChange, errors }: StepProps) => (
                     name="personalStatement" label="Statement of Purpose (max 500 words)"
                     placeholder="Describe your academic background, research interests, career goals, and why you are applying to this program..."
                     rows={15} error={errors.personalStatement} onChange={onChange} value={formData.personalStatement}
+                />
+            </div>
+        </FormSection>
+
+        {/* Section 6b — Asset Valuation */}
+        <FormSection icon={Banknote} title="Asset Valuation & Financial Standing">
+            {/* Info banner */}
+            <div className="flex items-start gap-3 rounded-2xl border border-blue-100 bg-blue-50 px-5 py-4 mb-6">
+                <Info className="h-4 w-4 text-blue-500 mt-0.5 shrink-0" />
+                <p className="text-xs text-blue-700 leading-relaxed">
+                    US universities and the USCIS require proof of sufficient funds to cover tuition and living expenses before issuing an I-20 or F-1 visa. This section documents your financial capacity. All values should be reported in <strong>USD equivalent</strong>.
+                </p>
+            </div>
+
+            <div className="space-y-8">
+                {/* Sponsor Information */}
+                <div>
+                    <h3 className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-4">Primary Financial Sponsor</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <InputField
+                            name="sponsorFullName" value={formData.sponsorFullName} onChange={onChange}
+                            label="Sponsor's Full Name" placeholder="e.g. Mohammad Rahman"
+                            error={errors.sponsorFullName}
+                        />
+                        <SelectField
+                            name="sponsorRelationship" label="Relationship to Applicant"
+                            value={formData.sponsorRelationship} onChange={onChange}
+                            options={[
+                                { value: "self", label: "Self" },
+                                { value: "father", label: "Father" },
+                                { value: "mother", label: "Mother" },
+                                { value: "spouse", label: "Spouse" },
+                                { value: "sibling", label: "Sibling" },
+                                { value: "relative", label: "Other Relative" },
+                                { value: "employer", label: "Employer / Organization" },
+                                { value: "government", label: "Government / Scholarship Body" },
+                            ]}
+                        />
+                        <InputField
+                            name="sponsorOccupation" value={formData.sponsorOccupation} onChange={onChange}
+                            label="Sponsor's Occupation / Employer" placeholder="e.g. Business Owner, Government Officer"
+                        />
+                        <InputField
+                            name="sponsorAnnualIncome" value={formData.sponsorAnnualIncome} onChange={onChange}
+                            label="Sponsor's Annual Income (USD equivalent)" placeholder="e.g. 45000"
+                            error={errors.sponsorAnnualIncome}
+                        />
+                    </div>
+                </div>
+
+                <div className="border-t border-slate-100" />
+
+                {/* Liquid Assets */}
+                <div>
+                    <h3 className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-4">Liquid Assets</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <InputField
+                            name="bankBalance" value={formData.bankBalance} onChange={onChange}
+                            label="Total Bank Balance (USD equivalent)" placeholder="e.g. 30000"
+                            error={errors.bankBalance}
+                        />
+                        <SelectField
+                            name="primaryCurrency" label="Primary Currency of Assets"
+                            value={formData.primaryCurrency} onChange={onChange}
+                            options={[
+                                { value: "BDT", label: "Bangladeshi Taka (BDT)" },
+                                { value: "USD", label: "US Dollar (USD)" },
+                                { value: "GBP", label: "British Pound (GBP)" },
+                                { value: "EUR", label: "Euro (EUR)" },
+                                { value: "CAD", label: "Canadian Dollar (CAD)" },
+                                { value: "AUD", label: "Australian Dollar (AUD)" },
+                                { value: "other", label: "Other" },
+                            ]}
+                        />
+                        <InputField
+                            name="fixedDepositAmount" value={formData.fixedDepositAmount} onChange={onChange}
+                            label="Fixed Deposits / Savings Certificates (USD equivalent)" placeholder="e.g. 15000"
+                        />
+                        <InputField
+                            name="investmentAssets" value={formData.investmentAssets} onChange={onChange}
+                            label="Stocks, Bonds & Investment Accounts (USD equivalent)" placeholder="e.g. 5000"
+                        />
+                    </div>
+                </div>
+
+                <div className="border-t border-slate-100" />
+
+                {/* Non-Liquid / Fixed Assets */}
+                <div>
+                    <h3 className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-4">Fixed / Non-Liquid Assets</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <InputField
+                            name="realEstateValue" value={formData.realEstateValue} onChange={onChange}
+                            label="Real Estate / Land Value (USD equivalent)" placeholder="e.g. 80000"
+                        />
+                        <InputField
+                            name="businessAssets" value={formData.businessAssets} onChange={onChange}
+                            label="Business / Commercial Assets (USD equivalent)" placeholder="e.g. 20000"
+                        />
+                        <InputField
+                            name="otherAssets" value={formData.otherAssets} onChange={onChange}
+                            label="Other Assets (vehicles, jewelry, etc.) (USD equivalent)" placeholder="e.g. 5000"
+                        />
+                        <InputField
+                            name="totalLiabilities" value={formData.totalLiabilities} onChange={onChange}
+                            label="Total Liabilities / Outstanding Loans (USD equivalent)" placeholder="e.g. 10000"
+                        />
+                    </div>
+                </div>
+
+                <div className="border-t border-slate-100" />
+
+                {/* Funds Available for Education */}
+                <div>
+                    <h3 className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-4">Funds Available for Education</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <InputField
+                            name="fundsAvailableForStudy" value={formData.fundsAvailableForStudy} onChange={onChange}
+                            label="Total Funds Available for Study (USD)" placeholder="e.g. 50000"
+                            error={errors.fundsAvailableForStudy}
+                        />
+                        <SelectField
+                            name="fundingSource" label="Primary Funding Source"
+                            value={formData.fundingSource} onChange={onChange}
+                            options={[
+                                { value: "personal_savings", label: "Personal Savings" },
+                                { value: "family_support", label: "Family Support" },
+                                { value: "scholarship", label: "Scholarship / Grant" },
+                                { value: "bank_loan", label: "Education Bank Loan" },
+                                { value: "employer_sponsor", label: "Employer Sponsorship" },
+                                { value: "government", label: "Government Funding" },
+                                { value: "mixed", label: "Mixed / Multiple Sources" },
+                            ]}
+                        />
+                        <InputField
+                            name="annualTuitionBudget" value={formData.annualTuitionBudget} onChange={onChange}
+                            label="Estimated Annual Tuition Budget (USD)" placeholder="e.g. 20000"
+                        />
+                        <InputField
+                            name="annualLivingBudget" value={formData.annualLivingBudget} onChange={onChange}
+                            label="Estimated Annual Living Expenses (USD)" placeholder="e.g. 12000"
+                        />
+                    </div>
+                </div>
+
+                <div className="border-t border-slate-100" />
+
+                {/* Financial Documents Availability */}
+                <div>
+                    <h3 className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-4">Supporting Financial Documents</h3>
+                    <p className="text-xs text-slate-500 mb-4">Select all financial documents you currently have available. These will be required during the I-20 / visa stage.</p>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        {[
+                            { name: "hasBankStatement",      label: "Bank Statement (last 3–6 months)", description: "Official statement from your bank showing balance history" },
+                            { name: "hasSolvencyLetter",     label: "Bank Solvency Letter",             description: "Letter from bank confirming funds are available and unencumbered" },
+                            { name: "hasIncomeTaxReturn",    label: "Income Tax Return / Certificate",  description: "Sponsor's latest tax return or tax certificate" },
+                            { name: "hasPropertyDocuments",  label: "Property / Land Documents",        description: "Title deed or valuation certificate for real estate assets" },
+                            { name: "hasSponsorLetter",      label: "Financial Sponsor Affidavit",      description: "Notarized letter from sponsor guaranteeing financial support" },
+                            { name: "hasLoanApprovalLetter", label: "Education Loan Approval Letter",   description: "Bank or lending institution approval letter (if applicable)" },
+                        ].map(({ name, label, description }) => (
+                            <CheckboxField key={name} name={name} label={label} description={description}
+                                checked={formData[name] === "true"}
+                                onChange={(e) => onChange(checkboxEvent(name, e.target.checked))}
+                            />
+                        ))}
+                    </div>
+                </div>
+
+                <TextareaField
+                    name="financialNotes" label="Additional Financial Notes (optional)"
+                    placeholder="Describe any additional financial circumstances, ongoing scholarship applications, or context the counselor should be aware of..."
+                    rows={4} onChange={onChange} value={formData.financialNotes}
                 />
             </div>
         </FormSection>
