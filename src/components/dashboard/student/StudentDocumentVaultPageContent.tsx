@@ -1,23 +1,20 @@
+// /src/components/dashboard/student/StudentDocumentVaultPageContent.tsx
 "use client";
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import DashboardPageHeader from "@/components/dashboard/shared/DashboardPageHeader";
-import type { StudentDocumentRequirement } from "@/data/student-document-requirements";
-import type { RequiredDocumentLinkItem, VaultDocumentListItem } from "@/lib/documents/types";
 import StudentDocumentUploadModal from "./StudentDocumentUploadModal";
 import StudentDocumentVault from "./StudentDocumentVault";
 
 type StudentDocumentVaultPageContentProps = {
-  documents: VaultDocumentListItem[];
-  requirements: StudentDocumentRequirement[];
-  requiredLinks: RequiredDocumentLinkItem[];
+  documents: any[]; // You can type these strictly based on the mapping in page.tsx
+  requirements: any[];
 };
 
 export default function StudentDocumentVaultPageContent({
   documents,
   requirements,
-  requiredLinks,
 }: StudentDocumentVaultPageContentProps) {
   const router = useRouter();
   const [isUploadOpen, setIsUploadOpen] = useState(false);
@@ -41,7 +38,6 @@ export default function StudentDocumentVaultPageContent({
       <StudentDocumentVault
         documents={documents}
         requirements={requirements}
-        requiredLinks={requiredLinks}
       />
 
       <StudentDocumentUploadModal

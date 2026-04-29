@@ -885,20 +885,137 @@ function ApplicationContent() {
                 const appStatus = app.status as ApplicationStatus;
                 setStatus(appStatus);
 
-                const mergedData: FormData = {};
-                if (app.sections && Array.isArray(app.sections)) {
-                    app.sections.forEach((section: ApplicationSectionData) => {
-                        Object.assign(mergedData, section.data);
+                // --- NEW TRANSLATOR: Convert Nested DB Models back to flat strings ---
+                const flatData: FormData = {};
+
+                // Helper: safely format dates for inputs (YYYY-MM-DD)
+                const formatDate = (isoString?: string) => isoString ? new Date(isoString).toISOString().split('T')[0] : undefined;
+                // Helper: convert booleans/numbers back to strings
+                const castStr = (val?: string | number | boolean | null) => (val !== null && val !== undefined) ? String(val) : undefined;
+
+                // Hub
+                flatData.targetUniversity = castStr(app.targetUniversity);
+                flatData.degreeProgram = castStr(app.degreeProgram);
+                flatData.startTerm = castStr(app.startTerm);
+                flatData.targetYear = castStr(app.targetYear);
+
+                // Personal Info
+                if (app.personalInfo) {
+                    Object.assign(flatData, {
+                        name: app.personalInfo.name || "",
+                        email: app.personalInfo.email || "",
+                        dateOfBirth: formatDate(app.personalInfo.dateOfBirth),
+                        phone: app.personalInfo.phone || "",
+                        nationality: app.personalInfo.nationality || "",
+                        gender: app.personalInfo.gender || "",
+                        address: app.personalInfo.address || ""
                     });
                 }
-                setFormData(prev => ({ ...prev, ...mergedData }));
+
+                // Academic Record
+                if (app.academicRecord) {
+                    Object.assign(flatData, {
+                        schoolName: app.academicRecord.schoolName || "",
+                        schoolCity: app.academicRecord.schoolCity || "",
+                        schoolCountry: app.academicRecord.schoolCountry || "",
+                        degreeObtained: app.academicRecord.degreeObtained || "",
+                        graduationDate: formatDate(app.academicRecord.graduationDate),
+                        fieldOfStudy: app.academicRecord.fieldOfStudy || "",
+                        gpa: castStr(app.academicRecord.gpa)
+                    });
+                }
+
+                // Test Scores
+                if (app.testScores) {
+                    const ts = app.testScores;
+                    Object.assign(flatData, {
+                        requiresSAT: castStr(ts.requiresSAT), requiresACT: castStr(ts.requiresACT),
+                        requiresTOEFL: castStr(ts.requiresTOEFL), requiresIELTS: castStr(ts.requiresIELTS),
+                        requiresGRE: castStr(ts.requiresGRE), requiresGMAT: castStr(ts.requiresGMAT),
+                        satMath: castStr(ts.satMath), satReading: castStr(ts.satReading),
+                        actComposite: castStr(ts.actComposite), toeflScore: castStr(ts.toeflScore),
+                        ieltsScore: castStr(ts.ieltsScore), greVerbal: castStr(ts.greVerbal),
+                        greQuantitative: castStr(ts.greQuantitative), gmatScore: castStr(ts.gmatScore),
+                        testDate: formatDate(ts.testDate)
+                    });
+                }
+
+                // Extracurriculars
+                if (app.extracurriculars) {
+                    Object.assign(flatData, {
+                        activities: app.extracurriculars.activities || "",
+                        leadershipRoles: app.extracurriculars.leadershipRoles || "",
+                        awardsHonors: app.extracurriculars.awardsHonors || "",
+                        communityService: app.extracurriculars.communityService || ""
+                    });
+                }
+
+                // Family Info
+                if (app.familyInfo) {
+                    Object.assign(flatData, {
+                        fatherName: app.familyInfo.fatherName || "", fatherOccupation: app.familyInfo.fatherOccupation || "", fatherEducation: app.familyInfo.fatherEducation || "",
+                        motherName: app.familyInfo.motherName || "", motherOccupation: app.familyInfo.motherOccupation || "", motherEducation: app.familyInfo.motherEducation || "",
+                        guardianName: app.familyInfo.guardianName || "", guardianPhone: app.familyInfo.guardianPhone || "", guardianRelationship: app.familyInfo.guardianRelationship || ""
+                    });
+                }
+
+                // Financial Standing
+                if (app.financialStanding) {
+                    const fs = app.financialStanding;
+                    Object.assign(flatData, {
+                        sponsorFullName: fs.sponsorFullName || "", sponsorRelationship: fs.sponsorRelationship || "", sponsorOccupation: fs.sponsorOccupation || "", sponsorAnnualIncome: castStr(fs.sponsorAnnualIncome),
+                        bankBalance: castStr(fs.bankBalance), primaryCurrency: fs.primaryCurrency || "", fixedDepositAmount: castStr(fs.fixedDepositAmount), investmentAssets: castStr(fs.investmentAssets),
+                        realEstateValue: castStr(fs.realEstateValue), businessAssets: castStr(fs.businessAssets), otherAssets: castStr(fs.otherAssets), totalLiabilities: castStr(fs.totalLiabilities),
+                        fundsAvailableForStudy: castStr(fs.fundsAvailableForStudy), fundingSource: fs.fundingSource || "", annualTuitionBudget: castStr(fs.annualTuitionBudget), annualLivingBudget: castStr(fs.annualLivingBudget),
+                        applyingForScholarship: castStr(fs.applyingForScholarship), scholarshipType: fs.scholarshipType || "", financialAidRequired: castStr(fs.financialAidRequired),
+                        hasBankStatement: castStr(fs.hasBankStatement), hasSolvencyLetter: castStr(fs.hasSolvencyLetter), hasIncomeTaxReturn: castStr(fs.hasIncomeTaxReturn),
+                        hasPropertyDocuments: castStr(fs.hasPropertyDocuments), hasSponsorLetter: castStr(fs.hasSponsorLetter), hasLoanApprovalLetter: castStr(fs.hasLoanApprovalLetter),
+                        financialNotes: fs.financialNotes || ""
+                    });
+                }
+
+                // Supplemental
+                if (app.supplemental) {
+                    Object.assign(flatData, {
+                        personalStatement: app.supplemental.personalStatement || "", whyThisUniversity: app.supplemental.whyThisUniversity || "",
+                        whyThisProgram: app.supplemental.whyThisProgram || "", hearAboutUs: app.supplemental.hearAboutUs || "",
+                        additionalInfo: app.supplemental.additionalInfo || "", requirementNotes: app.supplemental.requirementNotes || ""
+                    });
+                }
+
+                // Conduct
+                if (app.conductAgreement) {
+                    Object.assign(flatData, {
+                        hasCriminalRecord: castStr(app.conductAgreement.hasCriminalRecord), hasAcademicViolation: castStr(app.conductAgreement.hasAcademicViolation),
+                        hasDisciplinaryAction: castStr(app.conductAgreement.hasDisciplinaryAction), conductExplanation: app.conductAgreement.conductExplanation || "",
+                        agreeToConduct: castStr(app.conductAgreement.agreeToConduct), agreeToTerms: castStr(app.conductAgreement.agreeToTerms),
+                        agreeToAccuracy: castStr(app.conductAgreement.agreeToAccuracy), signature: app.conductAgreement.signature || ""
+                    });
+                }
+
+                // Recommenders Array (1:M)
+                if (app.recommenders && app.recommenders.length > 0) {
+                    flatData.recommendationsRequired = String(app.recommenders.length);
+                    app.recommenders.forEach((rec: any, idx: number) => {
+                        const i = idx + 1;
+                        flatData[`rec${i}Name`] = rec.name;
+                        flatData[`rec${i}Email`] = rec.email;
+                        flatData[`rec${i}Title`] = rec.title || "";
+                        flatData[`rec${i}Institution`] = rec.institution || "";
+                    });
+                }
+
+                // Clean up undefined values
+                Object.keys(flatData).forEach(key => flatData[key] === undefined && delete flatData[key]);
+
+                setFormData(prev => ({ ...prev, ...flatData }));
+                // --- END NEW TRANSLATOR ---
 
                 const hasSubmitted = !["NOT_STARTED", "IN_PROGRESS"].includes(appStatus);
                 if (hasSubmitted || searchParams.get("view") === "submitted") {
                     router.replace("?view=submitted");
                 } else if (!searchParams.get("step")) {
-                    const resumeStep = (app.completedSections || 0) + 1;
-                    router.replace(`?step=${Math.min(resumeStep, 4)}`);
+                    router.replace(`?step=1`);
                 }
             } catch (err) {
                 console.error("Failed to load application data:", err);
