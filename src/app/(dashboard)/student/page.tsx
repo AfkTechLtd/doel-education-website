@@ -160,7 +160,7 @@ export default async function StudentDashboardPage() {
           <div className="flex-1 space-y-2 mb-4">
             {NOTIFICATIONS.slice(0, 2).map((note) => (
               <div key={note.id}
-                className="group relative flex gap-2.5 items-start p-2 -mx-2 rounded-xl hover:bg-slate-50 transition-colors mb-2 pb-4 last:mb-0 last:pb-2 after:absolute after:bottom-0 after:left-1/2 after:-translate-x-1/2 after:w-1/2 after:h-px after:bg-gradient-to-r after:from-transparent after:via-slate-200 after:to-transparent last:after:hidden"
+                className="shadow-sm shadow-[#438580] group relative flex gap-2.5 items-start p-2 -mx-2 rounded-xl hover:bg-slate-50 transition-colors mb-2 pb-4 last:mb-0 last:pb-2 after:absolute after:bottom-0 after:left-1/2 after:-translate-x-1/2 after:w-1/2 after:h-px after:bg-gradient-to-r after:from-transparent after:via-slate-200 after:to-transparent last:after:hidden"
               >
                 <div className={cn(
                   "mt-1.5 h-1.5 w-1.5 rounded-full shrink-0",

@@ -24,10 +24,10 @@ interface ToastItem {
 }
 
 const TOAST_CONFIG: Record<ToastType, { icon: React.ReactNode; bar: string; bg: string; title: string }> = {
-    error:   { icon: <XCircle className="h-5 w-5" />,       bar: "bg-red-500",     bg: "bg-white",      title: "text-red-700"     },
-    success: { icon: <CheckCircle2 className="h-5 w-5" />,  bar: "bg-emerald-500", bg: "bg-white",      title: "text-emerald-700" },
-    warning: { icon: <AlertTriangle className="h-5 w-5" />, bar: "bg-amber-500",   bg: "bg-white",      title: "text-amber-700"   },
-    info:    { icon: <Info className="h-5 w-5" />,          bar: "bg-blue-500",    bg: "bg-white",      title: "text-blue-700"    },
+    error: { icon: <XCircle className="h-5 w-5" />, bar: "bg-red-500", bg: "bg-white", title: "text-red-700" },
+    success: { icon: <CheckCircle2 className="h-5 w-5" />, bar: "bg-emerald-500", bg: "bg-white", title: "text-emerald-700" },
+    warning: { icon: <AlertTriangle className="h-5 w-5" />, bar: "bg-amber-500", bg: "bg-white", title: "text-amber-700" },
+    info: { icon: <Info className="h-5 w-5" />, bar: "bg-blue-500", bg: "bg-white", title: "text-blue-700" },
 };
 
 const ICON_COLOR: Record<ToastType, string> = {
@@ -503,12 +503,12 @@ const Step2Requirements = ({ formData, onChange, errors }: StepProps) => (
                     <p className="text-xs text-slate-500 mb-4">Select all financial documents you currently have available. These will be required during the I-20 / visa stage.</p>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                         {[
-                            { name: "hasBankStatement",      label: "Bank Statement (last 3–6 months)", description: "Official statement from your bank showing balance history" },
-                            { name: "hasSolvencyLetter",     label: "Bank Solvency Letter",             description: "Letter from bank confirming funds are available and unencumbered" },
-                            { name: "hasIncomeTaxReturn",    label: "Income Tax Return / Certificate",  description: "Sponsor's latest tax return or tax certificate" },
-                            { name: "hasPropertyDocuments",  label: "Property / Land Documents",        description: "Title deed or valuation certificate for real estate assets" },
-                            { name: "hasSponsorLetter",      label: "Financial Sponsor Affidavit",      description: "Notarized letter from sponsor guaranteeing financial support" },
-                            { name: "hasLoanApprovalLetter", label: "Education Loan Approval Letter",   description: "Bank or lending institution approval letter (if applicable)" },
+                            { name: "hasBankStatement", label: "Bank Statement (last 3–6 months)", description: "Official statement from your bank showing balance history" },
+                            { name: "hasSolvencyLetter", label: "Bank Solvency Letter", description: "Letter from bank confirming funds are available and unencumbered" },
+                            { name: "hasIncomeTaxReturn", label: "Income Tax Return / Certificate", description: "Sponsor's latest tax return or tax certificate" },
+                            { name: "hasPropertyDocuments", label: "Property / Land Documents", description: "Title deed or valuation certificate for real estate assets" },
+                            { name: "hasSponsorLetter", label: "Financial Sponsor Affidavit", description: "Notarized letter from sponsor guaranteeing financial support" },
+                            { name: "hasLoanApprovalLetter", label: "Education Loan Approval Letter", description: "Bank or lending institution approval letter (if applicable)" },
                         ].map(({ name, label, description }) => (
                             <CheckboxField key={name} name={name} label={label} description={description}
                                 checked={formData[name] === "true"}
@@ -811,7 +811,7 @@ const Step4Finalization = ({ formData, onChange, errors }: StepProps) => {
     );
 };
 
-// ─── SUBMITTED VIEW ───────────────────────────────────────────────────────────
+// ─── SUBMITTED VIEW ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
 const SubmittedView = () => (
     <div className="space-y-8 animate-in zoom-in duration-500 max-w-4xl mx-auto mt-10">
         <div className="bg-teal-50 border border-teal-100 rounded-[2.5rem] p-10 text-center">
@@ -820,8 +820,8 @@ const SubmittedView = () => (
             </div>
             <h2 className="text-3xl font-bold text-[#0f766e] mb-4">Application Submitted</h2>
             <p className="text-teal-700 text-lg">Your application is currently under review. You can no longer edit your responses.</p>
-            <Link href="/student/" className="mt-8 inline-block bg-[#0f766e] text-white px-8 py-3 rounded-xl font-bold">
-                Return to Dashboard
+            <Link href="/student/application/history" className="mt-8 inline-block bg-[#0f766e] text-white px-8 py-3 rounded-xl font-bold">
+                Application History
             </Link>
         </div>
     </div>
@@ -1078,34 +1078,34 @@ function ApplicationContent() {
 
     return (
         <>
-        <ToastContainer toasts={toasts} onRemove={removeToast} />
-        <div className="max-w-6xl mx-auto py-8 px-2 md:px-6 lg:px-8 bg-slate-50 min-h-screen">
-            <StepIndicator currentStep={currentStep} status="IN_PROGRESS" />
+            <ToastContainer toasts={toasts} onRemove={removeToast} />
+            <div className="max-w-6xl mx-auto py-8 px-2 md:px-6 lg:px-8 bg-slate-50 min-h-screen">
+                <StepIndicator currentStep={currentStep} status="IN_PROGRESS" />
 
-            <main className="min-h-[70vh]">
-                <div className="transition-all duration-300">
-                    {currentStep === 1 && <Step1Foundations formData={formData} onChange={updateFormData} errors={errors} />}
-                    {currentStep === 2 && <Step2Requirements formData={formData} onChange={updateFormData} errors={errors} />}
-                    {currentStep === 3 && <Step3Support formData={formData} onChange={updateFormData} errors={errors} />}
-                    {currentStep === 4 && <Step4Finalization formData={formData} onChange={updateFormData} errors={errors} />}
+                <main className="min-h-[70vh]">
+                    <div className="transition-all duration-300">
+                        {currentStep === 1 && <Step1Foundations formData={formData} onChange={updateFormData} errors={errors} />}
+                        {currentStep === 2 && <Step2Requirements formData={formData} onChange={updateFormData} errors={errors} />}
+                        {currentStep === 3 && <Step3Support formData={formData} onChange={updateFormData} errors={errors} />}
+                        {currentStep === 4 && <Step4Finalization formData={formData} onChange={updateFormData} errors={errors} />}
+                    </div>
+                </main>
+
+                <div className="mt-16 flex items-center justify-between border-t border-slate-200 pt-10 pb-20">
+                    <button onClick={handleBack} disabled={currentStep === 1}
+                        className="flex items-center gap-2 px-8 py-4 rounded-2xl font-bold text-slate-500 hover:bg-slate-100 disabled:opacity-20 transition-all">
+                        <ChevronLeft className="h-5 w-5" /> Previous
+                    </button>
+                    <button
+                        onClick={currentStep === 4 ? handleSubmit : handleNext}
+                        className="bg-[#0f766e] text-white px-5 py-3 md:px-10 md:py-4 rounded-2xl font-bold shadow-xl shadow-teal-100 hover:scale-[1.02] active:scale-95 transition-all flex items-center gap-2"
+                    >
+                        {currentStep === 4
+                            ? <><Send className="h-5 w-5" /> Final Submit</>
+                            : <>Next Step <ChevronRight className="h-5 w-5" /></>}
+                    </button>
                 </div>
-            </main>
-
-            <div className="mt-16 flex items-center justify-between border-t border-slate-200 pt-10 pb-20">
-                <button onClick={handleBack} disabled={currentStep === 1}
-                    className="flex items-center gap-2 px-8 py-4 rounded-2xl font-bold text-slate-500 hover:bg-slate-100 disabled:opacity-20 transition-all">
-                    <ChevronLeft className="h-5 w-5" /> Previous
-                </button>
-                <button
-                    onClick={currentStep === 4 ? handleSubmit : handleNext}
-                    className="bg-[#0f766e] text-white px-5 py-3 md:px-10 md:py-4 rounded-2xl font-bold shadow-xl shadow-teal-100 hover:scale-[1.02] active:scale-95 transition-all flex items-center gap-2"
-                >
-                    {currentStep === 4
-                        ? <><Send className="h-5 w-5" /> Final Submit</>
-                        : <>Next Step <ChevronRight className="h-5 w-5" /></>}
-                </button>
             </div>
-        </div>
         </>
     );
 }
