@@ -47,8 +47,9 @@ export default function StudentDocumentVaultPageContent({
           setIsUploadOpen(false);
           router.refresh();
         }}
+        // Still pass requirements so the user can select what requirement
+        // the uploaded file is satisfying, but DO NOT pass existingRequiredLinks
         requirements={requirements}
-        existingRequiredLinks={requiredLinks}
       />
     </div>
   );

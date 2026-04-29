@@ -28,12 +28,13 @@ type CreateStudentDocumentRecordInput = {
   id: string;
   name: string;
   type: string;
+  requirementId: string;
   bucket?: string | null;
   storagePath?: string | null;
   mimeType?: string | null;
   sizeBytes?: number | null;
   source?: string | null;
-  status?: StudentDocumentStatus;
+
 };
 
 /**
@@ -70,10 +71,9 @@ function mapDocumentToReference(document: Document): SelectedDocumentReference {
     storagePath: document.storagePath,
     mimeType: document.mimeType,
     sizeBytes: document.sizeBytes,
-    status: document.status as StudentDocumentStatus,
+    status: "PENDING", // Hardcoded safely for the UI until the page refreshes
   };
 }
-
 /**
  * Lists all vault documents owned by the currently authenticated student.
  */
@@ -113,9 +113,9 @@ export async function createStudentDocumentRecord(
       data: {
         id: input.id,
         studentId: studentProfile.id,
+        requirementId: input.requirementId, // <-- SAVED DIRECTLY TO DB HERE
         name: input.name,
         type: input.type,
-        status: (input.status ?? "PENDING") as never,
         source: input.source ?? null,
         bucket: input.bucket ?? STORAGE_BUCKETS.DOCUMENTS,
         storagePath: input.storagePath ?? null,

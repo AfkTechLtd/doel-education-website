@@ -75,7 +75,7 @@ export default function SelectedFileItem({
               selectedRequirementIds.has(req.id) && chosenRequirementId !== req.id;
             return (
               <option key={req.id} value={req.id} disabled={isSelectedElsewhere}>
-                {req.label}
+                {req.name}
                 {existingLinkMap[req.id] ? ` (linked: ${existingLinkMap[req.id].name})` : ""}
               </option>
             );

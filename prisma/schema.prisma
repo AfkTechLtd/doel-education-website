@@ -347,7 +347,7 @@ model Document {
   mimeType    String?        @map("mime_type")
   sizeBytes   Int?           @map("size_bytes")
   notes       String?
-  requirementId String        @map("requirement_id")
+  requirementId String        @map("requirement_id") @unique
   // status      DocumentStatus @default(PENDING)
   uploadedAt  DateTime?      @map("uploaded_at")
   verifiedAt  DateTime?      @map("verified_at")
@@ -387,7 +387,7 @@ model DocumentRequirement{
   status      DocumentStatus @default(PENDING)
   createdAt   DateTime       @default(now()) @map("created_at")
   updatedAt   DateTime       @updatedAt @map("updated_at")
-  documents   Document[]
+  documents   Document?
   studentProfile StudentProfile @relation(fields: [studentId], references: [id], onDelete: Cascade)
 
   @@map("document_requirements")

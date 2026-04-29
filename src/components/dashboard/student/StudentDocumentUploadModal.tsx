@@ -1,17 +1,15 @@
+// /src/components/dashboard/student/StudentDocumentUploadModal.tsx
 "use client";
-
 import { useEffect } from "react";
 import { X } from "lucide-react";
 import DocumentUploader from "@/components/common/documents/DocumentUploader";
-import type { StudentDocumentRequirement } from "@/data/student-document-requirements";
-import type { RequiredDocumentLinkItem, SelectedDocumentReference } from "@/lib/documents/types";
+import type { SelectedDocumentReference } from "@/lib/documents/types";
 
 type StudentDocumentUploadModalProps = {
   open: boolean;
   onClose: () => void;
   onUploadComplete: (documents: SelectedDocumentReference[]) => void;
-  requirements?: StudentDocumentRequirement[];
-  existingRequiredLinks?: RequiredDocumentLinkItem[];
+  requirements?: any[]; // Typing as 'any[]' temporarily to match your refactor
 };
 
 export default function StudentDocumentUploadModal({
@@ -19,22 +17,18 @@ export default function StudentDocumentUploadModal({
   onClose,
   onUploadComplete,
   requirements,
-  existingRequiredLinks,
 }: StudentDocumentUploadModalProps) {
   useEffect(() => {
     if (!open) {
       return;
     }
-
     function handleEscape(event: KeyboardEvent) {
       if (event.key === "Escape") {
         onClose();
       }
     }
-
     document.addEventListener("keydown", handleEscape);
     document.body.style.overflow = "hidden";
-
     return () => {
       document.removeEventListener("keydown", handleEscape);
       document.body.style.overflow = "";
@@ -53,7 +47,6 @@ export default function StudentDocumentUploadModal({
         aria-label="Close upload modal"
         onClick={onClose}
       />
-
       <div className="relative z-10 flex max-h-[92vh] w-full max-w-2xl flex-col overflow-hidden rounded-[1.5rem] border border-slate-200 bg-white shadow-2xl sm:max-h-[90vh] sm:rounded-[2rem]">
         <div className="flex items-start justify-between gap-4 border-b border-slate-200 px-5 py-5 sm:px-7 sm:py-6">
           <div>
@@ -61,10 +54,10 @@ export default function StudentDocumentUploadModal({
               Upload Document
             </h2>
             <p className="mt-2 font-inter text-sm leading-relaxed text-slate-500">
-              Add a file to your vault for review, tracking, and later matching to your application requirements.
+              Add a file to your vault for review, tracking, and later matching
+              to your application requirements.
             </p>
           </div>
-
           <button
             type="button"
             onClick={onClose}
@@ -74,13 +67,11 @@ export default function StudentDocumentUploadModal({
             <X className="h-4 w-4" aria-hidden="true" />
           </button>
         </div>
-
         <div className="min-h-0 overflow-y-auto px-5 py-5 sm:px-7 sm:py-6">
           <DocumentUploader
             onCancel={onClose}
             onUploadComplete={onUploadComplete}
             requirements={requirements}
-            existingRequiredLinks={existingRequiredLinks}
           />
         </div>
       </div>
