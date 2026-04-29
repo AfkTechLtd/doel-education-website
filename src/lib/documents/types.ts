@@ -80,3 +80,6 @@ export type ResourceTemplateDocumentLinkItem = {
   contextKey: string;
   document: SelectedDocumentReference;
 };
+
+/** Maps a composite file key to the chosen required-document context key. */
+export type FileRequirementMap = Record<string, string>;

@@ -47,6 +47,8 @@ export default function StudentDocumentVaultPageContent({
           setIsUploadOpen(false);
           router.refresh();
         }}
+        requirements={requirements}
+        existingRequiredLinks={requiredLinks}
       />
     </div>
   );

@@ -3,18 +3,23 @@
 import { useEffect } from "react";
 import { X } from "lucide-react";
 import DocumentUploader from "@/components/common/documents/DocumentUploader";
-import type { SelectedDocumentReference } from "@/lib/documents/types";
+import type { StudentDocumentRequirement } from "@/data/student-document-requirements";
+import type { RequiredDocumentLinkItem, SelectedDocumentReference } from "@/lib/documents/types";
 
 type StudentDocumentUploadModalProps = {
   open: boolean;
   onClose: () => void;
   onUploadComplete: (documents: SelectedDocumentReference[]) => void;
+  requirements?: StudentDocumentRequirement[];
+  existingRequiredLinks?: RequiredDocumentLinkItem[];
 };
 
 export default function StudentDocumentUploadModal({
   open,
   onClose,
   onUploadComplete,
+  requirements,
+  existingRequiredLinks,
 }: StudentDocumentUploadModalProps) {
   useEffect(() => {
     if (!open) {
@@ -74,6 +79,8 @@ export default function StudentDocumentUploadModal({
           <DocumentUploader
             onCancel={onClose}
             onUploadComplete={onUploadComplete}
+            requirements={requirements}
+            existingRequiredLinks={existingRequiredLinks}
           />
         </div>
       </div>
