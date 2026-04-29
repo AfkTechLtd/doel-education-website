@@ -32,19 +32,18 @@ export async function getMyStudents() {
           select: {
             id: true,
             status: true,
-            completedSections: true,
-            intendedProgram: true,
-            intendedUniversity: true,
-            targetSemester: true,
+            targetUniversity: true,
+            degreeProgram: true,
+            startTerm: true,
             targetYear: true,
             submittedAt: true,
             updatedAt: true,
           },
         },
         documents: {
-          select: { id: true, name: true, status: true, uploadedAt: true },
           orderBy: { createdAt: "desc" },
         },
+        requirements: true,
       },
       orderBy: { updatedAt: "desc" },
     });
@@ -69,12 +68,9 @@ export async function getStudentDetail(studentProfileId: string) {
       where: { id: studentProfileId, counselorId: user.id },
       include: {
         user: true,
-        application: {
-          include: {
-            sections: { orderBy: { sectionNumber: "asc" } },
-          },
-        },
+        application: true,
         documents: { orderBy: { createdAt: "desc" } },
+        requirements: true,
       },
     });
 
@@ -139,14 +135,23 @@ export async function updateDocumentStatus(
         id: documentId,
         student: { counselorId: user.id },
       },
+      include: { requirement: true },
     });
 
     if (!document) return { success: false as const, error: "Document not found" };
 
+    // Update the DocumentRequirement status (since Document no longer has status)
+    await prisma.documentRequirement.update({
+      where: { id: document.requirementId },
+      data: {
+        status,
+      },
+    });
+
+    // Update document notes and verification metadata
     await prisma.document.update({
       where: { id: documentId },
       data: {
-        status,
         notes: notes ?? document.notes,
         verifiedAt: status === "VERIFIED" ? new Date() : document.verifiedAt,
         verifiedBy: status === "VERIFIED" ? user.id : document.verifiedBy,

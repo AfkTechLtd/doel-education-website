@@ -3,13 +3,13 @@
 import { useEffect } from "react";
 import { X } from "lucide-react";
 import DocumentUploader from "@/components/common/documents/DocumentUploader";
-import type { SelectedDocumentReference } from "@/lib/documents/types";
+import type { RequirementWithDocuments, SelectedDocumentReference } from "@/lib/documents/types";
 
 type StudentDocumentUploadModalProps = {
   open: boolean;
   onClose: () => void;
   onUploadComplete: (documents: SelectedDocumentReference[]) => void;
-  requirements?: any[]; // Typing as 'any[]' temporarily to match your refactor
+  requirements?: RequirementWithDocuments[];
 };
 
 export default function StudentDocumentUploadModal({

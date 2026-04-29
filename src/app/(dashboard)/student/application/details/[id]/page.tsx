@@ -110,14 +110,14 @@ export default async function ApplicationDetailsPage({
     if (!application) notFound();
 
     // Safely destructure the modules (falling back to empty objects if missing)
-    const personalInfo = application.personalInfo || {};
-    const academicRecord = application.academicRecord || {};
-    const testScores = application.testScores || {};
-    const financials = application.financialStanding || {};
-    const extracurriculars = application.extracurriculars || {};
-    const familyInfo = application.familyInfo || {};
-    const supplemental = application.supplemental || {};
-    const conduct = application.conductAgreement || {};
+    const personalInfo = (application.personalInfo || {}) as any;
+    const academicRecord = (application.academicRecord || {}) as any;
+    const testScores = (application.testScores || {}) as any;
+    const financials = (application.financialStanding || {}) as any;
+    const extracurriculars = (application.extracurriculars || {}) as any;
+    const familyInfo = (application.familyInfo || {}) as any;
+    const supplemental = (application.supplemental || {}) as any;
+    const conduct = (application.conductAgreement || {}) as any;
     const recommenders = application.recommenders || [];
 
     const hasDisclosure = conduct.hasCriminalRecord || conduct.hasAcademicViolation || conduct.hasDisciplinaryAction;

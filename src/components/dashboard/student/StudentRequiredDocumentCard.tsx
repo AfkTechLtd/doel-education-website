@@ -33,6 +33,7 @@ export default function StudentRequiredDocumentCard({
         linkedDocument={linkedDocument}
         status={effectiveStatus}
         pickerTitle={`Choose Document for ${requirement.name}`} // CHANGED from requirement.label
+        targetRequirementId={requirement.id}
         onSelect={(document) => onSelectDocument(requirement, document)}
         onUnlink={() => onUnlinkDocument(requirement)}
         disabled={disabled}

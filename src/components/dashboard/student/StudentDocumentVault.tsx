@@ -3,10 +3,10 @@
 
 import { useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-// NOTE: You will need to update this action to just run `prisma.document.delete()`
 import { deleteStudentDocument } from "@/actions/documents";
 import { useToast } from "@/components/common/feedback/ToastProvider";
 import StudentDocumentDeleteModal from "@/components/dashboard/student/StudentDocumentDeleteModal";
+import type { DocumentItem, RequirementWithDocuments } from "@/lib/documents/types";
 import { cn } from "@/lib/utils";
 
 import StudentDocumentCard from "./StudentDocumentCard";
@@ -14,8 +14,8 @@ import StudentDocumentToolbar, { type StudentDocumentFilter } from "./StudentDoc
 import StudentRequiredDocumentCard from "./StudentRequiredDocumentCard";
 
 type StudentDocumentVaultProps = {
-  documents: any[];
-  requirements: any[];
+  documents: DocumentItem[];
+  requirements: RequirementWithDocuments[];
 };
 
 type VaultView = "ALL_FILES" | "REQUIRED_DOCUMENTS";
@@ -39,7 +39,7 @@ export default function StudentDocumentVault({
     const normalizedQuery = query.trim().toLowerCase();
     return documents.filter((document) => {
       const matchesFilter = filter === "ALL" || document.status === filter;
-      const searchableText = `${document.name} ${document.type} ${document.status} ${document.notes ?? ""}`.toLowerCase();
+      const searchableText = `${document.name} ${document.type} ${document.status ?? ""} ${document.notes ?? ""}`.toLowerCase();
       const matchesQuery = !normalizedQuery || searchableText.includes(normalizedQuery);
       return matchesFilter && matchesQuery;
     });
@@ -127,15 +127,27 @@ export default function StudentDocumentVault({
             <StudentRequiredDocumentCard
               key={requirement.id}
               requirement={requirement}
-              // Because of the 1:M schema, we just pass the first attached document
-              linkedDocument={requirement.documents?.[0] ?? null}
+              linkedDocument={requirement.documents ? {
+                id: requirement.documents.id,
+                name: requirement.documents.name,
+                type: requirement.documents.type,
+                bucket: requirement.documents.bucket,
+                storagePath: requirement.documents.storagePath,
+                mimeType: requirement.documents.mimeType,
+                sizeBytes: requirement.documents.sizeBytes,
+                status: requirement.status,
+              } : null}
               effectiveStatus={requirement.status}
-
-              // Linking/Unlinking is now handled natively by the Upload/Delete flows
-              onSelectDocument={() => { }}
+              onSelectDocument={() => {
+                showToast({
+                  variant: "success",
+                  title: "Document updated",
+                });
+                router.refresh();
+              }}
               onUnlinkDocument={() => {
-                if (requirement.documents?.[0]) {
-                  setDeleteCandidate({ id: requirement.documents[0].id, name: requirement.documents[0].name });
+                if (requirement.documents) {
+                  setDeleteCandidate({ id: requirement.documents.id, name: requirement.documents.name });
                 }
               }}
               disabled={deletingId}
@@ -155,7 +167,7 @@ export default function StudentDocumentVault({
       <StudentDocumentDeleteModal
         open={Boolean(deleteCandidate)}
         documentName={deleteCandidate?.name ?? ""}
-        usage={null} // Usage checks are dead, documents are directly owned!
+        usage={null}
         isLoadingUsage={false}
         isSubmitting={deletingId}
         onClose={() => !deletingId && setDeleteCandidate(null)}

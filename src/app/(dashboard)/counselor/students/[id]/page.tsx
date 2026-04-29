@@ -33,10 +33,10 @@ export default async function StudentDetailPage({ params }: Props) {
   }
 
   const { data: student } = result;
-  const { application, documents, notes } = student;
+  const { application, documents, notes, requirements } = student;
+  const requirementStatusMap = new Map(requirements?.map((r: any) => [r.id, r.status]) ?? []);
 
-  const completedSections = application?.sections.filter((s) => s.isComplete).length ?? 0;
-  const totalSections = 14;
+  // Sections no longer exist in the new Application schema
 
   return (
     <div className="space-y-8">
@@ -112,30 +112,30 @@ export default async function StudentDetailPage({ params }: Props) {
           {/* Application progress */}
           <DashboardPanel
             title="Application Progress"
-            description={`${completedSections} of ${totalSections} sections complete`}
+            description={application ? APPLICATION_STATUS_LABELS[application.status] : "No application started"}
           >
             {!application ? (
               <p className="font-inter text-sm text-slate-400">No application started yet.</p>
             ) : (
               <div className="space-y-4">
                 {/* Program info */}
-                {(application.intendedProgram || application.intendedUniversity) && (
+                {(application.degreeProgram || application.targetUniversity) && (
                   <div className="rounded-xl border border-slate-100 bg-slate-50 p-4 space-y-2">
-                    {application.intendedProgram && (
-                      <InfoRow icon={BookOpen} label="Program" value={application.intendedProgram} />
+                    {application.degreeProgram && (
+                      <InfoRow icon={BookOpen} label="Program" value={application.degreeProgram} />
                     )}
-                    {application.intendedUniversity && (
+                    {application.targetUniversity && (
                       <InfoRow
                         icon={ClipboardList}
                         label="University"
-                        value={application.intendedUniversity}
+                        value={application.targetUniversity}
                       />
                     )}
-                    {application.targetSemester && application.targetYear && (
+                    {application.startTerm && application.targetYear && (
                       <InfoRow
                         icon={Calendar}
                         label="Intake"
-                        value={`${application.targetSemester} ${application.targetYear}`}
+                        value={`${application.startTerm} ${application.targetYear}`}
                       />
                     )}
                     {application.submittedAt && (
@@ -148,46 +148,7 @@ export default async function StudentDetailPage({ params }: Props) {
                   </div>
                 )}
 
-                {/* Progress bar */}
-                <div>
-                  <div className="mb-1 flex justify-between font-inter text-xs text-slate-500">
-                    <span>Completion</span>
-                    <span>{Math.round((completedSections / totalSections) * 100)}%</span>
-                  </div>
-                  <div className="h-2 w-full overflow-hidden rounded-full bg-slate-100">
-                    <div
-                      className="h-full rounded-full bg-primary transition-all"
-                      style={{ width: `${(completedSections / totalSections) * 100}%` }}
-                    />
-                  </div>
-                </div>
-
-                {/* Section breakdown */}
-                <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-                  {Array.from({ length: totalSections }, (_, i) => {
-                    const sectionKey = `SECTION_${i + 1}`;
-                    const section = application.sections.find(
-                      (s) => s.sectionNumber === sectionKey,
-                    );
-                    return (
-                      <div
-                        key={sectionKey}
-                        className="flex items-center justify-between rounded-xl border border-slate-100 px-3 py-2"
-                      >
-                        <span className="font-inter text-xs text-slate-600">
-                          {i + 1}. {SECTION_LABELS[sectionKey] ?? sectionKey}
-                        </span>
-                        {section?.isComplete ? (
-                          <span className="font-inter text-[10px] font-semibold text-emerald-600">
-                            Done
-                          </span>
-                        ) : (
-                          <span className="font-inter text-[10px] text-slate-300">—</span>
-                        )}
-                      </div>
-                    );
-                  })}
-                </div>
+                <DashboardStatusBadge status={application.status.replaceAll("_", " ")} />
               </div>
             )}
           </DashboardPanel>
@@ -214,7 +175,7 @@ export default async function StudentDetailPage({ params }: Props) {
                     </div>
                     <DocumentStatusUpdater
                       documentId={doc.id}
-                      currentStatus={doc.status}
+                      currentStatus={requirementStatusMap.get(doc.requirementId) ?? "PENDING"}
                       documentName={doc.name}
                     />
                   </div>

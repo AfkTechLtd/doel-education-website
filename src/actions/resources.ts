@@ -65,7 +65,6 @@ function mapLinkedDocument(document: {
   storagePath: string | null;
   mimeType: string | null;
   sizeBytes: number | null;
-  status: string;
 }): SelectedDocumentReference {
   return {
     id: document.id,
@@ -75,7 +74,7 @@ function mapLinkedDocument(document: {
     storagePath: document.storagePath,
     mimeType: document.mimeType,
     sizeBytes: document.sizeBytes,
-    status: document.status as SelectedDocumentReference["status"],
+    status: "PENDING",
   };
 }
 
@@ -254,7 +253,6 @@ export async function getStudentResourceTemplateDetail(
             storagePath: true,
             mimeType: true,
             sizeBytes: true,
-            status: true,
           },
         },
       },

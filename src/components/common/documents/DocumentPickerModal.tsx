@@ -7,6 +7,7 @@ import type {
   SelectedDocumentReference,
 } from "@/lib/documents/types";
 import { cn } from "@/lib/utils";
+import ScopedRequirementUploadPanel from "./ScopedRequirementUploadPanel";
 import UploadNewDocumentPanel from "./UploadNewDocumentPanel";
 import VaultDocumentSelector from "./VaultDocumentSelector";
 
@@ -16,6 +17,7 @@ type DocumentPickerModalProps = {
   onSelect: (document: SelectedDocumentReference) => void;
   title?: string;
   uploadConfig?: DocumentUploadConfig;
+  targetRequirementId?: string;
 };
 
 type PickerTab = "VAULT" | "UPLOAD";
@@ -33,6 +35,7 @@ export default function DocumentPickerModal({
   onSelect,
   title = "Choose Document",
   uploadConfig,
+  targetRequirementId,
 }: DocumentPickerModalProps) {
   const [activeTab, setActiveTab] = useState<PickerTab>("VAULT");
 
@@ -96,8 +99,8 @@ export default function DocumentPickerModal({
           </button>
         </div>
 
-        <div className="border-b border-slate-200 px-5 py-4 sm:px-7">
-          <div className="flex w-full flex-col rounded-2xl border border-slate-200 bg-white p-1 shadow-sm sm:inline-flex sm:w-auto sm:flex-row">
+        <div className="border-b border-slate-200 px-5 py-4 sm:px-7 w-full">
+          <div className="flex w-full  flex-col rounded-2xl border border-slate-200 bg-white p-1 shadow-sm sm:inline-flex sm:w-auto sm:flex-row">
             <button
               type="button"
               onClick={() => setActiveTab("VAULT")}
@@ -114,7 +117,7 @@ export default function DocumentPickerModal({
               type="button"
               onClick={() => setActiveTab("UPLOAD")}
               className={cn(
-                "flex-1 rounded-[0.9rem] px-4 py-2.5 font-inter text-sm font-semibold transition",
+                "flex-1 rounded-[0.9rem] px-4 py-2.5 inline font-inter text-sm font-semibold transition",
                 activeTab === "UPLOAD"
                   ? "bg-primary text-white"
                   : "text-slate-500 hover:text-slate-900",
@@ -135,13 +138,25 @@ export default function DocumentPickerModal({
               allowedDocumentTypes={uploadConfig?.allowedDocumentTypes}
             />
           ) : (
-            <UploadNewDocumentPanel
-              onSelect={(document) => {
-                onSelect(document);
-                handleClose();
-              }}
-              uploadConfig={uploadConfig}
-            />
+            targetRequirementId ? (
+              <ScopedRequirementUploadPanel
+                requirementId={targetRequirementId}
+                uploadConfig={uploadConfig}
+                onSelect={(document) => {
+                  onSelect(document);
+                  handleClose();
+                }}
+              />
+            ) : (
+              <UploadNewDocumentPanel
+                onSelect={(document) => {
+                  onSelect(document);
+                  handleClose();
+                }}
+                uploadConfig={uploadConfig}
+                targetRequirementId={targetRequirementId}
+              />
+            )
           )}
         </div>
       </div>

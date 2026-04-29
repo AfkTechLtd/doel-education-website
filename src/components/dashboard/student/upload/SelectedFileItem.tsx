@@ -1,9 +1,7 @@
 "use client";
 
 import { FileWarning, X } from "lucide-react";
-import type { StudentDocumentRequirement } from "@/data/student-document-requirements";
-import type { SelectedDocumentReference } from "@/lib/documents/types";
-import { cn } from "@/lib/utils";
+import type { RequirementWithDocuments } from "@/lib/documents/types";
 
 function formatFileSize(bytes: number) {
   if (bytes >= 1024 * 1024) {
@@ -20,9 +18,11 @@ function getFileExtension(fileName: string) {
 type SelectedFileItemProps = {
   file: File;
   chosenRequirementId?: string;
-  requirements: StudentDocumentRequirement[];
-  existingLinkMap: Record<string, SelectedDocumentReference>;
+  requirements: RequirementWithDocuments[];
+  fulfilledRequirementIds: Set<string>;
   selectedRequirementIds: Set<string>;
+  hideRequirementSelect?: boolean;
+  fixedRequirementLabel?: string;
   onRequirementChange: (fileKey: string, requirementId: string) => void;
   onRemove: (file: File) => void;
 };
@@ -31,13 +31,18 @@ export default function SelectedFileItem({
   file,
   chosenRequirementId,
   requirements,
-  existingLinkMap,
+  fulfilledRequirementIds,
   selectedRequirementIds,
+  hideRequirementSelect = false,
+  fixedRequirementLabel,
   onRequirementChange,
   onRemove,
 }: SelectedFileItemProps) {
   const fileKey = `${file.name}-${file.size}-${file.lastModified}`;
-  const replacedFile = chosenRequirementId ? existingLinkMap[chosenRequirementId] : null;
+  const isReplacing = chosenRequirementId ? fulfilledRequirementIds.has(chosenRequirementId) : false;
+  const existingDoc = isReplacing
+    ? requirements.find((r) => r.id === chosenRequirementId)?.documents
+    : null;
 
   return (
     <div className="space-y-2 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3">
@@ -62,30 +67,37 @@ export default function SelectedFileItem({
       </div>
 
       <div className="flex flex-col gap-2">
-        <select
-          value={chosenRequirementId ?? ""}
-          onChange={(e) => onRequirementChange(fileKey, e.target.value)}
-          className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 font-inter text-sm text-slate-800 outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/10"
-        >
-          <option value="" disabled>
-            Select required document...
-          </option>
-          {requirements.map((req) => {
-            const isSelectedElsewhere =
-              selectedRequirementIds.has(req.id) && chosenRequirementId !== req.id;
-            return (
-              <option key={req.id} value={req.id} disabled={isSelectedElsewhere}>
-                {req.name}
-                {existingLinkMap[req.id] ? ` (linked: ${existingLinkMap[req.id].name})` : ""}
-              </option>
-            );
-          })}
-        </select>
+        {hideRequirementSelect ? (
+          <div className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 font-inter text-sm text-slate-800">
+            {fixedRequirementLabel ?? "Requirement selected"}
+          </div>
+        ) : (
+          <select
+            value={chosenRequirementId ?? ""}
+            onChange={(e) => onRequirementChange(fileKey, e.target.value)}
+            className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 font-inter text-sm text-slate-800 outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/10"
+          >
+            <option value="" disabled>
+              Select required document...
+            </option>
+            {requirements.map((req) => {
+              const isFulfilled = fulfilledRequirementIds.has(req.id);
+              const isSelectedElsewhere = selectedRequirementIds.has(req.id) && chosenRequirementId !== req.id;
+              const isDisabled = isSelectedElsewhere;
+              return (
+                <option key={req.id} value={req.id} disabled={isDisabled}>
+                  {req.name}
+                  {isFulfilled ? " (already uploaded — delete first to replace)" : ""}
+                </option>
+              );
+            })}
+          </select>
+        )}
 
-        {replacedFile ? (
+        {existingDoc ? (
           <p className="flex items-center gap-1.5 font-inter text-xs text-amber-600">
             <FileWarning className="h-3.5 w-3.5" aria-hidden="true" />
-            This will replace the current linked file: {replacedFile.name}
+            This will replace the current file: {existingDoc.name}
           </p>
         ) : null}
       </div>

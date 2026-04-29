@@ -4,12 +4,13 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import DashboardPageHeader from "@/components/dashboard/shared/DashboardPageHeader";
+import type { DocumentItem, RequirementWithDocuments } from "@/lib/documents/types";
 import StudentDocumentUploadModal from "./StudentDocumentUploadModal";
 import StudentDocumentVault from "./StudentDocumentVault";
 
 type StudentDocumentVaultPageContentProps = {
-  documents: any[]; // You can type these strictly based on the mapping in page.tsx
-  requirements: any[];
+  documents: DocumentItem[];
+  requirements: RequirementWithDocuments[];
 };
 
 export default function StudentDocumentVaultPageContent({
@@ -47,8 +48,6 @@ export default function StudentDocumentVaultPageContent({
           setIsUploadOpen(false);
           router.refresh();
         }}
-        // Still pass requirements so the user can select what requirement
-        // the uploaded file is satisfying, but DO NOT pass existingRequiredLinks
         requirements={requirements}
       />
     </div>

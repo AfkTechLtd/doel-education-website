@@ -17,6 +17,7 @@ type DocumentInputFieldProps = {
   disabled?: boolean;
   pickerTitle?: string;
   allowedTypes?: string[];
+  targetRequirementId?: string;
   onSelect: (document: SelectedDocumentReference) => Promise<void> | void;
   onUnlink?: () => Promise<void> | void;
 };
@@ -36,6 +37,7 @@ export default function DocumentInputField({
   disabled = false,
   pickerTitle,
   allowedTypes,
+  targetRequirementId,
   onSelect,
   onUnlink,
 }: DocumentInputFieldProps) {
@@ -97,6 +99,7 @@ export default function DocumentInputField({
         onClose={() => setIsPickerOpen(false)}
         title={pickerTitle ?? `Choose ${label}`}
         onSelect={handleSelect}
+        targetRequirementId={targetRequirementId}
       />
     </div>
   );

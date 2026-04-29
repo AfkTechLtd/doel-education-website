@@ -203,7 +203,7 @@ export default function AssignmentManagement({
                             }
                           />
                           <p className="font-inter text-[10px] text-slate-400">
-                            {student.application.completedSections}/14 sections
+                            {APPLICATION_STATUS_LABELS[student.application.status] ?? student.application.status}
                           </p>
                         </div>
                       ) : (
@@ -212,10 +212,7 @@ export default function AssignmentManagement({
                     </td>
                     <td className="px-4 py-4">
                       <span className="font-inter text-sm text-slate-600">
-                        {student.documents.length}
-                        <span className="ml-1 text-slate-400">
-                          ({student.documents.filter((d) => d.status === "VERIFIED").length}✓)
-                        </span>
+                        {student.documents.length} documents
                       </span>
                     </td>
                     <td className="px-4 py-4">

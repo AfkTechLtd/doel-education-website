@@ -10,8 +10,10 @@ import {
   GripVertical,
   ExternalLink,
   Loader2,
+  FileText,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { APPLICATION_STATUS_LABELS } from "@/lib/constants";
 import { updateKanbanStage } from "@/actions/counselor";
 import type { getMyStudents } from "@/actions/counselor";
 
@@ -64,11 +66,7 @@ function StudentCard({
   student: Student;
   index: number;
 }) {
-  const pendingDocs = student.documents.filter(
-    (d) => d.status === "PENDING" || d.status === "UNDER_REVIEW",
-  ).length;
-  const verifiedDocs = student.documents.filter((d) => d.status === "VERIFIED").length;
-  const rejectedDocs = student.documents.filter((d) => d.status === "REJECTED").length;
+  const totalDocs = student.documents.length;
 
   return (
     <Draggable draggableId={student.id} index={index}>
@@ -100,33 +98,19 @@ function StudentCard({
             </div>
 
             {/* Program */}
-            {student.application?.intendedProgram && (
+            {student.application?.degreeProgram && (
               <p className="truncate font-inter text-xs text-slate-600">
-                {student.application.intendedProgram}
+                {student.application.degreeProgram}
               </p>
             )}
 
             {/* Document counts */}
-            {student.documents.length > 0 && (
+            {totalDocs > 0 && (
               <div className="flex items-center gap-3 text-xs">
-                {verifiedDocs > 0 && (
-                  <span className="flex items-center gap-1 text-emerald-700">
-                    <CheckCircle2 className="h-3.5 w-3.5" />
-                    {verifiedDocs}
-                  </span>
-                )}
-                {pendingDocs > 0 && (
-                  <span className="flex items-center gap-1 text-amber-600">
-                    <Clock className="h-3.5 w-3.5" />
-                    {pendingDocs}
-                  </span>
-                )}
-                {rejectedDocs > 0 && (
-                  <span className="flex items-center gap-1 text-red-600">
-                    <XCircle className="h-3.5 w-3.5" />
-                    {rejectedDocs}
-                  </span>
-                )}
+                <span className="flex items-center gap-1 text-slate-500">
+                  <FileText className="h-3.5 w-3.5" />
+                  {totalDocs} docs
+                </span>
               </div>
             )}
 
@@ -134,7 +118,7 @@ function StudentCard({
             <div className="flex items-center justify-between">
               {student.application ? (
                 <span className="font-inter text-[10px] text-slate-400">
-                  {student.application.completedSections}/14 sections
+                  {APPLICATION_STATUS_LABELS[student.application.status] ?? student.application.status}
                 </span>
               ) : (
                 <span className="font-inter text-[10px] text-slate-400">No application</span>

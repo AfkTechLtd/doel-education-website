@@ -2,12 +2,16 @@
 
 import { useCallback, useMemo, useState } from "react";
 import { useDropzone, type FileRejection } from "react-dropzone";
-// REMOVED: setRequiredDocumentLink
 import { createStudentDocumentRecord } from "@/actions/documents";
 import { useToast } from "@/components/common/feedback/ToastProvider";
 import { STORAGE_BUCKETS } from "@/lib/constants";
 import { buildStudentDocumentStoragePath, inferDocumentType } from "@/lib/documents/paths";
-import type { DocumentUploadConfig, FileRequirementMap, SelectedDocumentReference } from "@/lib/documents/types";
+import type {
+  DocumentUploadConfig,
+  FileRequirementMap,
+  RequirementWithDocuments,
+  SelectedDocumentReference,
+} from "@/lib/documents/types";
 import { createClient as createSupabaseBrowserClient } from "@/lib/supabase/client";
 import FileDropZone from "./upload/FileDropZone";
 import RejectionList from "./upload/RejectionList";
@@ -20,7 +24,8 @@ type StudentDocumentUploadZoneProps = {
   showCancel?: boolean;
   submitLabel?: string;
   uploadConfig?: DocumentUploadConfig;
-  requirements?: any[]; // Typed as any[] temporarily to match your new schema
+  requirements?: RequirementWithDocuments[];
+  targetRequirementId?: string;
 };
 
 const DEFAULT_MAX_FILE_SIZE_BYTES = 10 * 1024 * 1024;
@@ -56,6 +61,7 @@ export default function StudentDocumentUploadZone({
   submitLabel = "Upload Files",
   uploadConfig,
   requirements = [],
+  targetRequirementId,
 }: StudentDocumentUploadZoneProps) {
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [rejectedFiles, setRejectedFiles] = useState<FileRejection[]>([]);
@@ -65,7 +71,8 @@ export default function StudentDocumentUploadZone({
   const { showToast } = useToast();
 
   const maxFileSizeBytes = uploadConfig?.maxFileSizeBytes ?? DEFAULT_MAX_FILE_SIZE_BYTES;
-  const multiple = uploadConfig?.multiple ?? true;
+  const isRequirementScopedUpload = Boolean(targetRequirementId);
+  const multiple = isRequirementScopedUpload ? false : (uploadConfig?.multiple ?? true);
   const maxFiles = uploadConfig?.maxFiles ?? 0;
   const accept = uploadConfig?.accept ?? DEFAULT_ACCEPT;
 
@@ -73,8 +80,17 @@ export default function StudentDocumentUploadZone({
     return new Set(Object.values(fileRequirementMap));
   }, [fileRequirementMap]);
 
+  const fulfilledRequirementIds = useMemo(() => {
+    return new Set(requirements.filter((r) => r.documents !== null).map((r) => r.id));
+  }, [requirements]);
+
   // A file can ONLY be uploaded if it has an assigned requirement ID
-  const canUpload = selectedFiles.length > 0 && selectedFiles.every((file) => Boolean(fileRequirementMap[getFileKey(file)]));
+  const canUpload = selectedFiles.length > 0 && selectedFiles.every((file) => {
+    if (isRequirementScopedUpload) {
+      return Boolean(targetRequirementId);
+    }
+    return Boolean(fileRequirementMap[getFileKey(file)]);
+  });
 
   const onDrop = useCallback(
     (acceptedFiles: File[], fileRejections: FileRejection[]) => {
@@ -87,6 +103,12 @@ export default function StudentDocumentUploadZone({
         return nextFiles;
       });
 
+      if (isRequirementScopedUpload && targetRequirementId && acceptedFiles.length > 0) {
+        const file = acceptedFiles[acceptedFiles.length - 1];
+        const key = getFileKey(file);
+        setFileRequirementMap({ [key]: targetRequirementId });
+      }
+
       setRejectedFiles(fileRejections);
 
       if (fileRejections.length) {
@@ -98,7 +120,7 @@ export default function StudentDocumentUploadZone({
         });
       }
     },
-    [maxFileSizeBytes, multiple, maxFiles, showToast],
+    [isRequirementScopedUpload, maxFileSizeBytes, multiple, maxFiles, showToast, targetRequirementId],
   );
 
   const { getRootProps, getInputProps, isDragActive, isDragReject, open } = useDropzone({
@@ -153,7 +175,7 @@ export default function StudentDocumentUploadZone({
 
     for (const file of selectedFiles) {
       const fileKey = getFileKey(file);
-      const requirementId = fileRequirementMap[fileKey];
+      const requirementId = isRequirementScopedUpload ? targetRequirementId : fileRequirementMap[fileKey];
 
       if (!requirementId) {
         failedUploads.push(`${file.name}: No requirement selected.`);
@@ -174,10 +196,9 @@ export default function StudentDocumentUploadZone({
         continue;
       }
 
-      // --- THE NEW 1-STEP DATABASE SAVE ---
       const documentResult = await createStudentDocumentRecord({
         id: documentId,
-        requirementId: requirementId, // Directly attach to requirement
+        requirementId: requirementId,
         name: file.name,
         type: inferDocumentType(file.name, file.type),
         bucket: STORAGE_BUCKETS.DOCUMENTS,
@@ -185,7 +206,6 @@ export default function StudentDocumentUploadZone({
         mimeType: file.type || null,
         sizeBytes: file.size,
         source: "VAULT_UPLOAD",
-        // Note: 'status' was removed because it now lives on the Requirement itself!
       });
 
       if (!documentResult.success || !documentResult.data) {
@@ -239,13 +259,20 @@ export default function StudentDocumentUploadZone({
           </div>
           <div className="max-h-60 space-y-3 overflow-y-auto pr-1">
             {selectedFiles.map((file) => (
+              // In requirement-scoped uploads (Change Document flow), requirement is fixed.
               <SelectedFileItem
                 key={getFileKey(file)}
                 file={file}
-                chosenRequirementId={fileRequirementMap[getFileKey(file)]}
+                chosenRequirementId={isRequirementScopedUpload ? targetRequirementId : fileRequirementMap[getFileKey(file)]}
                 requirements={requirements}
-                existingLinkMap={{}} // Unused now
+                fulfilledRequirementIds={fulfilledRequirementIds}
                 selectedRequirementIds={selectedRequirementIds}
+                hideRequirementSelect={isRequirementScopedUpload}
+                fixedRequirementLabel={
+                  isRequirementScopedUpload
+                    ? (requirements.find((r) => r.id === targetRequirementId)?.name ?? "Selected requirement")
+                    : undefined
+                }
                 onRequirementChange={handleRequirementChange}
                 onRemove={handleRemoveFile}
               />
