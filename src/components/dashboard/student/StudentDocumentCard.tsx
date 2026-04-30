@@ -1,9 +1,9 @@
 import { FileImage, FileText, Trash2 } from "lucide-react";
 import DashboardStatusBadge from "@/components/dashboard/shared/DashboardStatusBadge";
-import type { VaultDocumentListItem } from "@/lib/documents/types";
+import type { DocumentItem } from "@/lib/documents/types";
 
 type StudentDocumentCardProps = {
-  document: VaultDocumentListItem;
+  document: DocumentItem;
   onDeleteRequest: (document: { id: string; name: string }) => void;
   isDeleting: boolean;
 };
@@ -57,7 +57,7 @@ export default function StudentDocumentCard({
             </div>
 
             <div className="flex items-center gap-2">
-              <DashboardStatusBadge status={document.status.replaceAll("_", " ")} />
+              <DashboardStatusBadge status={document.status?.replaceAll("_", " ") ?? "PENDING"} />
               <button
                 type="button"
                 onClick={() => onDeleteRequest({ id: document.id, name: document.name })}
@@ -73,7 +73,7 @@ export default function StudentDocumentCard({
           <div className="flex flex-wrap items-center gap-x-5 gap-y-2 font-inter text-sm text-slate-500">
             <span>Uploaded {formatDate(document.uploadedAt)}</span>
             {sizeLabel ? <span>{sizeLabel}</span> : null}
-            <span>{document.matchState === "MATCHED" ? document.matchedLabel : "Unassigned in vault"}</span>
+            <span>{document.type}</span>
           </div>
 
           {document.notes ? (

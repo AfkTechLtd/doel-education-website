@@ -15,16 +15,14 @@ import {
     Shield,
     PenTool,
     type LucideIcon,
+    Banknote
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { requireRole } from "@/lib/auth";
 import { ROLES } from "@/lib/constants";
 import { prisma } from "@/lib/prisma";
 
-// --- TYPES ---
-
-type SectionData = Record<string, string | undefined>;
-
+// --- UI COMPONENTS ---
 
 const DetailSection = ({ icon: Icon, title, children }: { icon: LucideIcon; title: string; children: React.ReactNode }) => (
     <section className="bg-white rounded-[2.5rem] border border-slate-100 p-8 shadow-sm mb-8">
@@ -36,32 +34,64 @@ const DetailSection = ({ icon: Icon, title, children }: { icon: LucideIcon; titl
     </section>
 );
 
-const Field = ({ label, value }: { label: string; value?: string | null }) => (
-    <div className="space-y-1">
-        <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400">{label}</p>
-        <p className="font-semibold text-slate-800 text-base">{value || "—"}</p>
-    </div>
-);
+const Field = ({ label, value }: { label: string; value?: string | number | null }) => {
+    // 1. Check if the value is literally the JavaScript NaN value
+    const isInvalidNumber = typeof value === "number" && Number.isNaN(value);
 
-const BoolField = ({ label, value }: { label: string; value?: string }) => (
+    // 2. Only display the string if it's not null, undefined, empty, OR NaN
+    const displayValue = (value !== null && value !== undefined && value !== "" && !isInvalidNumber)
+        ? String(value)
+        : "—";
+
+    return (
+        <div className="space-y-1">
+            <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400">{label}</p>
+            <p className="font-semibold text-slate-800 text-base">{displayValue}</p>
+        </div>
+    );
+};
+
+const DateField = ({ label, value }: { label: string; value?: Date | string | null }) => {
+    if (!value || value === "") {
+        return (
+            <div className="space-y-1">
+                <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400">{label}</p>
+                <p className="font-semibold text-slate-800 text-base">—</p>
+            </div>
+        );
+    }
+
+    const dateObj = new Date(value);
+
+    const isValidDate = !isNaN(dateObj.getTime());
+
+    const formatted = isValidDate
+        ? dateObj.toLocaleDateString(undefined, { year: "numeric", month: "long", day: "numeric" })
+        : "—";
+
+    return (
+        <div className="space-y-1">
+            <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400">{label}</p>
+            <p className="font-semibold text-slate-800 text-base">{formatted}</p>
+        </div>
+    );
+};
+
+const BoolField = ({ label, value }: { label: string; value?: boolean | null }) => (
     <div className="space-y-1">
         <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400">{label}</p>
-        <p className={cn("font-semibold text-base", value === "true" ? "text-teal-700" : "text-slate-400")}>
-            {value === "true" ? "Yes" : "No"}
+        <p className={cn("font-semibold text-base", value ? "text-teal-700" : "text-slate-400")}>
+            {value ? "Yes" : "No"}
         </p>
     </div>
 );
 
-const LongField = ({ label, value }: { label: string; value?: string }) => (
+const LongField = ({ label, value }: { label: string; value?: string | null }) => (
     <div className="space-y-2">
         <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400">{label}</p>
         <p className="text-slate-700 text-sm leading-relaxed whitespace-pre-wrap">{value || "—"}</p>
     </div>
 );
-
-function getSectionData(sections: { sectionNumber: string; data: SectionData }[], sectionNumber: string): SectionData {
-    return sections.find(s => s.sectionNumber === sectionNumber)?.data ?? {};
-}
 
 // --- DATA FETCHING ---
 
@@ -69,7 +99,15 @@ async function getApplication(id: string, userId: string) {
     const application = await prisma.application.findUnique({
         where: { id },
         include: {
-            sections: { select: { sectionNumber: true, data: true, isComplete: true } },
+            personalInfo: true,
+            academicRecord: true,
+            testScores: true,
+            financialStanding: true,
+            extracurriculars: true,
+            familyInfo: true,
+            supplemental: true,
+            conductAgreement: true,
+            recommenders: true,
             student: { select: { userId: true } },
         },
     });
@@ -97,17 +135,18 @@ export default async function ApplicationDetailsPage({
     const application = await getApplication(id, user.id);
     if (!application) notFound();
 
-    const sections = application.sections as { sectionNumber: string; data: SectionData; isComplete: boolean }[];
-    const s1 = getSectionData(sections, "SECTION_1");
-    const s2 = getSectionData(sections, "SECTION_2");
-    const s3 = getSectionData(sections, "SECTION_3");
-    const s4 = getSectionData(sections, "SECTION_4");
+    // Safely destructure the modules (falling back to empty objects if missing)
+    const personalInfo = (application.personalInfo || {}) as any;
+    const academicRecord = (application.academicRecord || {}) as any;
+    const testScores = (application.testScores || {}) as any;
+    const financials = (application.financialStanding || {}) as any;
+    const extracurriculars = (application.extracurriculars || {}) as any;
+    const familyInfo = (application.familyInfo || {}) as any;
+    const supplemental = (application.supplemental || {}) as any;
+    const conduct = (application.conductAgreement || {}) as any;
+    const recommenders = application.recommenders || [];
 
-    const recsRequired = parseInt(s3.recommendationsRequired ?? "0");
-    const hasDisclosure =
-        s4.hasCriminalRecord === "true" ||
-        s4.hasAcademicViolation === "true" ||
-        s4.hasDisciplinaryAction === "true";
+    const hasDisclosure = conduct.hasCriminalRecord || conduct.hasAcademicViolation || conduct.hasDisciplinaryAction;
 
     return (
         <div className="max-w-6xl mx-auto py-8 px-4 sm:px-6 lg:px-8 bg-slate-50 min-h-screen">
@@ -145,53 +184,60 @@ export default async function ApplicationDetailsPage({
             {/* ── STEP 1 ── */}
             <DetailSection icon={User} title="Personal Information">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-y-8 gap-x-12">
-                    <Field label="Legal Full Name" value={s1.name} />
-                    <Field label="Email Address" value={s1.email} />
-                    <Field label="Date of Birth" value={s1.dateOfBirth} />
-                    <Field label="Phone Number" value={s1.phone} />
-                    <Field label="Nationality" value={s1.nationality} />
-                    <Field label="Gender" value={s1.gender} />
+                    <Field label="Legal Full Name" value={personalInfo.name} />
+                    <Field label="Email Address" value={personalInfo.email} />
+                    <DateField label="Date of Birth" value={personalInfo.dateOfBirth} />
+                    <Field label="Phone Number" value={personalInfo.phone} />
+                    <Field label="Nationality" value={personalInfo.nationality} />
+                    <Field label="Gender" value={personalInfo.gender} />
                     <div className="md:col-span-2">
-                        <Field label="Primary Address" value={s1.address} />
+                        <Field label="Primary Address" value={personalInfo.address} />
                     </div>
                 </div>
             </DetailSection>
 
             <DetailSection icon={GraduationCap} title="Academic History">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-y-8 gap-x-12">
-                    <Field label="Institution Name" value={s1.schoolName} />
-                    <Field label="Institution City" value={s1.schoolCity} />
-                    <Field label="Institution Country" value={s1.schoolCountry} />
-                    <Field label="Highest Degree Obtained" value={s1.degreeObtained} />
-                    <Field label="Graduation Date" value={s1.graduationDate} />
-                    <Field label="Field of Study / Major" value={s1.fieldOfStudy} />
-                    <Field label="Cumulative GPA" value={s1.gpa} />
+                    <Field label="Institution Name" value={academicRecord.schoolName} />
+                    <Field label="Institution City" value={academicRecord.schoolCity} />
+                    <Field label="Institution Country" value={academicRecord.schoolCountry} />
+                    <Field label="Highest Degree Obtained" value={academicRecord.degreeObtained} />
+                    <DateField label="Graduation Date" value={academicRecord.graduationDate} />
+                    <Field label="Field of Study / Major" value={academicRecord.fieldOfStudy} />
+                    <Field label="Cumulative GPA" value={academicRecord.gpa} />
                 </div>
             </DetailSection>
 
             <DetailSection icon={FileText} title="Program Selection">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-y-8 gap-x-12">
-                    <Field label="Target University" value={s1.targetUniversity} />
-                    <Field label="Desired Degree Program" value={s1.degreeProgram} />
-                    <Field label="Intended Start Term" value={s1.startTerm} />
-                    <Field label="Target Year" value={s1.targetYear} />
+                    <Field label="Target University" value={application.targetUniversity} />
+                    <Field label="Desired Degree Program" value={application.degreeProgram} />
+                    <Field label="Intended Start Term" value={application.startTerm} />
+                    <Field label="Target Year" value={application.targetYear} />
                 </div>
             </DetailSection>
 
             {/* ── STEP 2 ── */}
             <DetailSection icon={ClipboardCheck} title="Test Requirements by Program">
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-4">
-                    {(["SAT", "ACT", "TOEFL", "IELTS", "GRE", "GMAT"] as const).map((test) => {
-                        const key = `requires${test}`;
+                    {[
+                        { label: "SAT", key: "requiresSAT" },
+                        { label: "ACT", key: "requiresACT" },
+                        { label: "TOEFL", key: "requiresTOEFL" },
+                        { label: "IELTS", key: "requiresIELTS" },
+                        { label: "GRE", key: "requiresGRE" },
+                        { label: "GMAT", key: "requiresGMAT" },
+                    ].map((test) => {
+                        const isRequired = testScores[test.key as keyof typeof testScores] === true;
                         return (
-                            <div key={test} className={cn(
+                            <div key={test.label} className={cn(
                                 "flex flex-col items-center gap-2 p-4 rounded-2xl border text-sm font-bold",
-                                s2[key] === "true"
+                                isRequired
                                     ? "bg-teal-50 border-teal-200 text-teal-700"
                                     : "bg-slate-50 border-slate-100 text-slate-400"
                             )}>
-                                <CheckCircle2 className={cn("h-5 w-5", s2[key] === "true" ? "text-teal-500" : "text-slate-300")} />
-                                {test}
+                                <CheckCircle2 className={cn("h-5 w-5", isRequired ? "text-teal-500" : "text-slate-300")} />
+                                {test.label}
                             </div>
                         );
                     })}
@@ -200,124 +246,155 @@ export default async function ApplicationDetailsPage({
 
             <DetailSection icon={Award} title="Test Scores">
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-y-8 gap-x-12">
-                    <Field label="SAT Math" value={s2.satMath} />
-                    <Field label="SAT Reading" value={s2.satReading} />
-                    <Field label="ACT Composite" value={s2.actComposite} />
-                    <Field label="TOEFL" value={s2.toeflScore} />
-                    <Field label="IELTS" value={s2.ieltsScore} />
-                    <Field label="GRE Verbal" value={s2.greVerbal} />
-                    <Field label="GRE Quantitative" value={s2.greQuantitative} />
-                    <Field label="Most Recent Test Date" value={s2.testDate} />
+                    <Field label="SAT Math" value={testScores.satMath} />
+                    <Field label="SAT Reading" value={testScores.satReading} />
+                    <Field label="ACT Composite" value={testScores.actComposite} />
+                    <Field label="TOEFL" value={testScores.toeflScore} />
+                    <Field label="IELTS" value={testScores.ieltsScore} />
+                    <Field label="GRE Verbal" value={testScores.greVerbal} />
+                    <Field label="GRE Quantitative" value={testScores.greQuantitative} />
+                    <DateField label="Most Recent Test Date" value={testScores.testDate} />
                 </div>
             </DetailSection>
 
             <DetailSection icon={PenTool} title="Personal Statement / Statement of Purpose">
-                <LongField label="Statement of Purpose" value={s2.personalStatement} />
+                <LongField label="Statement of Purpose" value={supplemental.personalStatement} />
+            </DetailSection>
+
+            <DetailSection icon={Banknote} title="Asset Valuation & Financial Standing">
+                <div className="space-y-8">
+                    {/* Sponsor Info */}
+                    <div>
+                        <h3 className="text-sm font-bold text-slate-700 mb-4 border-b pb-2">Primary Financial Sponsor</h3>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-y-6 gap-x-12">
+                            <Field label="Sponsor's Full Name" value={financials.sponsorFullName} />
+                            <Field label="Relationship to Applicant" value={financials.sponsorRelationship} />
+                            <Field label="Sponsor's Occupation" value={financials.sponsorOccupation} />
+                            <Field label="Sponsor's Annual Income (USD)" value={financials.sponsorAnnualIncome} />
+                        </div>
+                    </div>
+
+                    {/* Assets */}
+                    <div>
+                        <h3 className="text-sm font-bold text-slate-700 mb-4 border-b pb-2">Declared Assets & Liabilities</h3>
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-y-6 gap-x-8">
+                            <Field label="Primary Currency" value={financials.primaryCurrency} />
+                            <Field label="Bank Balance (USD)" value={financials.bankBalance} />
+                            <Field label="Fixed Deposits (USD)" value={financials.fixedDepositAmount} />
+                            <Field label="Investment Assets (USD)" value={financials.investmentAssets} />
+                            <Field label="Real Estate Value (USD)" value={financials.realEstateValue} />
+                            <Field label="Business Assets (USD)" value={financials.businessAssets} />
+                            <Field label="Other Assets (USD)" value={financials.otherAssets} />
+                            <Field label="Total Liabilities (USD)" value={financials.totalLiabilities} />
+                        </div>
+                    </div>
+
+                    {/* Budget & Aid */}
+                    <div>
+                        <h3 className="text-sm font-bold text-slate-700 mb-4 border-b pb-2">Education Budget & Financial Aid</h3>
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-y-6 gap-x-8 mb-6">
+                            <Field label="Funds Available for Study (USD)" value={financials.fundsAvailableForStudy} />
+                            <Field label="Primary Funding Source" value={financials.fundingSource} />
+                            <Field label="Annual Tuition Budget (USD)" value={financials.annualTuitionBudget} />
+                            <Field label="Annual Living Budget (USD)" value={financials.annualLivingBudget} />
+                        </div>
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-y-6 gap-x-8">
+                            <BoolField label="Applying for Scholarship" value={financials.applyingForScholarship} />
+                            {financials.applyingForScholarship && <Field label="Scholarship Type" value={financials.scholarshipType} />}
+                            <BoolField label="Financial Aid Required" value={financials.financialAidRequired} />
+                        </div>
+                    </div>
+
+                    {/* Checklists */}
+                    <div>
+                        <h3 className="text-sm font-bold text-slate-700 mb-4 border-b pb-2">Financial Documents Status</h3>
+                        <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                            <BoolField label="Bank Statement" value={financials.hasBankStatement} />
+                            <BoolField label="Solvency Letter" value={financials.hasSolvencyLetter} />
+                            <BoolField label="Income Tax Return" value={financials.hasIncomeTaxReturn} />
+                            <BoolField label="Property Documents" value={financials.hasPropertyDocuments} />
+                            <BoolField label="Sponsor Letter" value={financials.hasSponsorLetter} />
+                            <BoolField label="Loan Approval Letter" value={financials.hasLoanApprovalLetter} />
+                        </div>
+                    </div>
+
+                    {financials.financialNotes && (
+                        <LongField label="Additional Financial Notes" value={financials.financialNotes} />
+                    )}
+                </div>
             </DetailSection>
 
             <DetailSection icon={Activity} title="Extracurricular Activities">
                 <div className="space-y-8">
-                    <LongField label="Extracurricular Activities" value={s2.activities} />
-                    <LongField label="Leadership Roles & Positions" value={s2.leadershipRoles} />
-                    <LongField label="Awards & Honors" value={s2.awardsHonors} />
-                    <LongField label="Community Service & Volunteering" value={s2.communityService} />
+                    <LongField label="Extracurricular Activities" value={extracurriculars.activities} />
+                    <LongField label="Leadership Roles & Positions" value={extracurriculars.leadershipRoles} />
+                    <LongField label="Awards & Honors" value={extracurriculars.awardsHonors} />
+                    <LongField label="Community Service & Volunteering" value={extracurriculars.communityService} />
                 </div>
             </DetailSection>
 
             {/* ── STEP 3 ── */}
             <DetailSection icon={Users} title="Family Information">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-y-8 gap-x-12">
-                    <Field label="Father's Full Name" value={s3.fatherName} />
-                    <Field label="Father's Occupation" value={s3.fatherOccupation} />
-                    <Field label="Father's Education Level" value={s3.fatherEducation} />
-                    <Field label="Mother's Full Name" value={s3.motherName} />
-                    <Field label="Mother's Occupation" value={s3.motherOccupation} />
-                    <Field label="Mother's Education Level" value={s3.motherEducation} />
-                    <Field label="Primary Guardian Name" value={s3.guardianName} />
-                    <Field label="Guardian Phone" value={s3.guardianPhone} />
-                    <Field label="Guardian's Relationship" value={s3.guardianRelationship} />
+                    <Field label="Father's Full Name" value={familyInfo.fatherName} />
+                    <Field label="Father's Occupation" value={familyInfo.fatherOccupation} />
+                    <Field label="Father's Education Level" value={familyInfo.fatherEducation} />
+                    <Field label="Mother's Full Name" value={familyInfo.motherName} />
+                    <Field label="Mother's Occupation" value={familyInfo.motherOccupation} />
+                    <Field label="Mother's Education Level" value={familyInfo.motherEducation} />
+                    <Field label="Primary Guardian Name" value={familyInfo.guardianName} />
+                    <Field label="Guardian Phone" value={familyInfo.guardianPhone} />
+                    <Field label="Guardian's Relationship" value={familyInfo.guardianRelationship} />
                 </div>
             </DetailSection>
 
             <DetailSection icon={MessageSquare} title="Recommendations / Letters of Recommendation">
                 <div className="space-y-2 mb-8">
-                    <Field label="Number of Recommendations Required" value={s3.recommendationsRequired} />
-                    {s3.requirementNotes && <LongField label="Program-Specific Requirements" value={s3.requirementNotes} />}
+                    <Field label="Number of Recommendations Required" value={recommenders.length} />
+                    {supplemental.requirementNotes && <LongField label="Program-Specific Requirements" value={supplemental.requirementNotes} />}
                 </div>
                 <div className="space-y-8">
-                    {s3.rec1Name && (
-                        <div className="p-6 bg-slate-50 rounded-2xl">
-                            <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4">Recommender 1</p>
+                    {recommenders.map((rec, index) => (
+                        <div key={rec.id} className="p-6 bg-slate-50 rounded-2xl relative">
+                            <div className="absolute top-4 right-6 text-[10px] font-bold uppercase tracking-wider text-teal-600 bg-teal-50 px-2 py-1 rounded-full border border-teal-100">
+                                {rec.requestStatus}
+                            </div>
+                            <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4">Recommender {index + 1}</p>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-y-6 gap-x-10">
-                                <Field label="Full Name" value={s3.rec1Name} />
-                                <Field label="Title / Position" value={s3.rec1Title} />
-                                <Field label="Email Address" value={s3.rec1Email} />
-                                <Field label="Institution / Organization" value={s3.rec1Institution} />
+                                <Field label="Full Name" value={rec.name} />
+                                <Field label="Title / Position" value={rec.title} />
+                                <Field label="Email Address" value={rec.email} />
+                                <Field label="Institution / Organization" value={rec.institution} />
                             </div>
                         </div>
-                    )}
-                    {recsRequired >= 2 && s3.rec2Name && (
-                        <div className="p-6 bg-slate-50 rounded-2xl">
-                            <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4">Recommender 2</p>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-y-6 gap-x-10">
-                                <Field label="Full Name" value={s3.rec2Name} />
-                                <Field label="Title / Position" value={s3.rec2Title} />
-                                <Field label="Email Address" value={s3.rec2Email} />
-                                <Field label="Institution / Organization" value={s3.rec2Institution} />
-                            </div>
-                        </div>
-                    )}
-                    {recsRequired >= 3 && s3.rec3Name && (
-                        <div className="p-6 bg-slate-50 rounded-2xl">
-                            <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4">Recommender 3</p>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-y-6 gap-x-10">
-                                <Field label="Full Name" value={s3.rec3Name} />
-                                <Field label="Title / Position" value={s3.rec3Title} />
-                                <Field label="Email Address" value={s3.rec3Email} />
-                                <Field label="Institution / Organization" value={s3.rec3Institution} />
-                            </div>
-                        </div>
-                    )}
-                    {!s3.rec1Name && <p className="text-slate-400 text-sm">No recommenders provided.</p>}
-                </div>
-            </DetailSection>
-
-            <DetailSection icon={Award} title="Scholarships / Financial Aid">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-y-8 gap-x-12">
-                    <BoolField label="Applying for Scholarship" value={s3.applyingForScholarship} />
-                    {s3.applyingForScholarship === "true" && (
-                        <>
-                            <Field label="Scholarship Type" value={s3.scholarshipType} />
-                            <Field label="Sponsor / Funding Source" value={s3.sponsorName} />
-                        </>
-                    )}
-                    <BoolField label="Financial Aid Required" value={s3.financialAidRequired} />
+                    ))}
+                    {recommenders.length === 0 && <p className="text-slate-400 text-sm">No recommenders provided.</p>}
                 </div>
             </DetailSection>
 
             {/* ── STEP 4 ── */}
             <DetailSection icon={HelpCircle} title="Additional / Supplemental Questions">
                 <div className="space-y-8">
-                    <LongField label="Why this university?" value={s4.whyThisUniversity} />
-                    <LongField label="Why this program?" value={s4.whyThisProgram} />
-                    <Field label="How did you hear about us?" value={s4.hearAboutUs} />
-                    {s4.additionalInfo && <LongField label="Additional Information" value={s4.additionalInfo} />}
+                    <LongField label="Why this university?" value={supplemental.whyThisUniversity} />
+                    <LongField label="Why this program?" value={supplemental.whyThisProgram} />
+                    <Field label="How did you hear about us?" value={supplemental.hearAboutUs} />
+                    {supplemental.additionalInfo && <LongField label="Additional Information" value={supplemental.additionalInfo} />}
                 </div>
             </DetailSection>
 
             <DetailSection icon={Shield} title="Community Standards / Conduct Disclosure">
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-y-8 gap-x-12 mb-6">
-                    <BoolField label="Felony / Criminal Offense" value={s4.hasCriminalRecord} />
-                    <BoolField label="Academic Dishonesty" value={s4.hasAcademicViolation} />
-                    <BoolField label="Disciplinary Action" value={s4.hasDisciplinaryAction} />
+                    <BoolField label="Felony / Criminal Offense" value={conduct.hasCriminalRecord} />
+                    <BoolField label="Academic Dishonesty" value={conduct.hasAcademicViolation} />
+                    <BoolField label="Disciplinary Action" value={conduct.hasDisciplinaryAction} />
                 </div>
-                {hasDisclosure && s4.conductExplanation && (
-                    <LongField label="Explanation" value={s4.conductExplanation} />
+                {hasDisclosure && conduct.conductExplanation && (
+                    <LongField label="Explanation" value={conduct.conductExplanation} />
                 )}
                 <div className="mt-6 grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <BoolField label="Agreed to Terms" value={s4.agreeToTerms} />
-                    <BoolField label="Certified Accuracy" value={s4.agreeToAccuracy} />
-                    <BoolField label="Agreed to Conduct" value={s4.agreeToConduct} />
+                    <BoolField label="Agreed to Terms" value={conduct.agreeToTerms} />
+                    <BoolField label="Certified Accuracy" value={conduct.agreeToAccuracy} />
+                    <BoolField label="Agreed to Conduct" value={conduct.agreeToConduct} />
                 </div>
             </DetailSection>
 
@@ -331,7 +408,7 @@ export default async function ApplicationDetailsPage({
                     <div>
                         <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Digital Signature</p>
                         <p className="font-serif text-2xl text-slate-900 border-b border-slate-200 pb-2 italic">
-                            {s4.signature || "—"}
+                            {conduct.signature || "—"}
                         </p>
                     </div>
                     <div className="flex items-center gap-3 text-teal-700 font-bold">

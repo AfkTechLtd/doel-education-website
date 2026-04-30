@@ -3,15 +3,12 @@
 import type { Document } from "@prisma/client";
 import { createClient as createSupabaseServerClient } from "@/lib/supabase/server";
 import { STORAGE_BUCKETS } from "@/lib/constants";
-import { studentDocumentRequirements } from "@/data/student-document-requirements";
-import { findBestRequiredDocumentMatch } from "@/lib/documents/matching";
 import { prisma } from "@/lib/prisma";
 import { getCurrentStudentContext } from "@/lib/documents/ownership";
 import type {
   ApplicationFieldDocumentLinkItem,
   DocumentLinkUsage,
   DocumentLinkContext,
-  RequiredDocumentLinkItem,
   ResourceTemplateDocumentLinkItem,
   SelectedDocumentReference,
   StudentDocumentStatus,
@@ -28,23 +25,24 @@ type CreateStudentDocumentRecordInput = {
   id: string;
   name: string;
   type: string;
+  requirementId: string;
   bucket?: string | null;
   storagePath?: string | null;
   mimeType?: string | null;
   sizeBytes?: number | null;
   source?: string | null;
-  status?: StudentDocumentStatus;
+
 };
 
 /**
  * Maps a raw Prisma `Document` row into the list item shape used by the vault UI.
  */
-function mapDocumentToVaultItem(document: Document): VaultDocumentListItem {
+function mapDocumentToVaultItem(document: Document & { requirement?: { status: string } | null }): VaultDocumentListItem {
   return {
     id: document.id,
     name: document.name,
     type: document.type,
-    status: document.status as StudentDocumentStatus,
+    status: (document.requirement?.status ?? "PENDING") as StudentDocumentStatus,
     bucket: document.bucket,
     storagePath: document.storagePath,
     mimeType: document.mimeType,
@@ -70,10 +68,9 @@ function mapDocumentToReference(document: Document): SelectedDocumentReference {
     storagePath: document.storagePath,
     mimeType: document.mimeType,
     sizeBytes: document.sizeBytes,
-    status: document.status as StudentDocumentStatus,
+    status: "PENDING", // Hardcoded safely for the UI until the page refreshes
   };
 }
-
 /**
  * Lists all vault documents owned by the currently authenticated student.
  */
@@ -83,6 +80,7 @@ export async function listStudentDocuments(): Promise<ActionResult<VaultDocument
 
     const documents = await prisma.document.findMany({
       where: { studentId: studentProfile.id },
+      include: { requirement: { select: { status: true } } },
       orderBy: [{ uploadedAt: "desc" }, { createdAt: "desc" }],
     });
 
@@ -109,13 +107,31 @@ export async function createStudentDocumentRecord(
   try {
     const { studentProfile } = await getCurrentStudentContext();
 
+    const supabase = await createSupabaseServerClient();
+
+    // Auto-replace: if this requirement already has a document, delete it first
+    const existingDocument = await prisma.document.findUnique({
+      where: { requirementId: input.requirementId },
+    });
+
+    if (existingDocument) {
+      if (existingDocument.bucket && existingDocument.storagePath) {
+        await supabase.storage
+          .from(existingDocument.bucket)
+          .remove([existingDocument.storagePath]);
+      }
+      await prisma.document.delete({
+        where: { id: existingDocument.id },
+      });
+    }
+
     const document = await prisma.document.create({
       data: {
         id: input.id,
         studentId: studentProfile.id,
+        requirementId: input.requirementId,
         name: input.name,
         type: input.type,
-        status: (input.status ?? "PENDING") as never,
         source: input.source ?? null,
         bucket: input.bucket ?? STORAGE_BUCKETS.DOCUMENTS,
         storagePath: input.storagePath ?? null,
@@ -123,6 +139,10 @@ export async function createStudentDocumentRecord(
         sizeBytes: input.sizeBytes ?? null,
         uploadedAt: new Date(),
       },
+    });
+    await prisma.documentRequirement.update({
+      where: { id: input.requirementId },
+      data: { status: "UNDER_REVIEW" }, // or "RECEIVED" based on your preference
     });
 
     return {
@@ -194,6 +214,10 @@ export async function deleteStudentDocument(documentId: string): Promise<ActionR
       where: { id: document.id },
     });
 
+    await prisma.documentRequirement.update({
+      where: { id: document.requirementId },
+      data: { status: "PENDING" }
+    });
     return {
       success: true,
       data: { id: document.id },
@@ -329,197 +353,6 @@ export async function hardDeleteStudentDocument(
     return {
       success: false,
       error: "Failed to hard delete the document.",
-    };
-  }
-}
-
-/**
- * Lists persisted required-document links for the current student.
- */
-export async function listRequiredDocumentLinks(): Promise<ActionResult<RequiredDocumentLinkItem[]>> {
-  try {
-    const { studentProfile } = await getCurrentStudentContext();
-
-    const links = await prisma.documentLink.findMany({
-      where: {
-        studentId: studentProfile.id,
-        contextType: "REQUIRED_DOCUMENT",
-      },
-      include: {
-        document: true,
-      },
-    });
-
-    return {
-      success: true,
-      data: links.map((link) => ({
-        contextKey: link.contextKey,
-        document: {
-          id: link.document.id,
-          name: link.document.name,
-          bucket: link.document.bucket,
-          storagePath: link.document.storagePath,
-          mimeType: link.document.mimeType,
-          sizeBytes: link.document.sizeBytes,
-          status: link.document.status as StudentDocumentStatus,
-          type: link.document.type,
-        },
-      })),
-    };
-  } catch (error) {
-    console.error("[documents:listRequiredDocumentLinks]", error);
-    return {
-      success: false,
-      error: "Failed to load required document links.",
-    };
-  }
-}
-
-/**
- * Links a vault document to a required-document slot for the current student.
- * Repeated selections replace the prior document for the same requirement key.
- */
-export async function setRequiredDocumentLink(
-  contextKey: string,
-  documentId: string,
-): Promise<ActionResult<{ contextKey: string; documentId: string }>> {
-  try {
-    const { studentProfile } = await getCurrentStudentContext();
-
-    if (!contextKey.trim()) {
-      return {
-        success: false,
-        error: "Required document context is missing.",
-      };
-    }
-
-    if (!documentId.trim()) {
-      return {
-        success: false,
-        error: "Selected document is missing.",
-      };
-    }
-
-    const document = await prisma.document.findFirst({
-      where: {
-        id: documentId,
-        studentId: studentProfile.id,
-      },
-      select: { id: true },
-    });
-
-    if (!document) {
-      console.error("[documents:setRequiredDocumentLink:not-found]", {
-        contextKey,
-        documentId,
-        studentProfileId: studentProfile.id,
-      });
-      return {
-        success: false,
-        error: "Selected document was not found in your vault.",
-      };
-    }
-
-    await prisma.documentLink.upsert({
-      where: {
-        studentId_contextType_contextKey: {
-          studentId: studentProfile.id,
-          contextType: "REQUIRED_DOCUMENT",
-          contextKey,
-        },
-      },
-      update: {
-        documentId: document.id,
-      },
-      create: {
-        studentId: studentProfile.id,
-        documentId: document.id,
-        contextType: "REQUIRED_DOCUMENT",
-        contextKey,
-      },
-    });
-
-    return {
-      success: true,
-      data: {
-        contextKey,
-        documentId: document.id,
-      },
-    };
-  } catch (error) {
-    console.error("[documents:setRequiredDocumentLink]", {
-      error,
-      contextKey,
-      documentId,
-    });
-    return {
-      success: false,
-      error: "Could not save the required document link.",
-    };
-  }
-}
-
-/**
- * Attempts to auto-link a newly uploaded document to one required-document slot
- * using filename aliases. Existing links are never overwritten automatically.
- */
-export async function autoLinkRequiredDocumentByFileName(
-  fileName: string,
-  documentId: string,
-): Promise<ActionResult<{ contextKey: string } | null>> {
-  try {
-    const { studentProfile } = await getCurrentStudentContext();
-
-    const matchedRequirementId = findBestRequiredDocumentMatch(
-      fileName,
-      studentDocumentRequirements,
-    );
-
-    if (!matchedRequirementId) {
-      return {
-        success: true,
-        data: null,
-      };
-    }
-
-    const existingLink = await prisma.documentLink.findUnique({
-      where: {
-        studentId_contextType_contextKey: {
-          studentId: studentProfile.id,
-          contextType: "REQUIRED_DOCUMENT",
-          contextKey: matchedRequirementId,
-        },
-      },
-      select: { id: true },
-    });
-
-    if (existingLink) {
-      return {
-        success: true,
-        data: null,
-      };
-    }
-
-    await prisma.documentLink.create({
-      data: {
-        studentId: studentProfile.id,
-        documentId,
-        contextType: "REQUIRED_DOCUMENT",
-        contextKey: matchedRequirementId,
-      },
-    });
-
-    return {
-      success: true,
-      data: {
-        contextKey: matchedRequirementId,
-      },
-    };
-  } catch (error) {
-    console.error("[documents:autoLinkRequiredDocumentByFileName]", error);
-    return {
-      success: false,
-      error: "Failed to auto-link uploaded document.",
     };
   }
 }

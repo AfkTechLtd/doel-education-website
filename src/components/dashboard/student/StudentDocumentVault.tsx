@@ -1,199 +1,70 @@
+// /src/components/dashboard/student/StudentDocumentVault.tsx
 "use client";
 
 import { useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import {
-  getDocumentLinkUsage,
-  hardDeleteStudentDocument,
-  deleteStudentDocument,
-  removeDocumentLink,
-  setRequiredDocumentLink,
-} from "@/actions/documents";
+import { deleteStudentDocument } from "@/actions/documents";
 import { useToast } from "@/components/common/feedback/ToastProvider";
 import StudentDocumentDeleteModal from "@/components/dashboard/student/StudentDocumentDeleteModal";
+import type { DocumentItem, RequirementWithDocuments } from "@/lib/documents/types";
 import { cn } from "@/lib/utils";
-import type { StudentDocumentRequirement } from "@/data/student-document-requirements";
-import type {
-  DocumentLinkUsage,
-  DocumentLinkContext,
-  RequiredDocumentLinkItem,
-  SelectedDocumentReference,
-  StudentDocumentStatus,
-  VaultDocumentListItem,
-} from "@/lib/documents/types";
+
 import StudentDocumentCard from "./StudentDocumentCard";
 import StudentDocumentToolbar, { type StudentDocumentFilter } from "./StudentDocumentToolbar";
 import StudentRequiredDocumentCard from "./StudentRequiredDocumentCard";
 
 type StudentDocumentVaultProps = {
-  documents: VaultDocumentListItem[];
-  requirements: StudentDocumentRequirement[];
-  requiredLinks: RequiredDocumentLinkItem[];
+  documents: DocumentItem[];
+  requirements: RequirementWithDocuments[];
 };
 
 type VaultView = "ALL_FILES" | "REQUIRED_DOCUMENTS";
 
-function buildDebugHint(
-  contextType: DocumentLinkContext,
-  contextKey: string,
-  documentId?: string,
-) {
-  if (process.env.NODE_ENV !== "development") {
-    return undefined;
-  }
-
-  return `[${contextType}/${contextKey}${documentId ? ` | doc: ${documentId}` : ""}]`;
-}
-
-function matchesFilter(status: StudentDocumentStatus, filter: StudentDocumentFilter) {
-  return filter === "ALL" || status === filter;
-}
-
-function matchesQuery(document: VaultDocumentListItem, query: string) {
-  if (!query) {
-    return true;
-  }
-
-  const searchableText = [
-    document.name,
-    document.type,
-    document.status,
-    document.matchedLabel ?? "",
-    document.notes ?? "",
-  ]
-    .join(" ")
-    .toLowerCase();
-
-  return searchableText.includes(query);
-}
-
 export default function StudentDocumentVault({
   documents,
   requirements,
-  requiredLinks,
 }: StudentDocumentVaultProps) {
   const router = useRouter();
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState<StudentDocumentFilter>("ALL");
   const [view, setView] = useState<VaultView>("ALL_FILES");
+
   const [deletingId, startDeleting] = useTransition();
-  const [activeDeletingId, setActiveDeletingId] = useState<string | null>(null);
   const [deleteCandidate, setDeleteCandidate] = useState<{ id: string; name: string } | null>(null);
-  const [deleteUsage, setDeleteUsage] = useState<DocumentLinkUsage | null>(null);
-  const [isLoadingDeleteUsage, setIsLoadingDeleteUsage] = useState(false);
-  const [isLinking, startLinking] = useTransition();
+
   const { showToast } = useToast();
 
-  const requiredLinkMap = useMemo(() => {
-    return requiredLinks.reduce<Record<string, SelectedDocumentReference & { type: string }>>(
-      (accumulator, link) => {
-        accumulator[link.contextKey] = link.document;
-        return accumulator;
-      },
-      {},
-    );
-  }, [requiredLinks]);
-
+  // Filter Documents for "All Files" View
   const filteredDocuments = useMemo(() => {
     const normalizedQuery = query.trim().toLowerCase();
-
     return documents.filter((document) => {
-      return matchesFilter(document.status, filter) && matchesQuery(document, normalizedQuery);
+      const matchesFilter = filter === "ALL" || document.status === filter;
+      const searchableText = `${document.name} ${document.type} ${document.status ?? ""} ${document.notes ?? ""}`.toLowerCase();
+      const matchesQuery = !normalizedQuery || searchableText.includes(normalizedQuery);
+      return matchesFilter && matchesQuery;
     });
   }, [documents, filter, query]);
 
+  // Filter Requirements for "Required Documents" View
   const filteredRequirements = useMemo(() => {
-    const requirementsWithStatus = requirements.map((requirement) => {
-      const linkedStatus = requiredLinkMap[requirement.id]?.status;
-      const effectiveStatus: StudentDocumentStatus = linkedStatus ?? "PENDING";
+    if (filter === "ALL") return requirements;
+    return requirements.filter((req) => req.status === filter);
+  }, [filter, requirements]);
 
-      return {
-        requirement,
-        effectiveStatus,
-      };
-    });
-
-    if (filter === "ALL") {
-      return requirementsWithStatus;
-    }
-
-    return requirementsWithStatus.filter((item) => item.effectiveStatus === filter);
-  }, [filter, requiredLinkMap, requirements]);
-
+  // Simple, clean delete function
   function handleDelete(documentId: string) {
-    setActiveDeletingId(documentId);
-
     startDeleting(async () => {
       const result = await deleteStudentDocument(documentId);
-
       if (!result.success) {
         showToast({
           variant: "error",
           title: "Delete failed",
           description: result.error ?? "Failed to delete the document.",
         });
-        setActiveDeletingId(null);
         return;
       }
-
-      showToast({
-        variant: "success",
-        title: "Document deleted",
-      });
-      router.refresh();
-      setActiveDeletingId(null);
-    });
-  }
-
-  function handleDeleteRequest(document: { id: string; name: string }) {
-    setDeleteCandidate(document);
-    setDeleteUsage(null);
-    setIsLoadingDeleteUsage(true);
-
-    startDeleting(async () => {
-      const usageResult = await getDocumentLinkUsage(document.id);
-
-      if (!usageResult.success || !usageResult.data) {
-        showToast({
-          variant: "error",
-          title: "Could not check document usage",
-          description: usageResult.error ?? "Try again.",
-        });
-        setDeleteCandidate(null);
-        setIsLoadingDeleteUsage(false);
-        return;
-      }
-
-      setDeleteUsage(usageResult.data);
-      setIsLoadingDeleteUsage(false);
-    });
-  }
-
-  function handleHardDelete(documentId: string) {
-    setActiveDeletingId(documentId);
-
-    startDeleting(async () => {
-      const result = await hardDeleteStudentDocument(documentId);
-
-      if (!result.success) {
-        showToast({
-          variant: "error",
-          title: "Hard delete failed",
-          description: result.error ?? "Failed to unlink and delete this document.",
-        });
-        setActiveDeletingId(null);
-        return;
-      }
-
-      showToast({
-        variant: "success",
-        title: "Document deleted",
-        description: "Links were removed and the file was deleted.",
-      });
-
+      showToast({ variant: "success", title: "Document deleted" });
       setDeleteCandidate(null);
-      setDeleteUsage(null);
-      setActiveDeletingId(null);
       router.refresh();
     });
   }
@@ -213,9 +84,7 @@ export default function StudentDocumentVault({
           onClick={() => setView("ALL_FILES")}
           className={cn(
             "rounded-[0.9rem] px-4 py-2.5 font-inter text-sm font-semibold transition",
-            view === "ALL_FILES"
-              ? "bg-primary text-white"
-              : "text-slate-500 hover:text-slate-900",
+            view === "ALL_FILES" ? "bg-primary text-white" : "text-slate-500 hover:text-slate-900",
           )}
         >
           All Files
@@ -225,9 +94,7 @@ export default function StudentDocumentVault({
           onClick={() => setView("REQUIRED_DOCUMENTS")}
           className={cn(
             "rounded-[0.9rem] px-4 py-2.5 font-inter text-sm font-semibold transition",
-            view === "REQUIRED_DOCUMENTS"
-              ? "bg-primary text-white"
-              : "text-slate-500 hover:text-slate-900",
+            view === "REQUIRED_DOCUMENTS" ? "bg-primary text-white" : "text-slate-500 hover:text-slate-900",
           )}
         >
           Required Documents
@@ -241,8 +108,8 @@ export default function StudentDocumentVault({
               <StudentDocumentCard
                 key={document.id}
                 document={document}
-                onDeleteRequest={handleDeleteRequest}
-                isDeleting={deletingId && activeDeletingId === document.id}
+                onDeleteRequest={(doc) => setDeleteCandidate(doc)}
+                isDeleting={deletingId && deleteCandidate?.id === document.id}
               />
             ))}
           </section>
@@ -255,61 +122,35 @@ export default function StudentDocumentVault({
           </section>
         )
       ) : filteredRequirements.length ? (
-          <section className="grid grid-cols-1 gap-4 xl:grid-cols-2">
-            {filteredRequirements.map(({ requirement, effectiveStatus }) => (
-              <StudentRequiredDocumentCard
+        <section className="grid grid-cols-1 gap-4 xl:grid-cols-2">
+          {filteredRequirements.map((requirement) => (
+            <StudentRequiredDocumentCard
               key={requirement.id}
               requirement={requirement}
-              linkedDocument={requiredLinkMap[requirement.id] ?? null}
-              effectiveStatus={effectiveStatus}
-              onSelectDocument={async (selectedRequirement, document) => {
-                const result = await setRequiredDocumentLink(selectedRequirement.id, document.id);
-
-                if (!result.success) {
-                  showToast({
-                    variant: "error",
-                    title: `Could not link document to ${selectedRequirement.label}`,
-                    description: [
-                      result.error ?? "Could not save the required document link.",
-                      buildDebugHint("REQUIRED_DOCUMENT", selectedRequirement.id, document.id),
-                    ]
-                      .filter(Boolean)
-                      .join(" "),
-                  });
-                  return;
-                }
-
+              linkedDocument={requirement.documents ? {
+                id: requirement.documents.id,
+                name: requirement.documents.name,
+                type: requirement.documents.type,
+                bucket: requirement.documents.bucket,
+                storagePath: requirement.documents.storagePath,
+                mimeType: requirement.documents.mimeType,
+                sizeBytes: requirement.documents.sizeBytes,
+                status: requirement.status,
+              } : null}
+              effectiveStatus={requirement.status}
+              onSelectDocument={() => {
                 showToast({
                   variant: "success",
-                  title: "Document linked",
-                  description: `${document.name} linked to ${selectedRequirement.label}.`,
+                  title: "Document updated",
                 });
                 router.refresh();
               }}
-              onUnlinkDocument={(selectedRequirement) => {
-                startLinking(async () => {
-                  const result = await removeDocumentLink(
-                    "REQUIRED_DOCUMENT",
-                    selectedRequirement.id,
-                  );
-
-                  if (!result.success) {
-                    showToast({
-                      variant: "error",
-                      title: "Unlink failed",
-                      description: result.error ?? "Failed to unlink required document.",
-                    });
-                    return;
-                  }
-
-                  showToast({
-                    variant: "success",
-                    title: "Document unlinked",
-                  });
-                  router.refresh();
-                });
+              onUnlinkDocument={() => {
+                if (requirement.documents) {
+                  setDeleteCandidate({ id: requirement.documents.id, name: requirement.documents.name });
+                }
               }}
-              disabled={isLinking}
+              disabled={deletingId}
             />
           ))}
         </section>
@@ -321,37 +162,17 @@ export default function StudentDocumentVault({
           </p>
         </section>
       )}
+
+      {/* Simplified Delete Modal */}
       <StudentDocumentDeleteModal
         open={Boolean(deleteCandidate)}
         documentName={deleteCandidate?.name ?? ""}
-        usage={deleteUsage}
-        isLoadingUsage={isLoadingDeleteUsage}
-        isSubmitting={deletingId && activeDeletingId === deleteCandidate?.id}
-        onClose={() => {
-          if (deletingId) {
-            return;
-          }
-
-          setDeleteCandidate(null);
-          setDeleteUsage(null);
-          setIsLoadingDeleteUsage(false);
-        }}
-        onDelete={() => {
-          if (!deleteCandidate) {
-            return;
-          }
-
-          handleDelete(deleteCandidate.id);
-          setDeleteCandidate(null);
-          setDeleteUsage(null);
-        }}
-        onHardDelete={() => {
-          if (!deleteCandidate) {
-            return;
-          }
-
-          handleHardDelete(deleteCandidate.id);
-        }}
+        usage={null}
+        isLoadingUsage={false}
+        isSubmitting={deletingId}
+        onClose={() => !deletingId && setDeleteCandidate(null)}
+        onDelete={() => deleteCandidate && handleDelete(deleteCandidate.id)}
+        onHardDelete={() => deleteCandidate && handleDelete(deleteCandidate.id)}
       />
     </div>
   );

@@ -99,7 +99,7 @@ export async function getUsers(role?: Role) {
             kanbanStage: true,
             counselorId: true,
             counselor: { select: { id: true, name: true } },
-            application: { select: { status: true, completedSections: true } },
+            application: { select: { status: true } },
           },
         },
         counselorStudents: {
@@ -163,8 +163,8 @@ export async function getStudentsForAssignment() {
       include: {
         user: { select: { id: true, name: true, email: true, createdAt: true } },
         counselor: { select: { id: true, name: true, email: true } },
-        application: { select: { status: true, completedSections: true } },
-        documents: { select: { id: true, status: true } },
+        application: { select: { status: true } },
+        documents: { select: { id: true, name: true } },
       },
       orderBy: { createdAt: "desc" },
     });

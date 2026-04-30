@@ -1,23 +1,21 @@
+// /src/components/dashboard/student/StudentDocumentVaultPageContent.tsx
 "use client";
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import DashboardPageHeader from "@/components/dashboard/shared/DashboardPageHeader";
-import type { StudentDocumentRequirement } from "@/data/student-document-requirements";
-import type { RequiredDocumentLinkItem, VaultDocumentListItem } from "@/lib/documents/types";
+import type { DocumentItem, RequirementWithDocuments } from "@/lib/documents/types";
 import StudentDocumentUploadModal from "./StudentDocumentUploadModal";
 import StudentDocumentVault from "./StudentDocumentVault";
 
 type StudentDocumentVaultPageContentProps = {
-  documents: VaultDocumentListItem[];
-  requirements: StudentDocumentRequirement[];
-  requiredLinks: RequiredDocumentLinkItem[];
+  documents: DocumentItem[];
+  requirements: RequirementWithDocuments[];
 };
 
 export default function StudentDocumentVaultPageContent({
   documents,
   requirements,
-  requiredLinks,
 }: StudentDocumentVaultPageContentProps) {
   const router = useRouter();
   const [isUploadOpen, setIsUploadOpen] = useState(false);
@@ -41,7 +39,6 @@ export default function StudentDocumentVaultPageContent({
       <StudentDocumentVault
         documents={documents}
         requirements={requirements}
-        requiredLinks={requiredLinks}
       />
 
       <StudentDocumentUploadModal
@@ -51,6 +48,7 @@ export default function StudentDocumentVaultPageContent({
           setIsUploadOpen(false);
           router.refresh();
         }}
+        requirements={requirements}
       />
     </div>
   );

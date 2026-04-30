@@ -54,10 +54,6 @@ export function findBestRequiredDocumentMatch(
   const scoredMatches: Array<{ requirementId: string; score: number }> = [];
 
   for (const requirement of requirements) {
-    if (requirement.autoLinkEnabled === false) {
-      continue;
-    }
-
     let bestScoreForRequirement = 0;
 
     for (const alias of requirement.aliases) {

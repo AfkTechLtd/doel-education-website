@@ -130,8 +130,8 @@ async function getApplications(userId: string): Promise<Application[]> {
                     status: true,
                     submittedAt: true,
                     updatedAt: true,
-                    intendedProgram: true,
-                    intendedUniversity: true,
+                    degreeProgram: true,      // Swapped from intendedProgram
+                    targetUniversity: true,   // Swapped from intendedUniversity
                 },
             },
         },
@@ -145,8 +145,8 @@ async function getApplications(userId: string): Promise<Application[]> {
 
     return [{
         id: app.id,
-        title: app.intendedProgram && app.intendedUniversity
-            ? `${app.intendedProgram} at ${app.intendedUniversity}`
+        title: app.degreeProgram && app.targetUniversity
+            ? `${app.degreeProgram} at ${app.targetUniversity}`
             : "General Admission Application",
         type: "UNIVERSITY",
         status: app.status as ApplicationStatus,

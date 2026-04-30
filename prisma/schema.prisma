@@ -44,6 +44,7 @@ model StudentProfile {
   application   Application?
   documentLinks DocumentLink[]
   documents     Document[]
+  requirements   DocumentRequirement[]
   counselor     User?          @relation("CounselorStudents", fields: [counselorId], references: [id])
   user          User           @relation(fields: [userId], references: [id], onDelete: Cascade)
 
@@ -51,62 +52,314 @@ model StudentProfile {
   @@map("student_profiles")
 }
 
+// model Application {
+//   id                 String               @id @default(cuid())
+//   studentId          String               @unique @map("student_id")
+//   status             ApplicationStatus    @default(NOT_STARTED)
+//   intendedProgram    String?              @map("intended_program")
+//   intendedUniversity String?              @map("intended_university")
+//   targetSemester     String?              @map("target_semester")
+//   targetYear         Int?                 @map("target_year")
+//   completedSections  Int                  @default(0) @map("completed_sections")
+//   submittedAt        DateTime?            @map("submitted_at")
+//   createdAt          DateTime             @default(now()) @map("created_at")
+//   updatedAt          DateTime             @updatedAt @map("updated_at")
+//   sections           ApplicationSection[]
+//   student            StudentProfile       @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+//   @@index([studentId])
+//   @@map("applications")
+// }
+
+// model ApplicationSection {
+//   id            String        @id @default(cuid())
+//   applicationId String        @map("application_id")
+//   sectionNumber SectionNumber @map("section_number")
+//   data          Json          @default("{}")
+//   isComplete    Boolean       @default(false) @map("is_complete")
+//   completedAt   DateTime?     @map("completed_at")
+//   createdAt     DateTime      @default(now()) @map("created_at")
+//   updatedAt     DateTime      @updatedAt @map("updated_at")
+//   application   Application   @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+
+//   @@unique([applicationId, sectionNumber])
+//   @@map("application_sections")
+// }
+
+// ---------------------------------------------------------
+// 1. THE HUB (High-Level Routing & Status)
+// ---------------------------------------------------------
 model Application {
   id                 String               @id @default(cuid())
   studentId          String               @unique @map("student_id")
   status             ApplicationStatus    @default(NOT_STARTED)
-  intendedProgram    String?              @map("intended_program")
-  intendedUniversity String?              @map("intended_university")
-  targetSemester     String?              @map("target_semester")
+
+  // High-level routing fields (from Section 3)
+  targetUniversity   String?              @map("target_university")
+  degreeProgram      String?              @map("degree_program")
+  startTerm          String?              @map("start_term")
   targetYear         Int?                 @map("target_year")
-  completedSections  Int                  @default(0) @map("completed_sections")
+
   submittedAt        DateTime?            @map("submitted_at")
   createdAt          DateTime             @default(now()) @map("created_at")
   updatedAt          DateTime             @updatedAt @map("updated_at")
-  sections           ApplicationSection[]
+
+  // The 1-to-1 Modules
+  personalInfo       AppPersonalInfo?
+  academicRecord     AppAcademicRecord?
+  testScores         AppTestScores?
+  financialStanding  AppFinancialStanding?
+  extracurriculars   AppExtracurriculars?
+  familyInfo         AppFamilyInfo?
+  supplemental       AppSupplemental?
+  conductAgreement   AppConductAgreement?
+
+  // The 1-to-Many Modules
+  recommenders       AppRecommender[]
   student            StudentProfile       @relation(fields: [studentId], references: [id], onDelete: Cascade)
 
   @@index([studentId])
   @@map("applications")
 }
 
-model ApplicationSection {
-  id            String        @id @default(cuid())
-  applicationId String        @map("application_id")
-  sectionNumber SectionNumber @map("section_number")
-  data          Json          @default("{}")
-  isComplete    Boolean       @default(false) @map("is_complete")
-  completedAt   DateTime?     @map("completed_at")
-  createdAt     DateTime      @default(now()) @map("created_at")
-  updatedAt     DateTime      @updatedAt @map("updated_at")
-  application   Application   @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+// ---------------------------------------------------------
+// MODULE 1: Personal Information (Section 1)
+// ---------------------------------------------------------
+model AppPersonalInfo {
+  id              String      @id @default(cuid())
+  applicationId   String      @unique @map("application_id")
 
-  @@unique([applicationId, sectionNumber])
-  @@map("application_sections")
+  name            String?
+  email           String?
+  dateOfBirth     DateTime?   @map("date_of_birth")
+  phone           String?
+  nationality     String?
+  gender          String?
+  address         String?
+
+  application     Application @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  @@map("app_personal_info")
 }
 
+// ---------------------------------------------------------
+// MODULE 2: Academic History (Section 2)
+// Note: Modeled as 1:1 based on your current form asking for "Highest Degree"
+// ---------------------------------------------------------
+model AppAcademicRecord {
+  id              String      @id @default(cuid())
+  applicationId   String      @unique @map("application_id")
+
+  schoolName      String?
+  schoolCity      String?
+  schoolCountry   String?
+  degreeObtained  String?     // e.g., "high_school", "bachelor"
+  graduationDate  DateTime?   @map("graduation_date")
+  fieldOfStudy    String?
+  gpa             Float?
+
+  application     Application @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  @@map("app_academic_records")
+}
+
+// ---------------------------------------------------------
+// MODULE 3: Testing & Scores (Sections 4 & 5)
+// ---------------------------------------------------------
+model AppTestScores {
+  id              String      @id @default(cuid())
+  applicationId   String      @unique @map("application_id")
+
+  // Required Flags
+  requiresSAT     Boolean     @default(false)
+  requiresACT     Boolean     @default(false)
+  requiresTOEFL   Boolean     @default(false)
+  requiresIELTS   Boolean     @default(false)
+  requiresGRE     Boolean     @default(false)
+  requiresGMAT    Boolean     @default(false)
+
+  // Actual Scores
+  satMath         Int?
+  satReading      Int?
+  actComposite    Int?
+  toeflScore      Int?
+  ieltsScore      Float?
+  greVerbal       Int?
+  greQuantitative Int?
+  gmatScore       Int?
+  testDate        DateTime?   @map("test_date")
+
+  application     Application @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  @@map("app_test_scores")
+}
+
+// ---------------------------------------------------------
+// MODULE 4: Financial Standing (Section 6b & 11)
+// ---------------------------------------------------------
+model AppFinancialStanding {
+  id                       String      @id @default(cuid())
+  applicationId            String      @unique @map("application_id")
+
+  // Sponsor Info
+  sponsorFullName          String?
+  sponsorRelationship      String?
+  sponsorOccupation        String?
+  sponsorAnnualIncome      Float?      @map("sponsor_annual_income")
+
+  // Assets
+  bankBalance              Float?
+  primaryCurrency          String?
+  fixedDepositAmount       Float?
+  investmentAssets         Float?
+  realEstateValue          Float?
+  businessAssets           Float?
+  otherAssets              Float?
+  totalLiabilities         Float?
+
+  // Budget & Aid
+  fundsAvailableForStudy   Float?
+  fundingSource            String?
+  annualTuitionBudget      Float?
+  annualLivingBudget       Float?
+  applyingForScholarship   Boolean     @default(false)
+  scholarshipType          String?
+  financialAidRequired     Boolean     @default(false)
+
+  // Document Availability Checklists
+  hasBankStatement         Boolean     @default(false)
+  hasSolvencyLetter        Boolean     @default(false)
+  hasIncomeTaxReturn       Boolean     @default(false)
+  hasPropertyDocuments     Boolean     @default(false)
+  hasSponsorLetter         Boolean     @default(false)
+  hasLoanApprovalLetter    Boolean     @default(false)
+
+  financialNotes           String?     @db.Text
+
+  application              Application @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  @@map("app_financial_standing")
+}
+
+// ---------------------------------------------------------
+// MODULE 5: Extracurriculars (Section 7)
+// ---------------------------------------------------------
+model AppExtracurriculars {
+  id               String      @id @default(cuid())
+  applicationId    String      @unique @map("application_id")
+
+  activities       String?     @db.Text
+  leadershipRoles  String?     @db.Text
+  awardsHonors     String?     @db.Text
+  communityService String?     @db.Text
+
+  application      Application @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  @@map("app_extracurriculars")
+}
+
+// ---------------------------------------------------------
+// MODULE 6: Family & Support (Section 8)
+// ---------------------------------------------------------
+model AppFamilyInfo {
+  id                   String      @id @default(cuid())
+  applicationId        String      @unique @map("application_id")
+
+  fatherName           String?
+  fatherOccupation     String?
+  fatherEducation      String?
+
+  motherName           String?
+  motherOccupation     String?
+  motherEducation      String?
+
+  guardianName         String?
+  guardianPhone        String?
+  guardianRelationship String?
+
+  application          Application @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  @@map("app_family_info")
+}
+
+// ---------------------------------------------------------
+// MODULE 7: Recommenders (Section 10) -> 1:M Relationship
+// ---------------------------------------------------------
+model AppRecommender {
+  id              String      @id @default(cuid())
+  applicationId   String      @map("application_id")
+
+  name            String
+  title           String?
+  email           String
+  institution     String?
+
+  // Tracks if the counselor has sent them the link yet
+  requestStatus   String      @default("PENDING")
+
+  application     Application @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  @@map("app_recommenders")
+}
+
+// ---------------------------------------------------------
+// MODULE 8: Supplemental / Essays (Sections 6 & 12)
+// ---------------------------------------------------------
+model AppSupplemental {
+  id                 String      @id @default(cuid())
+  applicationId      String      @unique @map("application_id")
+
+  personalStatement  String?     @db.Text
+  whyThisUniversity  String?     @db.Text
+  whyThisProgram     String?     @db.Text
+  hearAboutUs        String?
+  additionalInfo     String?     @db.Text
+  requirementNotes   String?     @db.Text // Program specific req notes from Section 9
+
+  application        Application @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  @@map("app_supplemental")
+}
+
+// ---------------------------------------------------------
+// MODULE 9: Conduct & Legal Agreements (Sections 13 & 14)
+// ---------------------------------------------------------
+model AppConductAgreement {
+  id                     String      @id @default(cuid())
+  applicationId          String      @unique @map("application_id")
+
+  // Disclosures
+  hasCriminalRecord      Boolean     @default(false)
+  hasAcademicViolation   Boolean     @default(false)
+  hasDisciplinaryAction  Boolean     @default(false)
+  conductExplanation     String?     @db.Text
+
+  // Signatures & Consent
+  agreeToConduct         Boolean     @default(false)
+  agreeToTerms           Boolean     @default(false)
+  agreeToAccuracy        Boolean     @default(false)
+  signature              String?
+  signedAt               DateTime?   @default(now())
+
+  application            Application @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  @@map("app_conduct_agreements")
+}
 model Document {
   id          String         @id @default(cuid())
   studentId   String         @map("student_id")
   name        String
   type        String
-  status      DocumentStatus @default(PENDING)
   storagePath String?        @map("storage_path")
   storageUrl  String?        @map("storage_url")
   bucket      String?
   mimeType    String?        @map("mime_type")
   sizeBytes   Int?           @map("size_bytes")
   notes       String?
+  requirementId String        @map("requirement_id") @unique
+  // status      DocumentStatus @default(PENDING)
   uploadedAt  DateTime?      @map("uploaded_at")
   verifiedAt  DateTime?      @map("verified_at")
   verifiedBy  String?        @map("verified_by")
   createdAt   DateTime       @default(now()) @map("created_at")
   updatedAt   DateTime       @updatedAt @map("updated_at")
   source      String?
+  requirement  DocumentRequirement @relation(fields: [requirementId], references: [id])
   links       DocumentLink[]
   student     StudentProfile @relation(fields: [studentId], references: [id], onDelete: Cascade)
 
-  @@index([studentId, status])
+  @@index([studentId])
   @@map("documents")
 }
 
@@ -124,6 +377,20 @@ model DocumentLink {
   @@unique([studentId, contextType, contextKey])
   @@index([documentId])
   @@map("document_links")
+}
+
+model DocumentRequirement{
+  id          String         @id @default(cuid())
+  studentId   String         @map("student_id")
+  name        String         // e.g. "Passport", "SOP", "LOR"
+  description String?
+  status      DocumentStatus @default(PENDING)
+  createdAt   DateTime       @default(now()) @map("created_at")
+  updatedAt   DateTime       @updatedAt @map("updated_at")
+  documents   Document?
+  studentProfile StudentProfile @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@map("document_requirements")
 }
 
 model Message {
@@ -233,22 +500,22 @@ enum DocumentStatus {
   WAIVED
 }
 
-enum SectionNumber {
-  SECTION_1
-  SECTION_2
-  SECTION_3
-  SECTION_4
-  SECTION_5
-  SECTION_6
-  SECTION_7
-  SECTION_8
-  SECTION_9
-  SECTION_10
-  SECTION_11
-  SECTION_12
-  SECTION_13
-  SECTION_14
-}
+// enum SectionNumber {
+//   SECTION_1
+//   SECTION_2
+//   SECTION_3
+//   SECTION_4
+//   SECTION_5
+//   SECTION_6
+//   SECTION_7
+//   SECTION_8
+//   SECTION_9
+//   SECTION_10
+//   SECTION_11
+//   SECTION_12
+//   SECTION_13
+//   SECTION_14
+// }
 
 enum NotificationType {
   APPLICATION_UPDATE

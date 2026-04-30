@@ -15,34 +15,16 @@ interface StudentsTableProps {
 }
 
 function DocumentSummary({ documents }: { documents: Student["documents"] }) {
-  const verified = documents.filter((d) => d.status === "VERIFIED").length;
-  const rejected = documents.filter((d) => d.status === "REJECTED").length;
-  const pending = documents.filter((d) => d.status === "PENDING" || d.status === "UNDER_REVIEW").length;
-
   if (documents.length === 0) {
     return <span className="font-inter text-xs text-slate-400">No documents</span>;
   }
 
   return (
     <div className="flex items-center gap-2">
-      {verified > 0 && (
-        <span className="flex items-center gap-1 font-inter text-xs text-emerald-700">
-          <CheckCircle2 className="h-3.5 w-3.5" />
-          {verified}
-        </span>
-      )}
-      {pending > 0 && (
-        <span className="flex items-center gap-1 font-inter text-xs text-amber-600">
-          <Clock className="h-3.5 w-3.5" />
-          {pending}
-        </span>
-      )}
-      {rejected > 0 && (
-        <span className="flex items-center gap-1 font-inter text-xs text-red-600">
-          <XCircle className="h-3.5 w-3.5" />
-          {rejected}
-        </span>
-      )}
+      <span className="flex items-center gap-1 font-inter text-xs text-slate-500">
+        <FileText className="h-3.5 w-3.5" />
+        {documents.length} docs
+      </span>
     </div>
   );
 }
@@ -54,9 +36,9 @@ export default function StudentsTable({ students }: StudentsTableProps) {
   const filtered = students.filter((s) => {
     const matchesQuery =
       query === "" ||
-      s.user.name.toLowerCase().includes(query.toLowerCase()) ||
-      s.user.email.toLowerCase().includes(query.toLowerCase()) ||
-      (s.application?.intendedProgram ?? "").toLowerCase().includes(query.toLowerCase());
+       s.user.name.toLowerCase().includes(query.toLowerCase()) ||
+       s.user.email.toLowerCase().includes(query.toLowerCase()) ||
+       (s.application?.degreeProgram ?? "").toLowerCase().includes(query.toLowerCase());
 
     const matchesStage = stageFilter === "ALL" || s.kanbanStage === stageFilter;
 
@@ -153,7 +135,7 @@ export default function StudentsTable({ students }: StudentsTableProps) {
                           }
                         />
                         <p className="font-inter text-[11px] text-slate-400">
-                          {student.application.completedSections}/14 sections
+                          {APPLICATION_STATUS_LABELS[student.application.status] ?? student.application.status}
                         </p>
                       </div>
                     ) : (
@@ -165,7 +147,7 @@ export default function StudentsTable({ students }: StudentsTableProps) {
                   </td>
                   <td className="px-4 py-4">
                     <p className="max-w-[160px] truncate font-inter text-xs text-slate-600">
-                      {student.application?.intendedProgram ?? (
+                       {student.application?.degreeProgram ?? (
                         <span className="text-slate-400">—</span>
                       )}
                     </p>

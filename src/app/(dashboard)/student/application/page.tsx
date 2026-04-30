@@ -7,6 +7,7 @@ import {
     CheckCircle2, ChevronRight, ChevronLeft, FileText, User, GraduationCap,
     ClipboardCheck, Send, Users, Award, PenTool, HelpCircle, FileCheck,
     Activity, Shield, MessageSquare, X, AlertTriangle, Info, XCircle, Loader2,
+    Banknote,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import StepIndicator from "@/components/dashboard/pages/application/StepIndicator";
@@ -23,10 +24,10 @@ interface ToastItem {
 }
 
 const TOAST_CONFIG: Record<ToastType, { icon: React.ReactNode; bar: string; bg: string; title: string }> = {
-    error:   { icon: <XCircle className="h-5 w-5" />,       bar: "bg-red-500",     bg: "bg-white",      title: "text-red-700"     },
-    success: { icon: <CheckCircle2 className="h-5 w-5" />,  bar: "bg-emerald-500", bg: "bg-white",      title: "text-emerald-700" },
-    warning: { icon: <AlertTriangle className="h-5 w-5" />, bar: "bg-amber-500",   bg: "bg-white",      title: "text-amber-700"   },
-    info:    { icon: <Info className="h-5 w-5" />,          bar: "bg-blue-500",    bg: "bg-white",      title: "text-blue-700"    },
+    error: { icon: <XCircle className="h-5 w-5" />, bar: "bg-red-500", bg: "bg-white", title: "text-red-700" },
+    success: { icon: <CheckCircle2 className="h-5 w-5" />, bar: "bg-emerald-500", bg: "bg-white", title: "text-emerald-700" },
+    warning: { icon: <AlertTriangle className="h-5 w-5" />, bar: "bg-amber-500", bg: "bg-white", title: "text-amber-700" },
+    info: { icon: <Info className="h-5 w-5" />, bar: "bg-blue-500", bg: "bg-white", title: "text-blue-700" },
 };
 
 const ICON_COLOR: Record<ToastType, string> = {
@@ -353,6 +354,178 @@ const Step2Requirements = ({ formData, onChange, errors }: StepProps) => (
             </div>
         </FormSection>
 
+        {/* Section 6b — Asset Valuation */}
+        <FormSection icon={Banknote} title="Asset Valuation & Financial Standing">
+            {/* Info banner */}
+            <div className="flex items-start gap-3 rounded-2xl border border-blue-100 bg-blue-50 px-5 py-4 mb-6">
+                <Info className="h-4 w-4 text-blue-500 mt-0.5 shrink-0" />
+                <p className="text-xs text-blue-700 leading-relaxed">
+                    US universities and the USCIS require proof of sufficient funds to cover tuition and living expenses before issuing an I-20 or F-1 visa. This section documents your financial capacity. All values should be reported in <strong>USD equivalent</strong>.
+                </p>
+            </div>
+
+            <div className="space-y-8">
+                {/* Sponsor Information */}
+                <div>
+                    <h3 className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-4">Primary Financial Sponsor</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <InputField
+                            name="sponsorFullName" value={formData.sponsorFullName} onChange={onChange}
+                            label="Sponsor's Full Name" placeholder="e.g. Mohammad Rahman"
+                            error={errors.sponsorFullName}
+                        />
+                        <SelectField
+                            name="sponsorRelationship" label="Relationship to Applicant"
+                            value={formData.sponsorRelationship} onChange={onChange}
+                            options={[
+                                { value: "self", label: "Self" },
+                                { value: "father", label: "Father" },
+                                { value: "mother", label: "Mother" },
+                                { value: "spouse", label: "Spouse" },
+                                { value: "sibling", label: "Sibling" },
+                                { value: "relative", label: "Other Relative" },
+                                { value: "employer", label: "Employer / Organization" },
+                                { value: "government", label: "Government / Scholarship Body" },
+                            ]}
+                        />
+                        <InputField
+                            name="sponsorOccupation" value={formData.sponsorOccupation} onChange={onChange}
+                            label="Sponsor's Occupation / Employer" placeholder="e.g. Business Owner, Government Officer"
+                        />
+                        <InputField
+                            name="sponsorAnnualIncome" value={formData.sponsorAnnualIncome} onChange={onChange}
+                            label="Sponsor's Annual Income (USD equivalent)" placeholder="e.g. 45000"
+                            error={errors.sponsorAnnualIncome}
+                        />
+                    </div>
+                </div>
+
+                <div className="border-t border-slate-100" />
+
+                {/* Liquid Assets */}
+                <div>
+                    <h3 className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-4">Liquid Assets</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <InputField
+                            name="bankBalance" value={formData.bankBalance} onChange={onChange}
+                            label="Total Bank Balance (USD equivalent)" placeholder="e.g. 30000"
+                            error={errors.bankBalance}
+                        />
+                        <SelectField
+                            name="primaryCurrency" label="Primary Currency of Assets"
+                            value={formData.primaryCurrency} onChange={onChange}
+                            options={[
+                                { value: "BDT", label: "Bangladeshi Taka (BDT)" },
+                                { value: "USD", label: "US Dollar (USD)" },
+                                { value: "GBP", label: "British Pound (GBP)" },
+                                { value: "EUR", label: "Euro (EUR)" },
+                                { value: "CAD", label: "Canadian Dollar (CAD)" },
+                                { value: "AUD", label: "Australian Dollar (AUD)" },
+                                { value: "other", label: "Other" },
+                            ]}
+                        />
+                        <InputField
+                            name="fixedDepositAmount" value={formData.fixedDepositAmount} onChange={onChange}
+                            label="Fixed Deposits / Savings Certificates (USD equivalent)" placeholder="e.g. 15000"
+                        />
+                        <InputField
+                            name="investmentAssets" value={formData.investmentAssets} onChange={onChange}
+                            label="Stocks, Bonds & Investment Accounts (USD equivalent)" placeholder="e.g. 5000"
+                        />
+                    </div>
+                </div>
+
+                <div className="border-t border-slate-100" />
+
+                {/* Non-Liquid / Fixed Assets */}
+                <div>
+                    <h3 className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-4">Fixed / Non-Liquid Assets</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <InputField
+                            name="realEstateValue" value={formData.realEstateValue} onChange={onChange}
+                            label="Real Estate / Land Value (USD equivalent)" placeholder="e.g. 80000"
+                        />
+                        <InputField
+                            name="businessAssets" value={formData.businessAssets} onChange={onChange}
+                            label="Business / Commercial Assets (USD equivalent)" placeholder="e.g. 20000"
+                        />
+                        <InputField
+                            name="otherAssets" value={formData.otherAssets} onChange={onChange}
+                            label="Other Assets (vehicles, jewelry, etc.) (USD equivalent)" placeholder="e.g. 5000"
+                        />
+                        <InputField
+                            name="totalLiabilities" value={formData.totalLiabilities} onChange={onChange}
+                            label="Total Liabilities / Outstanding Loans (USD equivalent)" placeholder="e.g. 10000"
+                        />
+                    </div>
+                </div>
+
+                <div className="border-t border-slate-100" />
+
+                {/* Funds Available for Education */}
+                <div>
+                    <h3 className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-4">Funds Available for Education</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <InputField
+                            name="fundsAvailableForStudy" value={formData.fundsAvailableForStudy} onChange={onChange}
+                            label="Total Funds Available for Study (USD)" placeholder="e.g. 50000"
+                            error={errors.fundsAvailableForStudy}
+                        />
+                        <SelectField
+                            name="fundingSource" label="Primary Funding Source"
+                            value={formData.fundingSource} onChange={onChange}
+                            options={[
+                                { value: "personal_savings", label: "Personal Savings" },
+                                { value: "family_support", label: "Family Support" },
+                                { value: "scholarship", label: "Scholarship / Grant" },
+                                { value: "bank_loan", label: "Education Bank Loan" },
+                                { value: "employer_sponsor", label: "Employer Sponsorship" },
+                                { value: "government", label: "Government Funding" },
+                                { value: "mixed", label: "Mixed / Multiple Sources" },
+                            ]}
+                        />
+                        <InputField
+                            name="annualTuitionBudget" value={formData.annualTuitionBudget} onChange={onChange}
+                            label="Estimated Annual Tuition Budget (USD)" placeholder="e.g. 20000"
+                        />
+                        <InputField
+                            name="annualLivingBudget" value={formData.annualLivingBudget} onChange={onChange}
+                            label="Estimated Annual Living Expenses (USD)" placeholder="e.g. 12000"
+                        />
+                    </div>
+                </div>
+
+                <div className="border-t border-slate-100" />
+
+                {/* Financial Documents Availability */}
+                <div>
+                    <h3 className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-4">Supporting Financial Documents</h3>
+                    <p className="text-xs text-slate-500 mb-4">Select all financial documents you currently have available. These will be required during the I-20 / visa stage.</p>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        {[
+                            { name: "hasBankStatement", label: "Bank Statement (last 3–6 months)", description: "Official statement from your bank showing balance history" },
+                            { name: "hasSolvencyLetter", label: "Bank Solvency Letter", description: "Letter from bank confirming funds are available and unencumbered" },
+                            { name: "hasIncomeTaxReturn", label: "Income Tax Return / Certificate", description: "Sponsor's latest tax return or tax certificate" },
+                            { name: "hasPropertyDocuments", label: "Property / Land Documents", description: "Title deed or valuation certificate for real estate assets" },
+                            { name: "hasSponsorLetter", label: "Financial Sponsor Affidavit", description: "Notarized letter from sponsor guaranteeing financial support" },
+                            { name: "hasLoanApprovalLetter", label: "Education Loan Approval Letter", description: "Bank or lending institution approval letter (if applicable)" },
+                        ].map(({ name, label, description }) => (
+                            <CheckboxField key={name} name={name} label={label} description={description}
+                                checked={formData[name] === "true"}
+                                onChange={(e) => onChange(checkboxEvent(name, e.target.checked))}
+                            />
+                        ))}
+                    </div>
+                </div>
+
+                <TextareaField
+                    name="financialNotes" label="Additional Financial Notes (optional)"
+                    placeholder="Describe any additional financial circumstances, ongoing scholarship applications, or context the counselor should be aware of..."
+                    rows={4} onChange={onChange} value={formData.financialNotes}
+                />
+            </div>
+        </FormSection>
+
         {/* Section 7 — Extracurricular Activities */}
         <FormSection icon={Activity} title="Extracurricular Activities">
             <div className="space-y-6">
@@ -638,7 +811,7 @@ const Step4Finalization = ({ formData, onChange, errors }: StepProps) => {
     );
 };
 
-// ─── SUBMITTED VIEW ───────────────────────────────────────────────────────────
+// ─── SUBMITTED VIEW ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
 const SubmittedView = () => (
     <div className="space-y-8 animate-in zoom-in duration-500 max-w-4xl mx-auto mt-10">
         <div className="bg-teal-50 border border-teal-100 rounded-[2.5rem] p-10 text-center">
@@ -647,8 +820,8 @@ const SubmittedView = () => (
             </div>
             <h2 className="text-3xl font-bold text-[#0f766e] mb-4">Application Submitted</h2>
             <p className="text-teal-700 text-lg">Your application is currently under review. You can no longer edit your responses.</p>
-            <Link href="/student/" className="mt-8 inline-block bg-[#0f766e] text-white px-8 py-3 rounded-xl font-bold">
-                Return to Dashboard
+            <Link href="/student/application/history" className="mt-8 inline-block bg-[#0f766e] text-white px-8 py-3 rounded-xl font-bold">
+                Application History
             </Link>
         </div>
     </div>
@@ -712,20 +885,137 @@ function ApplicationContent() {
                 const appStatus = app.status as ApplicationStatus;
                 setStatus(appStatus);
 
-                const mergedData: FormData = {};
-                if (app.sections && Array.isArray(app.sections)) {
-                    app.sections.forEach((section: ApplicationSectionData) => {
-                        Object.assign(mergedData, section.data);
+                // --- NEW TRANSLATOR: Convert Nested DB Models back to flat strings ---
+                const flatData: FormData = {};
+
+                // Helper: safely format dates for inputs (YYYY-MM-DD)
+                const formatDate = (isoString?: string) => isoString ? new Date(isoString).toISOString().split('T')[0] : undefined;
+                // Helper: convert booleans/numbers back to strings
+                const castStr = (val?: string | number | boolean | null) => (val !== null && val !== undefined) ? String(val) : undefined;
+
+                // Hub
+                flatData.targetUniversity = castStr(app.targetUniversity);
+                flatData.degreeProgram = castStr(app.degreeProgram);
+                flatData.startTerm = castStr(app.startTerm);
+                flatData.targetYear = castStr(app.targetYear);
+
+                // Personal Info
+                if (app.personalInfo) {
+                    Object.assign(flatData, {
+                        name: app.personalInfo.name || "",
+                        email: app.personalInfo.email || "",
+                        dateOfBirth: formatDate(app.personalInfo.dateOfBirth),
+                        phone: app.personalInfo.phone || "",
+                        nationality: app.personalInfo.nationality || "",
+                        gender: app.personalInfo.gender || "",
+                        address: app.personalInfo.address || ""
                     });
                 }
-                setFormData(prev => ({ ...prev, ...mergedData }));
+
+                // Academic Record
+                if (app.academicRecord) {
+                    Object.assign(flatData, {
+                        schoolName: app.academicRecord.schoolName || "",
+                        schoolCity: app.academicRecord.schoolCity || "",
+                        schoolCountry: app.academicRecord.schoolCountry || "",
+                        degreeObtained: app.academicRecord.degreeObtained || "",
+                        graduationDate: formatDate(app.academicRecord.graduationDate),
+                        fieldOfStudy: app.academicRecord.fieldOfStudy || "",
+                        gpa: castStr(app.academicRecord.gpa)
+                    });
+                }
+
+                // Test Scores
+                if (app.testScores) {
+                    const ts = app.testScores;
+                    Object.assign(flatData, {
+                        requiresSAT: castStr(ts.requiresSAT), requiresACT: castStr(ts.requiresACT),
+                        requiresTOEFL: castStr(ts.requiresTOEFL), requiresIELTS: castStr(ts.requiresIELTS),
+                        requiresGRE: castStr(ts.requiresGRE), requiresGMAT: castStr(ts.requiresGMAT),
+                        satMath: castStr(ts.satMath), satReading: castStr(ts.satReading),
+                        actComposite: castStr(ts.actComposite), toeflScore: castStr(ts.toeflScore),
+                        ieltsScore: castStr(ts.ieltsScore), greVerbal: castStr(ts.greVerbal),
+                        greQuantitative: castStr(ts.greQuantitative), gmatScore: castStr(ts.gmatScore),
+                        testDate: formatDate(ts.testDate)
+                    });
+                }
+
+                // Extracurriculars
+                if (app.extracurriculars) {
+                    Object.assign(flatData, {
+                        activities: app.extracurriculars.activities || "",
+                        leadershipRoles: app.extracurriculars.leadershipRoles || "",
+                        awardsHonors: app.extracurriculars.awardsHonors || "",
+                        communityService: app.extracurriculars.communityService || ""
+                    });
+                }
+
+                // Family Info
+                if (app.familyInfo) {
+                    Object.assign(flatData, {
+                        fatherName: app.familyInfo.fatherName || "", fatherOccupation: app.familyInfo.fatherOccupation || "", fatherEducation: app.familyInfo.fatherEducation || "",
+                        motherName: app.familyInfo.motherName || "", motherOccupation: app.familyInfo.motherOccupation || "", motherEducation: app.familyInfo.motherEducation || "",
+                        guardianName: app.familyInfo.guardianName || "", guardianPhone: app.familyInfo.guardianPhone || "", guardianRelationship: app.familyInfo.guardianRelationship || ""
+                    });
+                }
+
+                // Financial Standing
+                if (app.financialStanding) {
+                    const fs = app.financialStanding;
+                    Object.assign(flatData, {
+                        sponsorFullName: fs.sponsorFullName || "", sponsorRelationship: fs.sponsorRelationship || "", sponsorOccupation: fs.sponsorOccupation || "", sponsorAnnualIncome: castStr(fs.sponsorAnnualIncome),
+                        bankBalance: castStr(fs.bankBalance), primaryCurrency: fs.primaryCurrency || "", fixedDepositAmount: castStr(fs.fixedDepositAmount), investmentAssets: castStr(fs.investmentAssets),
+                        realEstateValue: castStr(fs.realEstateValue), businessAssets: castStr(fs.businessAssets), otherAssets: castStr(fs.otherAssets), totalLiabilities: castStr(fs.totalLiabilities),
+                        fundsAvailableForStudy: castStr(fs.fundsAvailableForStudy), fundingSource: fs.fundingSource || "", annualTuitionBudget: castStr(fs.annualTuitionBudget), annualLivingBudget: castStr(fs.annualLivingBudget),
+                        applyingForScholarship: castStr(fs.applyingForScholarship), scholarshipType: fs.scholarshipType || "", financialAidRequired: castStr(fs.financialAidRequired),
+                        hasBankStatement: castStr(fs.hasBankStatement), hasSolvencyLetter: castStr(fs.hasSolvencyLetter), hasIncomeTaxReturn: castStr(fs.hasIncomeTaxReturn),
+                        hasPropertyDocuments: castStr(fs.hasPropertyDocuments), hasSponsorLetter: castStr(fs.hasSponsorLetter), hasLoanApprovalLetter: castStr(fs.hasLoanApprovalLetter),
+                        financialNotes: fs.financialNotes || ""
+                    });
+                }
+
+                // Supplemental
+                if (app.supplemental) {
+                    Object.assign(flatData, {
+                        personalStatement: app.supplemental.personalStatement || "", whyThisUniversity: app.supplemental.whyThisUniversity || "",
+                        whyThisProgram: app.supplemental.whyThisProgram || "", hearAboutUs: app.supplemental.hearAboutUs || "",
+                        additionalInfo: app.supplemental.additionalInfo || "", requirementNotes: app.supplemental.requirementNotes || ""
+                    });
+                }
+
+                // Conduct
+                if (app.conductAgreement) {
+                    Object.assign(flatData, {
+                        hasCriminalRecord: castStr(app.conductAgreement.hasCriminalRecord), hasAcademicViolation: castStr(app.conductAgreement.hasAcademicViolation),
+                        hasDisciplinaryAction: castStr(app.conductAgreement.hasDisciplinaryAction), conductExplanation: app.conductAgreement.conductExplanation || "",
+                        agreeToConduct: castStr(app.conductAgreement.agreeToConduct), agreeToTerms: castStr(app.conductAgreement.agreeToTerms),
+                        agreeToAccuracy: castStr(app.conductAgreement.agreeToAccuracy), signature: app.conductAgreement.signature || ""
+                    });
+                }
+
+                // Recommenders Array (1:M)
+                if (app.recommenders && app.recommenders.length > 0) {
+                    flatData.recommendationsRequired = String(app.recommenders.length);
+                    app.recommenders.forEach((rec: any, idx: number) => {
+                        const i = idx + 1;
+                        flatData[`rec${i}Name`] = rec.name;
+                        flatData[`rec${i}Email`] = rec.email;
+                        flatData[`rec${i}Title`] = rec.title || "";
+                        flatData[`rec${i}Institution`] = rec.institution || "";
+                    });
+                }
+
+                // Clean up undefined values
+                Object.keys(flatData).forEach(key => flatData[key] === undefined && delete flatData[key]);
+
+                setFormData(prev => ({ ...prev, ...flatData }));
+                // --- END NEW TRANSLATOR ---
 
                 const hasSubmitted = !["NOT_STARTED", "IN_PROGRESS"].includes(appStatus);
                 if (hasSubmitted || searchParams.get("view") === "submitted") {
                     router.replace("?view=submitted");
                 } else if (!searchParams.get("step")) {
-                    const resumeStep = (app.completedSections || 0) + 1;
-                    router.replace(`?step=${Math.min(resumeStep, 4)}`);
+                    router.replace(`?step=1`);
                 }
             } catch (err) {
                 console.error("Failed to load application data:", err);
@@ -905,34 +1195,34 @@ function ApplicationContent() {
 
     return (
         <>
-        <ToastContainer toasts={toasts} onRemove={removeToast} />
-        <div className="max-w-6xl mx-auto py-8 px-2 md:px-6 lg:px-8 bg-slate-50 min-h-screen">
-            <StepIndicator currentStep={currentStep} status="IN_PROGRESS" />
+            <ToastContainer toasts={toasts} onRemove={removeToast} />
+            <div className="max-w-6xl mx-auto py-8 px-2 md:px-6 lg:px-8 bg-slate-50 min-h-screen">
+                <StepIndicator currentStep={currentStep} status="IN_PROGRESS" />
 
-            <main className="min-h-[70vh]">
-                <div className="transition-all duration-300">
-                    {currentStep === 1 && <Step1Foundations formData={formData} onChange={updateFormData} errors={errors} />}
-                    {currentStep === 2 && <Step2Requirements formData={formData} onChange={updateFormData} errors={errors} />}
-                    {currentStep === 3 && <Step3Support formData={formData} onChange={updateFormData} errors={errors} />}
-                    {currentStep === 4 && <Step4Finalization formData={formData} onChange={updateFormData} errors={errors} />}
+                <main className="min-h-[70vh]">
+                    <div className="transition-all duration-300">
+                        {currentStep === 1 && <Step1Foundations formData={formData} onChange={updateFormData} errors={errors} />}
+                        {currentStep === 2 && <Step2Requirements formData={formData} onChange={updateFormData} errors={errors} />}
+                        {currentStep === 3 && <Step3Support formData={formData} onChange={updateFormData} errors={errors} />}
+                        {currentStep === 4 && <Step4Finalization formData={formData} onChange={updateFormData} errors={errors} />}
+                    </div>
+                </main>
+
+                <div className="mt-16 flex items-center justify-between border-t border-slate-200 pt-10 pb-20">
+                    <button onClick={handleBack} disabled={currentStep === 1}
+                        className="flex items-center gap-2 px-8 py-4 rounded-2xl font-bold text-slate-500 hover:bg-slate-100 disabled:opacity-20 transition-all">
+                        <ChevronLeft className="h-5 w-5" /> Previous
+                    </button>
+                    <button
+                        onClick={currentStep === 4 ? handleSubmit : handleNext}
+                        className="bg-[#0f766e] text-white px-5 py-3 md:px-10 md:py-4 rounded-2xl font-bold shadow-xl shadow-teal-100 hover:scale-[1.02] active:scale-95 transition-all flex items-center gap-2"
+                    >
+                        {currentStep === 4
+                            ? <><Send className="h-5 w-5" /> Final Submit</>
+                            : <>Next Step <ChevronRight className="h-5 w-5" /></>}
+                    </button>
                 </div>
-            </main>
-
-            <div className="mt-16 flex items-center justify-between border-t border-slate-200 pt-10 pb-20">
-                <button onClick={handleBack} disabled={currentStep === 1}
-                    className="flex items-center gap-2 px-8 py-4 rounded-2xl font-bold text-slate-500 hover:bg-slate-100 disabled:opacity-20 transition-all">
-                    <ChevronLeft className="h-5 w-5" /> Previous
-                </button>
-                <button
-                    onClick={currentStep === 4 ? handleSubmit : handleNext}
-                    className="bg-[#0f766e] text-white px-5 py-3 md:px-10 md:py-4 rounded-2xl font-bold shadow-xl shadow-teal-100 hover:scale-[1.02] active:scale-95 transition-all flex items-center gap-2"
-                >
-                    {currentStep === 4
-                        ? <><Send className="h-5 w-5" /> Final Submit</>
-                        : <>Next Step <ChevronRight className="h-5 w-5" /></>}
-                </button>
             </div>
-        </div>
         </>
     );
 }

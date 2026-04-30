@@ -15,7 +15,7 @@ function mapDocumentToVaultItem(doc: Document): VaultDocumentListItem {
     id: doc.id,
     name: doc.name,
     type: doc.type,
-    status: doc.status as StudentDocumentStatus,
+    status: "PENDING" as StudentDocumentStatus,
     bucket: doc.bucket,
     storagePath: doc.storagePath,
     mimeType: doc.mimeType,
@@ -36,7 +36,6 @@ function mapDocumentToReference(doc: {
   storagePath: string | null;
   mimeType: string | null;
   sizeBytes: number | null;
-  status: string;
 }): SelectedDocumentReference {
   return {
     id: doc.id,
@@ -46,7 +45,7 @@ function mapDocumentToReference(doc: {
     storagePath: doc.storagePath,
     mimeType: doc.mimeType,
     sizeBytes: doc.sizeBytes,
-    status: doc.status as StudentDocumentStatus,
+    status: "PENDING" as StudentDocumentStatus,
   };
 }
 
@@ -96,7 +95,6 @@ export const getCachedRequiredDocumentLinks = unstable_cache(
             storagePath: true,
             mimeType: true,
             sizeBytes: true,
-            status: true,
           },
         },
       },
@@ -138,7 +136,6 @@ export const getCachedResourceTemplateLinkedDocument = unstable_cache(
             storagePath: true,
             mimeType: true,
             sizeBytes: true,
-            status: true,
           },
         },
       },

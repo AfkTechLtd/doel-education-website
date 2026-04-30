@@ -7,17 +7,15 @@ import { FormProvider, useFormContext } from "@/context/FormContext";
 import { FormField } from "@/components/FormField/FormField";
 import { PasswordField } from "@/components/FormField/FormPasswordField";
 import AuthCard from "./AuthCard";
-import { consumeResetSuccess } from "./auth-flow-storage";
 import { validateEmail } from "./auth-utils";
 import { createClient } from "@/lib/supabase/client";
 import { ROLE_DASHBOARD, ROUTES, type RoleType } from "@/lib/constants";
 
-function LoginFormContent() {
+function StaffLoginFormContent() {
   const router = useRouter();
   const { errors, validateAllFields, values } = useFormContext();
   const [loading, setLoading] = useState(false);
   const [serverError, setServerError] = useState<string | null>(null);
-  const [resetSuccess] = useState(() => consumeResetSuccess());
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -49,23 +47,20 @@ function LoginFormContent() {
         return;
       }
 
-      // Fetch user role from our DB to determine redirect
       const response = await fetch("/api/auth/me");
       if (response.ok) {
         const { role } = await response.json();
-        if (role !== "STUDENT") {
+        if (role === "STUDENT") {
           await supabase.auth.signOut();
           setServerError(
-            "This portal is for students only. Please use the staff portal to log in."
+            "This portal is for staff only. Please use the student portal to log in."
           );
           return;
         }
         router.push(ROLE_DASHBOARD[role as RoleType]);
         router.refresh();
       } else {
-        // Fallback: let middleware handle the redirect
-        router.push("/student");
-        router.refresh();
+        setServerError("An unexpected error occurred. Please try again.");
       }
     } catch {
       setServerError("An unexpected error occurred. Please try again.");
@@ -76,14 +71,10 @@ function LoginFormContent() {
 
   return (
     <AuthCard
-      title="Student Login"
-      description="Welcome back. Sign in with your student account to continue."
+      title="Staff Login"
+      description="Counselor and admin access. Sign in with your staff credentials."
       banner={
-        resetSuccess ? (
-          <p className="rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 font-inter text-sm font-medium text-emerald-700">
-            Password updated successfully. Please log in.
-          </p>
-        ) : serverError ? (
+        serverError ? (
           <p className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 font-inter text-sm font-medium text-red-700">
             {serverError}
           </p>
@@ -157,24 +148,24 @@ function LoginFormContent() {
   );
 }
 
-export function LoginFormFooter() {
+export function StaffLoginFormFooter() {
   return (
     <p className="text-center font-inter text-sm text-slate-500">
-      Are you a counselor or admin?{" "}
+      Are you a student?{" "}
       <Link
-        href={ROUTES.STAFF_LOGIN}
+        href={ROUTES.LOGIN}
         className="font-semibold text-primary transition-colors hover:text-primary/80"
       >
-        Staff portal
+        Student portal
       </Link>
     </p>
   );
 }
 
-export default function LoginForm() {
+export default function StaffLoginForm() {
   return (
     <FormProvider>
-      <LoginFormContent />
+      <StaffLoginFormContent />
     </FormProvider>
   );
 }

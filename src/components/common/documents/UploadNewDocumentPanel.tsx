@@ -10,6 +10,7 @@ import type {
 type UploadNewDocumentPanelProps = {
   onSelect: (document: SelectedDocumentReference) => void;
   uploadConfig?: DocumentUploadConfig;
+  targetRequirementId?: string;
 };
 
 function normalize(value: string) {
@@ -25,6 +26,7 @@ function normalize(value: string) {
 export default function UploadNewDocumentPanel({
   onSelect,
   uploadConfig,
+  targetRequirementId,
 }: UploadNewDocumentPanelProps) {
   const [uploadedDocuments, setUploadedDocuments] = useState<SelectedDocumentReference[]>([]);
 
@@ -52,6 +54,7 @@ export default function UploadNewDocumentPanel({
         showCancel={false}
         submitLabel="Upload New"
         uploadConfig={uploadConfig}
+        targetRequirementId={targetRequirementId}
         onUploadComplete={(documents) => {
           setUploadedDocuments(documents);
           if (documents.length === 1) {

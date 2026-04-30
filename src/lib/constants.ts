@@ -162,6 +162,7 @@ export const KANBAN_STAGE_LABELS: Record<string, string> = {
 export const ROUTES = {
   HOME: "/",
   LOGIN: "/login",
+  STAFF_LOGIN: "/staff-login",
   REGISTER: "/register",
   FORGOT_PASSWORD: "/forgot-password",
   STUDENT_DASHBOARD: "/student",

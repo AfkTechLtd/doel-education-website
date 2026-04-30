@@ -21,15 +21,12 @@ export type DocumentLinkUsage = {
   items: DocumentLinkUsageItem[];
 };
 
+/** @deprecated Kept for backward compat with other features. Not used for required documents. */
 export type DocumentMatchState = "MATCHED" | "UNASSIGNED";
 
 /**
  * Reusable upload/picker configuration passed through the document trigger,
  * picker, uploader, and upload zone.
- *
- * `accept`, `multiple`, `maxFiles`, and `maxFileSizeBytes` control local file
- * upload behavior. `allowedDocumentTypes` controls which existing vault files
- * appear in the picker's "From Vault" tab.
  */
 export type DocumentUploadConfig = {
   multiple?: boolean;
@@ -63,7 +60,7 @@ export type VaultDocumentListItem = SelectedDocumentReference & {
   matchedLabel: string | null;
 };
 
-/** Persisted required-document link returned from the server. */
+/** @deprecated Kept for backward compat. Required documents now use Document.requirementId directly. */
 export type RequiredDocumentLinkItem = {
   contextKey: string;
   document: SelectedDocumentReference;
@@ -79,4 +76,35 @@ export type ApplicationFieldDocumentLinkItem = {
 export type ResourceTemplateDocumentLinkItem = {
   contextKey: string;
   document: SelectedDocumentReference;
+};
+
+/** Maps a composite file key to the chosen required-document context key. */
+export type FileRequirementMap = Record<string, string>;
+
+// ─── NEW SCHEMA TYPES ────────────────────────────────────────────────────────
+
+/** A single document as stored in the DB (Document model). */
+export type DocumentItem = {
+  id: string;
+  name: string;
+  type: string;
+  storagePath: string | null;
+  storageUrl: string | null;
+  bucket: string | null;
+  mimeType: string | null;
+  sizeBytes: number | null;
+  notes: string | null;
+  uploadedAt: string | null;
+  verifiedAt: string | null;
+  verifiedBy: string | null;
+  status: StudentDocumentStatus;
+};
+
+/** A DocumentRequirement with its attached single document (1:1 via @unique). */
+export type RequirementWithDocuments = {
+  id: string;
+  name: string;
+  description: string;
+  status: StudentDocumentStatus;
+  documents: DocumentItem | null;
 };

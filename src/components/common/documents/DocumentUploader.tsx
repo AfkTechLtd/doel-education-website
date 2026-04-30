@@ -1,6 +1,7 @@
 "use client";
 
 import StudentDocumentUploadZone from "@/components/dashboard/student/StudentDocumentUploadZone";
+import type { RequirementWithDocuments } from "@/lib/documents/types";
 import type {
   DocumentUploadConfig,
   SelectedDocumentReference,
@@ -12,6 +13,8 @@ type DocumentUploaderProps = {
   showCancel?: boolean;
   submitLabel?: string;
   uploadConfig?: DocumentUploadConfig;
+  requirements?: RequirementWithDocuments[];
+  targetRequirementId?: string;
 };
 
 /**
@@ -28,6 +31,8 @@ export default function DocumentUploader({
   showCancel,
   submitLabel,
   uploadConfig,
+  requirements,
+  targetRequirementId,
 }: DocumentUploaderProps) {
   return (
     <StudentDocumentUploadZone
@@ -36,6 +41,8 @@ export default function DocumentUploader({
       showCancel={showCancel}
       submitLabel={submitLabel}
       uploadConfig={uploadConfig}
+      requirements={requirements}
+      targetRequirementId={targetRequirementId}
     />
   );
 }

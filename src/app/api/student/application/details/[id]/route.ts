@@ -19,11 +19,20 @@ export async function GET(
       return NextResponse.json({ error: "Application ID is required" }, { status: 400 });
     }
 
-    // 2. Fetch the application with its sections and student relation
+    // 2. Fetch the application with all new modular sections
     const application = await prisma.application.findUnique({
       where: { id: applicationId },
       include: {
-        sections: true,
+        // Replaced old "sections: true" with your new domain modules
+        personalInfo: true,
+        academicRecord: true,
+        testScores: true,
+        financialStanding: true,
+        extracurriculars: true,
+        familyInfo: true,
+        supplemental: true,
+        conductAgreement: true,
+        recommenders: true,
         student: true, // Included so we can verify ownership
       },
     });
@@ -35,13 +44,11 @@ export async function GET(
 
     // 4. Security Check (IDOR Prevention)
     // Ensure the user trying to view this application is actually the student who owns it.
-    // (If you have Admin/Counselor roles, you would expand this logic to allow them access too)
     if (application.student.userId !== user.id && user.role === "STUDENT") {
       return NextResponse.json({ error: "Forbidden. You do not have access to this application." }, { status: 403 });
     }
 
-    // 5. Return the application data
-    // The sections array will contain SECTION_4, which your frontend will pick up.
+    // 5. Return the full application payload
     return NextResponse.json(application);
 
   } catch (error) {

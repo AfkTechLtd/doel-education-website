@@ -1,21 +1,22 @@
 "use client";
 
 import { useCallback, useMemo, useState } from "react";
-import { FileWarning, UploadCloud, X } from "lucide-react";
 import { useDropzone, type FileRejection } from "react-dropzone";
-import {
-  autoLinkRequiredDocumentByFileName,
-  createStudentDocumentRecord,
-} from "@/actions/documents";
+import { createStudentDocumentRecord } from "@/actions/documents";
 import { useToast } from "@/components/common/feedback/ToastProvider";
 import { STORAGE_BUCKETS } from "@/lib/constants";
 import { buildStudentDocumentStoragePath, inferDocumentType } from "@/lib/documents/paths";
 import type {
   DocumentUploadConfig,
+  FileRequirementMap,
+  RequirementWithDocuments,
   SelectedDocumentReference,
 } from "@/lib/documents/types";
 import { createClient as createSupabaseBrowserClient } from "@/lib/supabase/client";
-import { cn } from "@/lib/utils";
+import FileDropZone from "./upload/FileDropZone";
+import RejectionList from "./upload/RejectionList";
+import SelectedFileItem from "./upload/SelectedFileItem";
+import UploadFooter from "./upload/UploadFooter";
 
 type StudentDocumentUploadZoneProps = {
   onCancel: () => void;
@@ -23,6 +24,8 @@ type StudentDocumentUploadZoneProps = {
   showCancel?: boolean;
   submitLabel?: string;
   uploadConfig?: DocumentUploadConfig;
+  requirements?: RequirementWithDocuments[];
+  targetRequirementId?: string;
 };
 
 const DEFAULT_MAX_FILE_SIZE_BYTES = 10 * 1024 * 1024;
@@ -34,34 +37,20 @@ const DEFAULT_ACCEPT = {
   "application/vnd.openxmlformats-officedocument.wordprocessingml.document": [".docx"],
 };
 
-function formatFileSize(bytes: number) {
-  if (bytes >= 1024 * 1024) {
-    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
-  }
-
-  return `${Math.max(1, Math.round(bytes / 1024))} KB`;
+function getFileKey(file: File) {
+  return `${file.name}-${file.size}-${file.lastModified}`;
 }
 
-function getFileExtension(fileName: string) {
-  const parts = fileName.split(".");
-  return parts.length > 1 ? parts.at(-1)?.toUpperCase() ?? "FILE" : "FILE";
-}
-
-function getRejectionMessage(rejection: FileRejection, maxFileSizeBytes: number) {
+function getRejectionMessage(rejection: FileRejection, maxBytes: number) {
   const firstError = rejection.errors[0];
-
-  if (!firstError) {
-    return "This file could not be added.";
-  }
-
+  if (!firstError) return "This file could not be added.";
   if (firstError.code === "file-too-large") {
-    return `${rejection.file.name} is larger than ${formatFileSize(maxFileSizeBytes)}.`;
+    const mb = maxBytes >= 1024 * 1024 ? `${(maxBytes / (1024 * 1024)).toFixed(1)} MB` : `${Math.max(1, Math.round(maxBytes / 1024))} KB`;
+    return `${rejection.file.name} is larger than ${mb}.`;
   }
-
   if (firstError.code === "file-invalid-type") {
     return `${rejection.file.name} is not a supported file type.`;
   }
-
   return `${rejection.file.name}: ${firstError.message}`;
 }
 
@@ -71,40 +60,54 @@ export default function StudentDocumentUploadZone({
   showCancel = true,
   submitLabel = "Upload Files",
   uploadConfig,
+  requirements = [],
+  targetRequirementId,
 }: StudentDocumentUploadZoneProps) {
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [rejectedFiles, setRejectedFiles] = useState<FileRejection[]>([]);
   const [isUploading, setIsUploading] = useState(false);
+  const [fileRequirementMap, setFileRequirementMap] = useState<FileRequirementMap>({});
+
   const { showToast } = useToast();
 
   const maxFileSizeBytes = uploadConfig?.maxFileSizeBytes ?? DEFAULT_MAX_FILE_SIZE_BYTES;
-  const multiple = uploadConfig?.multiple ?? true;
+  const isRequirementScopedUpload = Boolean(targetRequirementId);
+  const multiple = isRequirementScopedUpload ? false : (uploadConfig?.multiple ?? true);
   const maxFiles = uploadConfig?.maxFiles ?? 0;
   const accept = uploadConfig?.accept ?? DEFAULT_ACCEPT;
+
+  const selectedRequirementIds = useMemo(() => {
+    return new Set(Object.values(fileRequirementMap));
+  }, [fileRequirementMap]);
+
+  const fulfilledRequirementIds = useMemo(() => {
+    return new Set(requirements.filter((r) => r.documents !== null).map((r) => r.id));
+  }, [requirements]);
+
+  // A file can ONLY be uploaded if it has an assigned requirement ID
+  const canUpload = selectedFiles.length > 0 && selectedFiles.every((file) => {
+    if (isRequirementScopedUpload) {
+      return Boolean(targetRequirementId);
+    }
+    return Boolean(fileRequirementMap[getFileKey(file)]);
+  });
 
   const onDrop = useCallback(
     (acceptedFiles: File[], fileRejections: FileRejection[]) => {
       setSelectedFiles((currentFiles) => {
-        const existingKeys = new Set(
-          currentFiles.map((file) => `${file.name}-${file.size}-${file.lastModified}`),
-        );
-
-        const uniqueNewFiles = acceptedFiles.filter((file) => {
-          const key = `${file.name}-${file.size}-${file.lastModified}`;
-          return !existingKeys.has(key);
-        });
-
+        const existingKeys = new Set(currentFiles.map((file) => getFileKey(file)));
+        const uniqueNewFiles = acceptedFiles.filter((file) => !existingKeys.has(getFileKey(file)));
         const nextFiles = [...currentFiles, ...uniqueNewFiles];
-        if (!multiple) {
-          return nextFiles.slice(-1);
-        }
-
-        if (maxFiles > 0) {
-          return nextFiles.slice(0, maxFiles);
-        }
-
+        if (!multiple) return nextFiles.slice(-1);
+        if (maxFiles > 0) return nextFiles.slice(0, maxFiles);
         return nextFiles;
       });
+
+      if (isRequirementScopedUpload && targetRequirementId && acceptedFiles.length > 0) {
+        const file = acceptedFiles[acceptedFiles.length - 1];
+        const key = getFileKey(file);
+        setFileRequirementMap({ [key]: targetRequirementId });
+      }
 
       setRejectedFiles(fileRejections);
 
@@ -117,16 +120,10 @@ export default function StudentDocumentUploadZone({
         });
       }
     },
-    [maxFileSizeBytes, multiple, maxFiles, showToast],
+    [isRequirementScopedUpload, maxFileSizeBytes, multiple, maxFiles, showToast, targetRequirementId],
   );
 
-  const {
-    getRootProps,
-    getInputProps,
-    isDragActive,
-    isDragReject,
-    open,
-  } = useDropzone({
+  const { getRootProps, getInputProps, isDragActive, isDragReject, open } = useDropzone({
     onDrop,
     multiple,
     noClick: true,
@@ -141,48 +138,51 @@ export default function StudentDocumentUploadZone({
   );
 
   function handleRemoveFile(fileToRemove: File) {
-    setSelectedFiles((currentFiles) => {
-      return currentFiles.filter(
-        (file) =>
-          !(
-            file.name === fileToRemove.name &&
-            file.size === fileToRemove.size &&
-            file.lastModified === fileToRemove.lastModified
-          ),
-      );
+    const key = getFileKey(fileToRemove);
+    setSelectedFiles((currentFiles) =>
+      currentFiles.filter(
+        (file) => !(file.name === fileToRemove.name && file.size === fileToRemove.size && file.lastModified === fileToRemove.lastModified),
+      ),
+    );
+    setFileRequirementMap((prev) => {
+      const next = { ...prev };
+      delete next[key];
+      return next;
     });
   }
 
+  function handleRequirementChange(fileKey: string, requirementId: string) {
+    setFileRequirementMap((prev) => ({ ...prev, [fileKey]: requirementId }));
+  }
+
   async function handleUploadFiles() {
-    if (!selectedFiles.length || isUploading) {
-      return;
-    }
+    if (!selectedFiles.length || isUploading || !canUpload) return;
 
     setIsUploading(true);
 
     const supabase = createSupabaseBrowserClient();
-    const {
-      data: { user },
-      error: userError,
-    } = await supabase.auth.getUser();
+    const { data: { user }, error: userError } = await supabase.auth.getUser();
 
     if (userError || !user) {
-      showToast({
-        variant: "error",
-        title: "Upload failed",
-        description: "You must be signed in to upload documents.",
-      });
+      showToast({ variant: "error", title: "Upload failed", description: "You must be signed in to upload documents." });
       setIsUploading(false);
       return;
     }
 
     const successfulUploads: SelectedDocumentReference[] = [];
     const failedUploads: string[] = [];
-    let autoLinkedCount = 0;
     const failedFileKeys = new Set<string>();
 
     for (const file of selectedFiles) {
-      const fileKey = `${file.name}-${file.size}-${file.lastModified}`;
+      const fileKey = getFileKey(file);
+      const requirementId = isRequirementScopedUpload ? targetRequirementId : fileRequirementMap[fileKey];
+
+      if (!requirementId) {
+        failedUploads.push(`${file.name}: No requirement selected.`);
+        failedFileKeys.add(fileKey);
+        continue;
+      }
+
       const documentId = crypto.randomUUID();
       const storagePath = buildStudentDocumentStoragePath(user.id, documentId, file.name);
 
@@ -198,6 +198,7 @@ export default function StudentDocumentUploadZone({
 
       const documentResult = await createStudentDocumentRecord({
         id: documentId,
+        requirementId: requirementId,
         name: file.name,
         type: inferDocumentType(file.name, file.type),
         bucket: STORAGE_BUCKETS.DOCUMENTS,
@@ -205,26 +206,13 @@ export default function StudentDocumentUploadZone({
         mimeType: file.type || null,
         sizeBytes: file.size,
         source: "VAULT_UPLOAD",
-        status: "PENDING",
       });
 
       if (!documentResult.success || !documentResult.data) {
-        failedUploads.push(
-          documentResult.error ?? `${file.name}: Failed to save the uploaded document.`,
-        );
+        failedUploads.push(documentResult.error ?? `${file.name}: Failed to save the uploaded document.`);
         failedFileKeys.add(fileKey);
-
         await supabase.storage.from(STORAGE_BUCKETS.DOCUMENTS).remove([storagePath]);
         continue;
-      }
-
-      const autoLinkResult = await autoLinkRequiredDocumentByFileName(
-        file.name,
-        documentResult.data.id,
-      );
-
-      if (autoLinkResult.success && autoLinkResult.data?.contextKey) {
-        autoLinkedCount += 1;
       }
 
       successfulUploads.push(documentResult.data);
@@ -238,151 +226,69 @@ export default function StudentDocumentUploadZone({
         title: "Upload failed for some files",
         description: failedUploads[0],
       });
-    }
-
-    if (successfulUploads.length) {
-      showToast({
-        variant: "success",
-        title: `${successfulUploads.length} ${successfulUploads.length === 1 ? "file" : "files"} uploaded`,
-        description:
-          autoLinkedCount > 0
-            ? `${autoLinkedCount} ${autoLinkedCount === 1 ? "file was" : "files were"} auto-linked.`
-            : "Files were added to your vault.",
-      });
-    }
-
-    if (failedUploads.length) {
       setSelectedFiles((currentFiles) =>
-        currentFiles.filter((file) =>
-          failedFileKeys.has(`${file.name}-${file.size}-${file.lastModified}`),
-        ),
+        currentFiles.filter((file) => failedFileKeys.has(getFileKey(file))),
       );
     } else if (successfulUploads.length) {
+      showToast({
+        variant: "success",
+        title: `${successfulUploads.length} ${successfulUploads.length === 1 ? "file" : "files"} uploaded and linked`,
+      });
       setSelectedFiles([]);
       setRejectedFiles([]);
+      setFileRequirementMap({});
       onUploadComplete?.(successfulUploads);
     }
   }
 
   return (
     <section className="space-y-5">
-      <div
-        {...getRootProps()}
-        className={cn(
-          "rounded-[1.75rem] border border-dashed px-6 py-8 text-center transition",
-          isDragReject
-            ? "border-red-300 bg-red-50"
-            : isDragActive
-              ? "border-primary bg-primary/5"
-              : "border-slate-300 bg-slate-50",
-        )}
-      >
-        <input {...getInputProps()} />
-        <div className="mx-auto flex max-w-xl flex-col items-center">
-          <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/5 text-primary ring-1 ring-primary/10">
-            <UploadCloud className="h-6 w-6" aria-hidden="true" />
-          </div>
-
-          <h2 className="mt-5 font-poppins text-xl font-semibold text-slate-900 sm:text-2xl">
-            {isDragActive
-              ? "Drop your files here"
-              : "Drop files here or browse from your device"}
-          </h2>
-          <p className="mt-2 max-w-lg font-inter text-sm leading-relaxed text-slate-500">
-            Add one or more files to your vault for review and tracking. PDF, JPG, PNG, and DOCX are supported.
-          </p>
-          <p className="mt-2 font-inter text-sm text-slate-400">
-            Use clear file names like <span className="font-medium text-slate-500">passport.pdf</span> or <span className="font-medium text-slate-500">sop.docx</span> for easier matching later.
-          </p>
-
-          <button
-            type="button"
-            onClick={open}
-            disabled={isUploading}
-            className="mt-6 inline-flex items-center justify-center rounded-2xl bg-primary px-5 py-2.5 font-inter text-sm font-semibold text-white transition hover:bg-primary/90"
-          >
-            Add Files
-          </button>
-        </div>
-      </div>
-
-      {selectedFiles.length ? (
+      <FileDropZone
+        getRootProps={getRootProps}
+        getInputProps={getInputProps}
+        isDragActive={isDragActive}
+        isDragReject={isDragReject}
+        onBrowse={open}
+        disabled={isUploading}
+      />
+      {selectedFiles.length > 0 && (
         <div className="space-y-3 rounded-[1.5rem] border border-slate-200 bg-white p-4 shadow-sm">
           <div className="flex items-center justify-between gap-3">
-            <p className="font-poppins text-lg font-semibold text-slate-900">
-              Selected Files
-            </p>
-            <p className="font-inter text-sm text-slate-400">
-              {selectedFiles.length} {selectedFiles.length === 1 ? "file" : "files"}
-            </p>
+            <p className="font-poppins text-lg font-semibold text-slate-900">Selected Files</p>
+            <p className="font-inter text-sm text-slate-400">{selectedFiles.length} {selectedFiles.length === 1 ? "file" : "files"}</p>
           </div>
-
           <div className="max-h-60 space-y-3 overflow-y-auto pr-1">
             {selectedFiles.map((file) => (
-              <div
-                key={`${file.name}-${file.size}-${file.lastModified}`}
-                className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3"
-              >
-                <div className="min-w-0 flex-1">
-                  <p className="truncate font-inter text-sm font-semibold text-slate-800">
-                    {file.name}
-                  </p>
-                  <p className="mt-1 font-inter text-xs text-slate-500">
-                    {getFileExtension(file.name)} • {formatFileSize(file.size)}
-                  </p>
-                </div>
-
-                <button
-                  type="button"
-                  onClick={() => handleRemoveFile(file)}
-                  className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-500 transition hover:border-slate-300 hover:text-slate-900"
-                  aria-label={`Remove ${file.name}`}
-                >
-                  <X className="h-4 w-4" aria-hidden="true" />
-                </button>
-              </div>
+              // In requirement-scoped uploads (Change Document flow), requirement is fixed.
+              <SelectedFileItem
+                key={getFileKey(file)}
+                file={file}
+                chosenRequirementId={isRequirementScopedUpload ? targetRequirementId : fileRequirementMap[getFileKey(file)]}
+                requirements={requirements}
+                fulfilledRequirementIds={fulfilledRequirementIds}
+                selectedRequirementIds={selectedRequirementIds}
+                hideRequirementSelect={isRequirementScopedUpload}
+                fixedRequirementLabel={
+                  isRequirementScopedUpload
+                    ? (requirements.find((r) => r.id === targetRequirementId)?.name ?? "Selected requirement")
+                    : undefined
+                }
+                onRequirementChange={handleRequirementChange}
+                onRemove={handleRemoveFile}
+              />
             ))}
           </div>
         </div>
-      ) : null}
-
-      {rejectionMessages.length ? (
-        <div className="space-y-3 rounded-[1.5rem] border border-red-200 bg-red-50 p-4">
-          <div className="flex items-center gap-2 text-red-700">
-            <FileWarning className="h-4 w-4" aria-hidden="true" />
-            <p className="font-inter text-sm font-semibold">Some files were not added</p>
-          </div>
-
-          <div className="max-h-36 space-y-2 overflow-y-auto pr-1">
-            {rejectionMessages.map((message) => (
-              <p key={message} className="font-inter text-sm leading-relaxed text-red-700">
-                {message}
-              </p>
-            ))}
-          </div>
-        </div>
-      ) : null}
-
-      <div className="flex items-center justify-end gap-3">
-        {showCancel ? (
-          <button
-            type="button"
-            onClick={onCancel}
-            disabled={isUploading}
-            className="inline-flex items-center justify-center rounded-2xl border border-slate-200 bg-white px-4 py-2.5 font-inter text-sm font-semibold text-slate-600 transition hover:border-slate-300 hover:text-slate-900"
-          >
-            Cancel
-          </button>
-        ) : null}
-        <button
-          type="button"
-          onClick={handleUploadFiles}
-          disabled={!selectedFiles.length || isUploading}
-          className="inline-flex items-center justify-center rounded-2xl bg-primary px-5 py-2.5 font-inter text-sm font-semibold text-white transition hover:bg-primary/90 disabled:cursor-not-allowed disabled:bg-slate-300"
-        >
-          {isUploading ? "Uploading..." : submitLabel}
-        </button>
-      </div>
+      )}
+      <RejectionList messages={rejectionMessages} />
+      <UploadFooter
+        showCancel={showCancel}
+        submitLabel={submitLabel}
+        isUploading={isUploading}
+        canUpload={canUpload}
+        onCancel={onCancel}
+        onUpload={handleUploadFiles}
+      />
     </section>
   );
 }
