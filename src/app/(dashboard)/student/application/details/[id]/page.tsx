@@ -34,15 +34,41 @@ const DetailSection = ({ icon: Icon, title, children }: { icon: LucideIcon; titl
     </section>
 );
 
-const Field = ({ label, value }: { label: string; value?: string | number | null }) => (
-    <div className="space-y-1">
-        <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400">{label}</p>
-        <p className="font-semibold text-slate-800 text-base">{value !== null && value !== undefined ? String(value) : "—"}</p>
-    </div>
-);
+const Field = ({ label, value }: { label: string; value?: string | number | null }) => {
+    // 1. Check if the value is literally the JavaScript NaN value
+    const isInvalidNumber = typeof value === "number" && Number.isNaN(value);
 
-const DateField = ({ label, value }: { label: string; value?: Date | null }) => {
-    const formatted = value ? new Date(value).toLocaleDateString(undefined, { year: "numeric", month: "long", day: "numeric" }) : "—";
+    // 2. Only display the string if it's not null, undefined, empty, OR NaN
+    const displayValue = (value !== null && value !== undefined && value !== "" && !isInvalidNumber)
+        ? String(value)
+        : "—";
+
+    return (
+        <div className="space-y-1">
+            <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400">{label}</p>
+            <p className="font-semibold text-slate-800 text-base">{displayValue}</p>
+        </div>
+    );
+};
+
+const DateField = ({ label, value }: { label: string; value?: Date | string | null }) => {
+    if (!value || value === "") {
+        return (
+            <div className="space-y-1">
+                <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400">{label}</p>
+                <p className="font-semibold text-slate-800 text-base">—</p>
+            </div>
+        );
+    }
+
+    const dateObj = new Date(value);
+
+    const isValidDate = !isNaN(dateObj.getTime());
+
+    const formatted = isValidDate
+        ? dateObj.toLocaleDateString(undefined, { year: "numeric", month: "long", day: "numeric" })
+        : "—";
+
     return (
         <div className="space-y-1">
             <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400">{label}</p>

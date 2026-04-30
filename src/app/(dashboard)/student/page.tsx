@@ -10,37 +10,9 @@ import { cn } from "@/lib/utils";
 import { requireRole } from "@/lib/auth";
 import { ROLES } from "@/lib/constants";
 import Link from "next/link";
+import { prisma } from "@/lib/prisma";
 
-const CHECKLIST_ITEMS = [
-  { status: "Received", details: "Official Transcript (High School)", date: "Oct 12, 2023", type: "success" },
-  { status: "Received", details: "Letters of Recommendation (2/2)", date: "Oct 14, 2023", type: "success" },
-  { status: "In Review", details: "Personal Essay Draft", date: "Oct 18, 2023", type: "warning" },
-  { status: "Action Required", details: "SAT Scores (Official Report)", date: "Pending", type: "error" },
-];
-
-const NOTIFICATIONS = [
-  {
-    id: 1,
-    title: "Financial Aid Update",
-    message: "Your FAFSA application has been successfully processed by the office.",
-    time: "2 hours ago",
-    unread: true,
-  },
-  {
-    id: 2,
-    title: "Action Required",
-    message: "Please submit your official SAT scores by Nov 1st.",
-    time: "1 day ago",
-    unread: true,
-  },
-  {
-    id: 3,
-    title: "Essay Reviewed",
-    message: "Your counselor has left preliminary comments on your personal essay draft.",
-    time: "3 days ago",
-    unread: false,
-  }
-];
+// --- HELPERS ---
 
 const StatusBadge = ({ status, type }: { status: string; type: string }) => {
   const styles = {
@@ -51,7 +23,7 @@ const StatusBadge = ({ status, type }: { status: string; type: string }) => {
 
   return (
     <span className={cn(
-      "flex items-center gap-1.5 px-2.5 py-0.5 rounded-full border text-[9px] font-bold uppercase tracking-wider whitespace-nowrap",
+      "inline-flex w-fit items-center gap-1.5 px-2.5 py-0.5 rounded-full border text-[9px] font-bold uppercase tracking-wider whitespace-nowrap",
       styles[type as keyof typeof styles]
     )}>
       <div className={cn("h-1.5 w-1.5 rounded-full", type === 'success' ? 'bg-[#0f766e]' : type === 'warning' ? 'bg-orange-500' : 'bg-red-500')} />
@@ -66,7 +38,7 @@ const DashboardCard = ({ title, value, subtext, icon: Icon, actionLabel, actionH
       <div className="p-2 bg-teal-50 rounded-xl text-[#0f766e]">
         <Icon className="h-5 w-5" />
       </div>
-      {value && <span className="text-2xl font-bold text-slate-900">{value}</span>}
+      {value !== undefined && <span className="text-2xl font-bold text-slate-900">{value}</span>}
     </div>
     <h3 className="text-lg font-bold text-slate-900 mb-1">{title}</h3>
     <p className="text-slate-500 text-xs mb-3 leading-relaxed">{subtext}</p>
@@ -78,10 +50,106 @@ const DashboardCard = ({ title, value, subtext, icon: Icon, actionLabel, actionH
   </div>
 );
 
+// MOCK DATA (For Notifications only, since that table isn't built yet)
+const NOTIFICATIONS = [
+  {
+    id: 1,
+    title: "Welcome to Doel",
+    message: "Your student profile has been created successfully. Start your application whenever you're ready.",
+    time: "Just now",
+    unread: true,
+  }
+];
+
 // --- MAIN PAGE ---
 
 export default async function StudentDashboardPage() {
   const user = await requireRole([ROLES.STUDENT]);
+
+  // 1. Fetch the Student Profile
+  const profile = await prisma.studentProfile.findUnique({
+    where: { userId: user.id }
+  });
+
+  if (!profile) return <div>Profile not found</div>;
+
+  // 2. Calculate Application Progress %
+  const application = await prisma.application.findUnique({
+    where: { studentId: profile.id },
+    include: {
+      personalInfo: true,
+      academicRecord: true,
+      testScores: true,
+      financialStanding: true,
+      extracurriculars: true,
+      familyInfo: true,
+      supplemental: true,
+      conductAgreement: true,
+    }
+  });
+
+  let progressPercentage = 0;
+  if (application) {
+    // Check for a REQUIRED FIELD inside each module, not just the module itself
+    const sectionCompletion = [
+      Boolean(application.personalInfo?.name),                 // Needs at least a name
+      Boolean(application.academicRecord?.schoolName),         // Needs at least a school
+      Boolean(application.testScores?.testDate),               // Needs a test date
+      Boolean(application.financialStanding?.fundingSource),   // Needs a funding source
+      Boolean(application.extracurriculars?.activities),       // Needs activities listed
+      Boolean(application.familyInfo?.fatherName),             // Needs family info
+      Boolean(application.supplemental?.personalStatement),    // Needs the SOP written
+      Boolean(application.conductAgreement?.agreeToTerms)      // Needs to be checked/agreed
+    ];
+
+    // Count how many of those specific fields actually have truthy data
+    const filledSections = sectionCompletion.filter(isComplete => isComplete === true).length;
+
+    progressPercentage = Math.round((filledSections / 8) * 100);
+  }
+
+  // 3. Get Verified Document Count
+  const documentCount = await prisma.document.count({
+    where: { studentId: profile.id }
+  });
+
+  // 4. Fetch and Format Document Requirements Checklist
+  const dbRequirements = await prisma.documentRequirement.findMany({
+    where: { studentId: profile.id },
+    orderBy: { updatedAt: 'desc' }
+  });
+
+  const checklistItems = dbRequirements.map((req) => {
+    let type = "warning";
+    let statusLabel = "In Review";
+
+    // Map strict DB ENUMs to UI friendly colors and labels
+    switch (req.status) {
+      case "VERIFIED":
+      case "RECEIVED":
+      case "WAIVED":
+        type = "success";
+        statusLabel = req.status === "WAIVED" ? "Waived" : req.status === "VERIFIED" ? "Verified" : "Received";
+        break;
+      case "PENDING":
+      case "REJECTED":
+        type = "error";
+        statusLabel = req.status === "REJECTED" ? "Rejected" : "Action Required";
+        break;
+      case "UNDER_REVIEW":
+        type = "warning";
+        statusLabel = "In Review";
+        break;
+    }
+
+    return {
+      id: req.id,
+      status: statusLabel,
+      details: req.name, // E.g., "Passport", "SOP"
+      date: new Intl.DateTimeFormat("en-US", { month: "short", day: "numeric", year: "numeric" }).format(req.updatedAt),
+      type,
+    };
+  });
 
   return (
     <div className="max-w-7xl mx-auto space-y-6 py-2">
@@ -93,7 +161,6 @@ export default async function StudentDashboardPage() {
         </h1>
       </div>
 
-      {/* Left/Main Column */}
       {/* Left/Main Column & Sidebar Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
 
@@ -108,7 +175,7 @@ export default async function StudentDashboardPage() {
                   <h2 className="text-lg font-bold text-slate-900">Application Progress</h2>
                 </div>
                 <p className="text-slate-500 mt-1 text-xs max-w-sm">You are on track to complete your primary application by Nov 1st.</p>
-                {90 < 100 && (
+                {progressPercentage < 100 && (
                   <Link
                     href="/student/application"
                     className="mt-4 inline-flex items-center gap-2 bg-[#0f766e] text-white px-4 py-2 rounded-xl font-bold text-xs shadow-md shadow-teal-100 hover:scale-[1.02] active:scale-95 transition-all"
@@ -118,13 +185,16 @@ export default async function StudentDashboardPage() {
                 )}
               </div>
               <div className="text-5xl font-black text-[#0f766e] tracking-tighter leading-none">
-                65<span className="text-2xl opacity-40">%</span>
+                {progressPercentage}<span className="text-2xl opacity-40">%</span>
               </div>
             </div>
 
             <div className="space-y-2">
               <div className="h-2 w-full bg-slate-100 rounded-full overflow-hidden">
-                <div className="h-full bg-[#0f766e] rounded-full transition-all duration-1000" style={{ width: '65%' }} />
+                <div
+                  className="h-full bg-[#0f766e] rounded-full transition-all duration-1000"
+                  style={{ width: `${progressPercentage}%` }}
+                />
               </div>
               <div className="flex justify-between text-[9px] font-bold uppercase tracking-widest text-slate-400">
                 <span>Started</span>
@@ -135,28 +205,26 @@ export default async function StudentDashboardPage() {
 
           <DashboardCard
             title="Document Vault"
-            value="4"
-            subtext="4 documents successfully verified and securely stored."
+            value={documentCount}
+            subtext={`${documentCount} documents currently uploaded and securely stored.`}
             icon={FolderOpen}
-            actionLabel="View all documents"
+            actionLabel="Manage your vault"
             actionHref={"/student/documents"}
           />
         </div>
 
         {/* Sidebar Column: Notification Center */}
         <div className="bg-white rounded-3xl border border-slate-100 p-5 shadow-sm flex flex-col h-full hover:shadow-md transition-shadow">
-          {/* Header */}
           <div className="flex items-center gap-3 mb-4">
             <div className="p-2 bg-teal-50 rounded-xl text-[#0f766e]">
               <Bell className="h-5 w-5" />
             </div>
             <div>
               <h3 className="text-lg font-bold text-slate-900">Notifications</h3>
-              <p className="text-slate-500 text-xs">2 unread updates</p>
+              <p className="text-slate-500 text-xs">{NOTIFICATIONS.filter(n => n.unread).length} unread updates</p>
             </div>
           </div>
 
-          {/* List of Notifications (Limited to 2 items!) */}
           <div className="flex-1 space-y-2 mb-4">
             {NOTIFICATIONS.slice(0, 2).map((note) => (
               <div key={note.id}
@@ -184,7 +252,6 @@ export default async function StudentDashboardPage() {
             ))}
           </div>
 
-          {/* Action Button */}
           <Link
             href="/student/notifications"
             className="flex items-center justify-center gap-2 text-[#0f766e] bg-teal-50/50 hover:bg-teal-50 py-2.5 rounded-xl font-bold text-xs transition-all group mt-auto"
@@ -194,37 +261,52 @@ export default async function StudentDashboardPage() {
         </div>
 
       </div>
+
       {/* Requirement Checklist (Status Table) */}
       <div className="bg-white rounded-3xl border border-slate-100 shadow-sm overflow-hidden">
-        <div className="p-5 border-b border-slate-50 flex justify-between items-center">
+        <div className="p-5 border-b border-slate-50 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
           <div className="flex items-center gap-3">
             <div className="p-2 bg-teal-50 rounded-xl text-[#0f766e]">
               <ListChecks className="h-5 w-5" />
             </div>
             <h2 className="text-lg font-bold text-slate-900">Requirement Checklist</h2>
           </div>
+
+          {/* THE NEW BUTTON */}
+          <Link
+            href="/student/documents"
+            className="inline-flex items-center gap-2 text-[#0f766e] bg-teal-50 hover:bg-teal-100 px-4 py-2.5 rounded-xl font-bold text-xs transition-colors group"
+          >
+            Manage Vault <ArrowRight className="h-3.5 w-3.5 group-hover:translate-x-1 transition-transform" />
+          </Link>
         </div>
         <div className="overflow-x-auto">
-          <table className="w-full text-left">
-            <thead>
-              <tr className="text-[9px] font-bold uppercase tracking-widest text-slate-400 bg-slate-50/50">
-                <th className="px-5 py-3">Status</th>
-                <th className="px-5 py-3">Details</th>
-                <th className="px-5 py-3 text-right">Date</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-50">
-              {CHECKLIST_ITEMS.map((item, idx) => (
-                <tr key={idx} className="group hover:bg-slate-50/50 transition-colors">
-                  <td className="px-5 py-3">
-                    <StatusBadge status={item.status} type={item.type} />
-                  </td>
-                  <td className="px-5 py-3 text-xs font-medium text-slate-700">{item.details}</td>
-                  <td className="px-5 py-3 text-right text-xs text-slate-400 font-medium">{item.date}</td>
+          {checklistItems.length > 0 ? (
+            <table className="w-full text-left">
+              <thead>
+                <tr className="text-[9px] font-bold uppercase tracking-widest text-slate-400 bg-slate-50/50">
+                  <th className="px-5 py-3">Status</th>
+                  <th className="px-5 py-3">Details</th>
+                  <th className="px-5 py-3 text-right">Last Updated</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody className="divide-y divide-slate-50">
+                {checklistItems.map((item) => (
+                  <tr key={item.id} className="group hover:bg-slate-50/50 transition-colors">
+                    <td className="px-5 py-3">
+                      <StatusBadge status={item.status} type={item.type} />
+                    </td>
+                    <td className="px-5 py-3 text-xs font-medium text-slate-700">{item.details}</td>
+                    <td className="px-5 py-3 text-right text-xs text-slate-400 font-medium">{item.date}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          ) : (
+            <div className="p-10 text-center text-sm text-slate-500">
+              No document requirements have been assigned to your profile yet.
+            </div>
+          )}
         </div>
       </div>
     </div>

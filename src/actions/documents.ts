@@ -140,6 +140,10 @@ export async function createStudentDocumentRecord(
         uploadedAt: new Date(),
       },
     });
+    await prisma.documentRequirement.update({
+      where: { id: input.requirementId },
+      data: { status: "UNDER_REVIEW" }, // or "RECEIVED" based on your preference
+    });
 
     return {
       success: true,
@@ -210,6 +214,10 @@ export async function deleteStudentDocument(documentId: string): Promise<ActionR
       where: { id: document.id },
     });
 
+    await prisma.documentRequirement.update({
+      where: { id: document.requirementId },
+      data: { status: "PENDING" }
+    });
     return {
       success: true,
       data: { id: document.id },
