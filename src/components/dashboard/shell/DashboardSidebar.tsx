@@ -16,6 +16,7 @@ interface DashboardSidebarProps {
   role: string;
   userName: string;
   userEmail: string;
+  hasCounselor?: boolean;
   className?: string;
   onClose?: () => void;
 }
@@ -33,6 +34,7 @@ export default function DashboardSidebar({
   role,
   userName,
   userEmail,
+  hasCounselor = true,
   className,
   onClose,
 }: DashboardSidebarProps) {
@@ -94,6 +96,7 @@ export default function DashboardSidebar({
         {navItems.map((item) => {
           const Icon = item.icon;
           const isActive = item.href ? pathname === item.href : false;
+          const isLocked = item.requiresCounselor && !hasCounselor;
 
           return (
             <div key={item.label}>
@@ -104,7 +107,7 @@ export default function DashboardSidebar({
                 </p>
               ) : null}
 
-              {item.href ? (
+              {item.href && !isLocked ? (
                 <Link
                   href={item.href}
                   className={cn(
@@ -120,12 +123,18 @@ export default function DashboardSidebar({
                   </span>
                 </Link>
               ) : (
-                <div className="flex items-center justify-between rounded-2xl px-4 py-3 font-inter text-sm font-medium text-slate-400">
+                <div
+                  className={cn(
+                    "flex items-center justify-between rounded-2xl px-4 py-3 font-inter text-sm font-medium",
+                    isLocked ? "cursor-not-allowed text-slate-300" : "text-slate-400",
+                  )}
+                  title={isLocked ? "A counselor must be assigned before you can access this section" : undefined}
+                >
                   <span className="flex items-center gap-3">
                     <Icon className="h-4 w-4 shrink-0" strokeWidth={2} aria-hidden="true" />
                     {item.label}
                   </span>
-                  {item.comingSoon ? (
+                  {item.comingSoon && !isLocked ? (
                     <span className="rounded-full border border-slate-200 bg-slate-50 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.16em] text-slate-400">
                       Soon
                     </span>

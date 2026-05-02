@@ -37,7 +37,8 @@
       "Bash(sed -n '100,115p' \"E:/Code V2/doel-education/src/components/common/documents/VaultDocumentSelector.tsx\")",
       "Bash(sed -n '70,90p' \"E:/Code V2/doel-education/src/components/dashboard/student/StudentDocumentDeleteModal.tsx\")",
       "Bash(sed -n '890,896p' \"E:/Code V2/doel-education/src/app/\\(dashboard\\)/student/application/page.tsx\")",
-      "Bash(sed -n '933,940p' \"E:/Code V2/doel-education/src/app/\\(dashboard\\)/student/application/page.tsx\")"
+      "Bash(sed -n '933,940p' \"E:/Code V2/doel-education/src/app/\\(dashboard\\)/student/application/page.tsx\")",
+      "Bash(ls:*)"
     ]
   }
 }

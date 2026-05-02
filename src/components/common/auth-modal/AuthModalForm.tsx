@@ -2,7 +2,6 @@
 
 import { type FormEvent, useEffect, useState } from "react";
 import Link from "next/link";
-import { CheckCircle2 } from "lucide-react";
 import { FormProvider, useFormContext } from "@/context/FormContext";
 import { FormField } from "@/components/FormField/FormField";
 import { PasswordField } from "@/components/FormField/FormPasswordField";
@@ -44,9 +43,7 @@ function AuthModalFormContent({ onClose }: AuthModalFormProps) {
   const { view, toggleView } = useAuthModal();
   const { errors, validateAllFields, values, resetForm } = useFormContext();
   const [loading, setLoading] = useState(false);
-  const [success, setSuccess] = useState(false);
-  const [authData, setAuthData] = useState<any>(null);
-  const [authError, setAuthError] = useState<any>(null);
+  const [serverError, setServerError] = useState<string | null>(null);
   const router = useRouter();
 
   const isLogin = view === "login";
@@ -54,7 +51,7 @@ function AuthModalFormContent({ onClose }: AuthModalFormProps) {
   // Reset form whenever the view switches or modal re-opens
   useEffect(() => {
     resetForm();
-    setSuccess(false);
+    setServerError(null);
     setLoading(false);
   }, [view, resetForm]);
 
@@ -66,111 +63,98 @@ function AuthModalFormContent({ onClose }: AuthModalFormProps) {
     }
 
     setLoading(true);
-    setSuccess(false);
+    setServerError(null);
 
     try {
       const supabase = createClient();
-      let currentData;
-      let currentError;
 
       if (isLogin) {
         const { data, error } = await supabase.auth.signInWithPassword({
           email: values.email as string,
           password: values.password as string,
         });
-        currentData = data;
-        currentError = error;
-        setAuthData(data);
-        setAuthError(error);
-        console.log("Login response:", { data, error });
-      } else {
-        const { data, error } = await supabase.auth.signUp({
-          email: values.email as string,
-          password: values.password as string,
-          options: {
-            data: {
-              name: values.name as string,
-              phone: values.phone as string,
-            },
-            emailRedirectTo: `${process.env.NEXT_PUBLIC_APP_URL}/api/auth/callback`,
-          },
-        });
-        currentData = data;
-        currentError = error;
-        setAuthData(data);
-        setAuthError(error);
-      }
 
-      // Check currentError instead of the async state variable authError
-      if (currentError) {
-        console.error("Auth error:", currentError);
-        return;
-      }
+        if (error) {
+          if (error.message.toLowerCase().includes("email not confirmed")) {
+            setServerError(
+              "Please verify your email before logging in. Check your inbox for the confirmation link."
+            );
+          } else {
+            setServerError(error.message);
+          }
+          return;
+        }
 
-      // Check currentData instead of the async state variable authData
-      if (!currentData?.user) {
-        return;
-      }
+        if (!data.user) {
+          setServerError("Login failed. Please try again.");
+          return;
+        }
 
-      if (isLogin) {
-        // Fetch user role from our DB to determine redirect
+        // Fetch user role to determine redirect
         const response = await fetch("/api/auth/me");
         if (response.ok) {
           const { role } = await response.json();
-          // if (role !== "STUDENT") {
-          //   await supabase.auth.signOut();
-          //   console.log(
-          //     "This portal is for students only. Please use the staff portal to log in."
-          //   );
-          //   return;
-          // }
           router.push(ROLE_DASHBOARD[role as RoleType]);
           router.refresh();
         } else {
-          // Fallback: let middleware handle the redirect
           router.push("/student");
           router.refresh();
         }
       } else {
-        // If sign up is successful, show the success screen
-        setSuccess(true);
+        const email = values.email as string;
+        const name = values.name as string;
+        const phone = values.phone as string;
+
+        const { data, error } = await supabase.auth.signUp({
+          email,
+          password: values.password as string,
+          options: {
+            data: { name, phone },
+            emailRedirectTo: `${window.location.origin}/api/auth/callback`,
+          },
+        });
+
+        if (error) {
+          setServerError(error.message);
+          return;
+        }
+
+        if (!data.user) {
+          setServerError("Registration failed. Please try again.");
+          return;
+        }
+
+        // Create the Prisma user record immediately
+        await fetch("/api/auth/register", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            supabaseId: data.user.id,
+            email,
+            name,
+            phone,
+          }),
+        });
+
+        // Close modal and redirect to email verification page
+        onClose();
+        router.push(`/verify-email?email=${encodeURIComponent(email)}`);
       }
-    } catch (e) {
-      console.log("An unexpected error occurred. Please try again.", e);
+    } catch {
+      setServerError("An unexpected error occurred. Please try again.");
     } finally {
       setLoading(false);
     }
   }
 
-  if (success) {
-    return (
-      <div className="flex flex-col items-center gap-5 py-8 text-center">
-        <div className="flex h-16 w-16 items-center justify-center rounded-full bg-emerald-50">
-          <CheckCircle2 className="h-8 w-8 text-emerald-500" strokeWidth={2} />
-        </div>
-        <div className="space-y-1">
-          <h4 className="font-poppins text-xl font-semibold text-slate-900">
-            {isLogin ? "Welcome back!" : "Account created!"}
-          </h4>
-          <p className="font-inter text-sm text-slate-500">
-            {isLogin
-              ? "You have successfully signed in."
-              : "Please check your email to verify your account."}
-          </p>
-        </div>
-        <button
-          type="button"
-          onClick={onClose}
-          className="flex w-full items-center justify-center gap-2 rounded-2xl bg-primary px-5 py-4 font-inter text-sm font-semibold text-white transition-colors duration-200 hover:bg-primary/90"
-        >
-          Close
-        </button>
-      </div>
-    );
-  }
-
   return (
     <form className="space-y-5" onSubmit={handleSubmit}>
+      {serverError && (
+        <p className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 font-inter text-sm font-medium text-red-700">
+          {serverError}
+        </p>
+      )}
+
       {!isLogin && (
         <FormField
           name="name"

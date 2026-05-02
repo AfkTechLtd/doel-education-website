@@ -4,13 +4,18 @@ import {
   FolderOpen,
   Bell,
   ListChecks,
-  Target
+  Target,
+  Mail,
+  Phone,
+  UserCheck,
+  Clock,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { requireRole } from "@/lib/auth";
 import { ROLES } from "@/lib/constants";
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
+import RequestCounselorButton from "@/components/dashboard/student/RequestCounselorButton";
 
 // --- HELPERS ---
 
@@ -61,6 +66,98 @@ const NOTIFICATIONS = [
   }
 ];
 
+// --- AWAITING COUNSELOR VIEW ---
+
+function AwaitingCounselorView({ userName }: { userName: string }) {
+  return (
+    <div className="max-w-2xl mx-auto space-y-6 py-8">
+      {/* Header */}
+      <div className="space-y-1 text-center">
+        <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#0f766e]">Welcome</p>
+        <h1 className="text-2xl font-bold tracking-tighter text-slate-900">
+          Hi, <span className="text-3xl text-[#0f766e]">{userName}!</span>
+        </h1>
+        <p className="text-slate-500 text-sm mt-2">
+          Your account is active. You're one step away from starting your US study journey.
+        </p>
+      </div>
+
+      {/* Status Card */}
+      <div className="bg-white rounded-3xl border border-amber-100 p-6 shadow-sm">
+        <div className="flex items-start gap-4">
+          <div className="p-3 bg-amber-50 rounded-2xl shrink-0">
+            <Clock className="h-6 w-6 text-amber-600" />
+          </div>
+          <div>
+            <h2 className="font-bold text-slate-900 text-lg">Awaiting Counselor Assignment</h2>
+            <p className="text-slate-500 text-sm mt-1 leading-relaxed">
+              A dedicated counselor will be assigned to guide you through every step of your
+              application process. Once assigned, you'll have full access to all portal features.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      {/* Contact Card */}
+      <div className="bg-white rounded-3xl border border-slate-100 p-6 shadow-sm space-y-5">
+        <div className="flex items-center gap-3">
+          <div className="p-2 bg-teal-50 rounded-xl text-[#0f766e]">
+            <UserCheck className="h-5 w-5" />
+          </div>
+          <h2 className="text-lg font-bold text-slate-900">Contact Us</h2>
+        </div>
+
+        <p className="text-slate-500 text-sm">
+          Have questions? Reach out to our team directly — we're here to help.
+        </p>
+
+        <div className="space-y-3">
+          <a
+            href="tel:+8801234567890"
+            className="flex items-center gap-3 rounded-2xl border border-slate-100 bg-slate-50 px-4 py-3 text-sm font-medium text-slate-700 transition-colors hover:bg-teal-50 hover:border-teal-100 hover:text-[#0f766e]"
+          >
+            <Phone className="h-4 w-4 shrink-0 text-[#0f766e]" />
+            +880 1234-567890
+          </a>
+          <a
+            href="mailto:counseling@doeleducation.com"
+            className="flex items-center gap-3 rounded-2xl border border-slate-100 bg-slate-50 px-4 py-3 text-sm font-medium text-slate-700 transition-colors hover:bg-teal-50 hover:border-teal-100 hover:text-[#0f766e]"
+          >
+            <Mail className="h-4 w-4 shrink-0 text-[#0f766e]" />
+            counseling@doeleducation.com
+          </a>
+        </div>
+
+        <div className="border-t border-slate-100 pt-5">
+          <p className="text-slate-500 text-xs mb-3">
+            Or click below to notify our team — we'll assign a counselor and reach out shortly.
+          </p>
+          <RequestCounselorButton />
+        </div>
+      </div>
+
+      {/* What happens next */}
+      <div className="bg-gradient-to-br from-teal-50 to-white rounded-3xl border border-teal-100 p-6 space-y-4">
+        <h3 className="font-bold text-slate-900 text-sm">What happens next?</h3>
+        <div className="space-y-3">
+          {[
+            { step: "1", text: "Our admin reviews your registration and assigns you a counselor." },
+            { step: "2", text: "You'll receive a notification when your counselor is assigned." },
+            { step: "3", text: "Full portal access unlocks — application, documents, resources, and more." },
+          ].map(({ step, text }) => (
+            <div key={step} className="flex items-start gap-3">
+              <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-[#0f766e] text-[10px] font-bold text-white">
+                {step}
+              </span>
+              <p className="text-slate-600 text-sm">{text}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // --- MAIN PAGE ---
 
 export default async function StudentDashboardPage() {
@@ -73,7 +170,12 @@ export default async function StudentDashboardPage() {
 
   if (!profile) return <div>Profile not found</div>;
 
-  // 2. Calculate Application Progress %
+  // 2. If no counselor assigned, show the awaiting view
+  if (!profile.counselorId) {
+    return <AwaitingCounselorView userName={user.name} />;
+  }
+
+  // 3. Calculate Application Progress %
   const application = await prisma.application.findUnique({
     where: { studentId: profile.id },
     include: {
@@ -90,30 +192,27 @@ export default async function StudentDashboardPage() {
 
   let progressPercentage = 0;
   if (application) {
-    // Check for a REQUIRED FIELD inside each module, not just the module itself
     const sectionCompletion = [
-      Boolean(application.personalInfo?.name),                 // Needs at least a name
-      Boolean(application.academicRecord?.schoolName),         // Needs at least a school
-      Boolean(application.testScores?.testDate),               // Needs a test date
-      Boolean(application.financialStanding?.fundingSource),   // Needs a funding source
-      Boolean(application.extracurriculars?.activities),       // Needs activities listed
-      Boolean(application.familyInfo?.fatherName),             // Needs family info
-      Boolean(application.supplemental?.personalStatement),    // Needs the SOP written
-      Boolean(application.conductAgreement?.agreeToTerms)      // Needs to be checked/agreed
+      Boolean(application.personalInfo?.name),
+      Boolean(application.academicRecord?.schoolName),
+      Boolean(application.testScores?.testDate),
+      Boolean(application.financialStanding?.fundingSource),
+      Boolean(application.extracurriculars?.activities),
+      Boolean(application.familyInfo?.fatherName),
+      Boolean(application.supplemental?.personalStatement),
+      Boolean(application.conductAgreement?.agreeToTerms)
     ];
 
-    // Count how many of those specific fields actually have truthy data
     const filledSections = sectionCompletion.filter(isComplete => isComplete === true).length;
-
     progressPercentage = Math.round((filledSections / 8) * 100);
   }
 
-  // 3. Get Verified Document Count
+  // 4. Get Verified Document Count
   const documentCount = await prisma.document.count({
     where: { studentId: profile.id }
   });
 
-  // 4. Fetch and Format Document Requirements Checklist
+  // 5. Fetch and Format Document Requirements Checklist
   const dbRequirements = await prisma.documentRequirement.findMany({
     where: { studentId: profile.id },
     orderBy: { updatedAt: 'desc' }
@@ -123,7 +222,6 @@ export default async function StudentDashboardPage() {
     let type = "warning";
     let statusLabel = "In Review";
 
-    // Map strict DB ENUMs to UI friendly colors and labels
     switch (req.status) {
       case "VERIFIED":
       case "RECEIVED":
@@ -145,7 +243,7 @@ export default async function StudentDashboardPage() {
     return {
       id: req.id,
       status: statusLabel,
-      details: req.name, // E.g., "Passport", "SOP"
+      details: req.name,
       date: new Intl.DateTimeFormat("en-US", { month: "short", day: "numeric", year: "numeric" }).format(req.updatedAt),
       type,
     };
@@ -272,7 +370,6 @@ export default async function StudentDashboardPage() {
             <h2 className="text-lg font-bold text-slate-900">Requirement Checklist</h2>
           </div>
 
-          {/* THE NEW BUTTON */}
           <Link
             href="/student/documents"
             className="inline-flex items-center gap-2 text-[#0f766e] bg-teal-50 hover:bg-teal-100 px-4 py-2.5 rounded-xl font-bold text-xs transition-colors group"

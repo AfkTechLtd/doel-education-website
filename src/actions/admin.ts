@@ -179,6 +179,7 @@ export async function getStudentsForAssignment() {
 // assignCounselor
 // Assigns a counselor to a student profile.
 // Overwrites any existing assignment.
+// Notifies the student that a counselor has been assigned.
 // ============================================================
 
 export async function assignCounselor(studentProfileId: string, counselorId: string) {
@@ -192,15 +193,50 @@ export async function assignCounselor(studentProfileId: string, counselorId: str
 
     if (!counselor) return { success: false as const, error: "Counselor not found" };
 
-    await prisma.studentProfile.update({
+    // Update the assignment
+    const updatedProfile = await prisma.studentProfile.update({
       where: { id: studentProfileId },
       data: { counselorId },
+      include: { user: { select: { id: true } } },
+    });
+
+    // Notify the student that a counselor has been assigned
+    await prisma.notification.create({
+      data: {
+        userId: updatedProfile.user.id,
+        type: "COUNSELOR_ASSIGNED",
+        title: "Counselor Assigned",
+        body: `Great news! ${counselor.name} has been assigned as your counselor. You now have full access to the student portal.`,
+        link: "/student",
+      },
+    });
+
+    revalidatePath("/admin/assignments");
+    revalidatePath("/student");
+    return { success: true as const };
+  } catch {
+    return { success: false as const, error: "Failed to assign counselor" };
+  }
+}
+
+// ============================================================
+// markNotificationsRead
+// Marks a list of notifications as read for the current admin.
+// ============================================================
+
+export async function markNotificationsRead(notificationIds: string[]) {
+  await requireRole([ROLES.ADMIN]);
+
+  try {
+    await prisma.notification.updateMany({
+      where: { id: { in: notificationIds } },
+      data: { isRead: true, readAt: new Date() },
     });
 
     revalidatePath("/admin/assignments");
     return { success: true as const };
   } catch {
-    return { success: false as const, error: "Failed to assign counselor" };
+    return { success: false as const, error: "Failed to mark notifications as read" };
   }
 }
 
