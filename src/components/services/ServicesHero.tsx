@@ -11,7 +11,7 @@ import HeroSection, {
 } from "@/components/common/HeroSection";
 import PrimaryButton from "@/components/common/PrimaryButton";
 import OutlineButton from "@/components/common/OutlineButton";
-import { useInquiryModal } from "@/components/common/InquiryModalProvider";
+import { useAuthRedirect } from "@/components/common/auth-modal/useAuthRedirect";
 
 const fadeInUp = {
   hidden: { opacity: 0, y: 30 },
@@ -27,7 +27,7 @@ const staggerContainer = {
 };
 
 export default function ServicesHero() {
-  const { openModal } = useInquiryModal();
+  const { handleAuthAction } = useAuthRedirect();
 
   return (
     <HeroSection imageAlt="Services hero" minHeightClassName="min-h-[56vh]">
@@ -61,7 +61,7 @@ export default function ServicesHero() {
           <HeroCTAs>
             <PrimaryButton
               isLink={false}
-              onClick={openModal}
+              onClick={() => handleAuthAction()}
               rightIcon={<ArrowRight size={16} />}
             >
               Book Free Consultation

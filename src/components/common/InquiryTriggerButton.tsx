@@ -1,7 +1,7 @@
 "use client";
 
 import { ButtonHTMLAttributes, MouseEvent } from "react";
-import { useInquiryModal } from "@/components/common/InquiryModalProvider";
+import { useAuthRedirect } from "@/components/common/auth-modal/useAuthRedirect";
 
 type InquiryTriggerButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & {
   onBeforeOpen?: () => void;
@@ -11,9 +11,10 @@ export default function InquiryTriggerButton({
   type = "button",
   onClick,
   onBeforeOpen,
+  disabled,
   ...props
 }: InquiryTriggerButtonProps) {
-  const { openModal } = useInquiryModal();
+  const { handleAuthAction, checking } = useAuthRedirect();
 
   const handleClick = (event: MouseEvent<HTMLButtonElement>) => {
     onClick?.(event);
@@ -23,8 +24,15 @@ export default function InquiryTriggerButton({
     }
 
     onBeforeOpen?.();
-    openModal();
+    handleAuthAction();
   };
 
-  return <button {...props} type={type} onClick={handleClick} />;
+  return (
+    <button
+      {...props}
+      type={type}
+      onClick={handleClick}
+      disabled={disabled || checking}
+    />
+  );
 }

@@ -1,14 +1,14 @@
 "use client";
 
 import PillButton from "@/components/common/PillButton";
-import { useInquiryModal } from "@/components/common/InquiryModalProvider";
+import { useAuthRedirect } from "@/components/common/auth-modal/useAuthRedirect";
 
 export default function ConsultationButton() {
-  const { openModal } = useInquiryModal();
+  const { handleAuthAction } = useAuthRedirect();
 
   return (
-    <PillButton isLink={false} onClick={openModal}>
-      Free Consultation
+    <PillButton isLink={false} onClick={() => handleAuthAction()}>
+      Student Portal
     </PillButton>
   );
 }
