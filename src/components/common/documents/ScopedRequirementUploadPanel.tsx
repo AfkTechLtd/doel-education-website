@@ -3,12 +3,16 @@
 import { useCallback, useMemo, useState } from "react";
 import { UploadCloud, X } from "lucide-react";
 import { useDropzone, type FileRejection } from "react-dropzone";
-import { createStudentDocumentRecord } from "@/actions/documents";
+import { performDocumentUploads } from "@/lib/documents/client-upload";
 import { useToast } from "@/components/common/feedback/ToastProvider";
-import { STORAGE_BUCKETS } from "@/lib/constants";
-import { buildStudentDocumentStoragePath, inferDocumentType } from "@/lib/documents/paths";
+import {
+  DEFAULT_MAX_FILE_SIZE_BYTES,
+  DEFAULT_ACCEPT,
+  getFileKey,
+  getUploadRejectionMessage,
+  formatFileSize,
+} from "@/lib/documents/upload-helpers";
 import type { DocumentUploadConfig, SelectedDocumentReference } from "@/lib/documents/types";
-import { createClient as createSupabaseBrowserClient } from "@/lib/supabase/client";
 import { cn } from "@/lib/utils";
 
 type ScopedRequirementUploadPanelProps = {
@@ -17,35 +21,12 @@ type ScopedRequirementUploadPanelProps = {
   uploadConfig?: DocumentUploadConfig;
 };
 
-const DEFAULT_MAX_FILE_SIZE_BYTES = 10 * 1024 * 1024;
-const DEFAULT_ACCEPT = {
-  "application/pdf": [".pdf"],
-  "image/jpeg": [".jpg", ".jpeg"],
-  "image/png": [".png"],
-  "application/msword": [".doc"],
-  "application/vnd.openxmlformats-officedocument.wordprocessingml.document": [".docx"],
-};
-
-function formatFileSize(bytes: number) {
-  if (bytes >= 1024 * 1024) {
-    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
-  }
-
-  return `${Math.max(1, Math.round(bytes / 1024))} KB`;
-}
-
-function getRejectionMessage(rejection: FileRejection, maxBytes: number) {
-  const firstError = rejection.errors[0];
-  if (!firstError) return "This file could not be added.";
-  if (firstError.code === "file-too-large") {
-    return `${rejection.file.name} is larger than ${formatFileSize(maxBytes)}.`;
-  }
-  if (firstError.code === "file-invalid-type") {
-    return `${rejection.file.name} is not a supported file type.`;
-  }
-  return `${rejection.file.name}: ${firstError.message}`;
-}
-
+/**
+ * Single-file replacement uploader for a specific requirement.
+ *
+ * When a student uses "Change Document" the requirement is fixed; only one
+ * file is accepted and it is automatically linked to that requirement.
+ */
 export default function ScopedRequirementUploadPanel({
   requirementId,
   onSelect,
@@ -59,19 +40,25 @@ export default function ScopedRequirementUploadPanel({
   const maxFileSizeBytes = uploadConfig?.maxFileSizeBytes ?? DEFAULT_MAX_FILE_SIZE_BYTES;
   const accept = uploadConfig?.accept ?? DEFAULT_ACCEPT;
 
-  const onDrop = useCallback((acceptedFiles: File[], fileRejections: FileRejection[]) => {
-    setRejections(fileRejections);
-    if (acceptedFiles.length > 0) {
-      setFile(acceptedFiles[acceptedFiles.length - 1]);
-    }
-    if (fileRejections.length > 0) {
-      showToast({
-        variant: "error",
-        title: "File not added",
-        description: getRejectionMessage(fileRejections[0], maxFileSizeBytes),
-      });
-    }
-  }, [maxFileSizeBytes, showToast]);
+  const onDrop = useCallback(
+    (acceptedFiles: File[], fileRejections: FileRejection[]) => {
+      setRejections(fileRejections);
+      if (acceptedFiles.length > 0) {
+        setFile(acceptedFiles[acceptedFiles.length - 1]);
+      }
+      if (fileRejections.length > 0) {
+        showToast({
+          variant: "error",
+          title: "File not added",
+          description: getUploadRejectionMessage(
+            { file: fileRejections[0].file, errors: fileRejections[0].errors },
+            maxFileSizeBytes,
+          ),
+        });
+      }
+    },
+    [maxFileSizeBytes, showToast],
+  );
 
   const { getRootProps, getInputProps, isDragActive, isDragReject, open } = useDropzone({
     onDrop,
@@ -82,73 +69,45 @@ export default function ScopedRequirementUploadPanel({
     accept,
   });
 
-  const rejectionMessages = useMemo(() => {
-    return rejections.map((rejection) => getRejectionMessage(rejection, maxFileSizeBytes));
-  }, [maxFileSizeBytes, rejections]);
+  const rejectionMessages = useMemo(
+    () =>
+      rejections.map((r) =>
+        getUploadRejectionMessage({ file: r.file, errors: r.errors }, maxFileSizeBytes),
+      ),
+    [maxFileSizeBytes, rejections],
+  );
 
   async function handleUpload() {
     if (!file || isUploading) return;
 
     setIsUploading(true);
-    const supabase = createSupabaseBrowserClient();
-    const {
-      data: { user },
-      error: userError,
-    } = await supabase.auth.getUser();
 
-    if (userError || !user) {
-      showToast({
-        variant: "error",
-        title: "Upload failed",
-        description: "You must be signed in to upload documents.",
-      });
-      setIsUploading(false);
-      return;
-    }
-
-    const documentId = crypto.randomUUID();
-    const storagePath = buildStudentDocumentStoragePath(user.id, documentId, file.name);
-
-    const { error: uploadError } = await supabase.storage
-      .from(STORAGE_BUCKETS.DOCUMENTS)
-      .upload(storagePath, file, { upsert: false });
-
-    if (uploadError) {
-      showToast({
-        variant: "error",
-        title: "Upload failed",
-        description: uploadError.message,
-      });
-      setIsUploading(false);
-      return;
-    }
-
-    const result = await createStudentDocumentRecord({
-      id: documentId,
-      requirementId,
-      name: file.name,
-      type: inferDocumentType(file.name, file.type),
-      bucket: STORAGE_BUCKETS.DOCUMENTS,
-      storagePath,
-      mimeType: file.type || null,
-      sizeBytes: file.size,
-      source: "VAULT_UPLOAD",
+    const fileKey = getFileKey(file);
+    const { successfulUploads, authError } = await performDocumentUploads({
+      files: [file],
+      fileRequirementMap: { [fileKey]: requirementId },
+      isRequirementScopedUpload: true,
+      targetRequirementId: requirementId,
     });
 
     setIsUploading(false);
 
-    if (!result.success || !result.data) {
-      await supabase.storage.from(STORAGE_BUCKETS.DOCUMENTS).remove([storagePath]);
+    if (authError) {
+      showToast({ variant: "error", title: "Upload failed", description: authError });
+      return;
+    }
+
+    if (!successfulUploads.length) {
       showToast({
         variant: "error",
         title: "Upload failed",
-        description: result.error ?? "Failed to save the uploaded document.",
+        description: "Failed to save the uploaded document.",
       });
       return;
     }
 
     showToast({ variant: "success", title: "Document replaced" });
-    onSelect(result.data);
+    onSelect(successfulUploads[0]);
   }
 
   return (

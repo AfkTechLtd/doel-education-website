@@ -3,7 +3,7 @@
 
 import { useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { deleteStudentDocument } from "@/actions/documents";
+import { deleteStudentDocumentViaApi, hardDeleteStudentDocumentViaApi } from "@/lib/documents/api-client";
 import { useToast } from "@/components/common/feedback/ToastProvider";
 import StudentDocumentDeleteModal from "@/components/dashboard/student/StudentDocumentDeleteModal";
 import type { DocumentItem, RequirementWithDocuments } from "@/lib/documents/types";
@@ -20,6 +20,17 @@ type StudentDocumentVaultProps = {
 
 type VaultView = "ALL_FILES" | "REQUIRED_DOCUMENTS";
 
+/**
+ * Main document vault UI for the student dashboard.
+ *
+ * Provides two tabs:
+ *   - All Files: full vault list with search/filter.
+ *   - Required Documents: grid of `DocumentRequirement` cards where each card
+ *     shows the linked document and its review status.
+ *
+ * Delete operations are now routed through `/api/documents/*` instead of
+ * Server Actions for better observability and retry semantics.
+ */
 export default function StudentDocumentVault({
   documents,
   requirements,
@@ -34,7 +45,8 @@ export default function StudentDocumentVault({
 
   const { showToast } = useToast();
 
-  // Filter Documents for "All Files" View
+  // ── Filtering ────────────────────────────────────────────────────────────
+
   const filteredDocuments = useMemo(() => {
     const normalizedQuery = query.trim().toLowerCase();
     return documents.filter((document) => {
@@ -45,16 +57,23 @@ export default function StudentDocumentVault({
     });
   }, [documents, filter, query]);
 
-  // Filter Requirements for "Required Documents" View
   const filteredRequirements = useMemo(() => {
     if (filter === "ALL") return requirements;
     return requirements.filter((req) => req.status === filter);
   }, [filter, requirements]);
 
-  // Simple, clean delete function
+  // ── Handlers ─────────────────────────────────────────────────────────────
+
+  /** Shared success callback after a document is selected or replaced. */
+  function handleDocumentSelected() {
+    showToast({ variant: "success", title: "Document updated" });
+    router.refresh();
+  }
+
+  /** Soft-delete path (used when the document has no active links). */
   function handleDelete(documentId: string) {
     startDeleting(async () => {
-      const result = await deleteStudentDocument(documentId);
+      const result = await deleteStudentDocumentViaApi({ documentId });
       if (!result.success) {
         showToast({
           variant: "error",
@@ -68,6 +87,26 @@ export default function StudentDocumentVault({
       router.refresh();
     });
   }
+
+  /** Hard-delete path (removes all links + storage + DB row). */
+  function handleHardDelete(documentId: string) {
+    startDeleting(async () => {
+      const result = await hardDeleteStudentDocumentViaApi({ documentId });
+      if (!result.success) {
+        showToast({
+          variant: "error",
+          title: "Delete failed",
+          description: result.error ?? "Failed to delete the document.",
+        });
+        return;
+      }
+      showToast({ variant: "success", title: "Document deleted and unlinked" });
+      setDeleteCandidate(null);
+      router.refresh();
+    });
+  }
+
+  // ── Render ───────────────────────────────────────────────────────────────
 
   return (
     <div className="space-y-6">
@@ -94,7 +133,9 @@ export default function StudentDocumentVault({
           onClick={() => setView("REQUIRED_DOCUMENTS")}
           className={cn(
             "rounded-[0.9rem] px-4 py-2.5 font-inter text-sm font-semibold transition",
-            view === "REQUIRED_DOCUMENTS" ? "bg-primary text-white" : "text-slate-500 hover:text-slate-900",
+            view === "REQUIRED_DOCUMENTS"
+              ? "bg-primary text-white"
+              : "text-slate-500 hover:text-slate-900",
           )}
         >
           Required Documents
@@ -127,24 +168,22 @@ export default function StudentDocumentVault({
             <StudentRequiredDocumentCard
               key={requirement.id}
               requirement={requirement}
-              linkedDocument={requirement.documents ? {
-                id: requirement.documents.id,
-                name: requirement.documents.name,
-                type: requirement.documents.type,
-                bucket: requirement.documents.bucket,
-                storagePath: requirement.documents.storagePath,
-                mimeType: requirement.documents.mimeType,
-                sizeBytes: requirement.documents.sizeBytes,
-                status: requirement.status,
-              } : null}
+              linkedDocument={
+                requirement.documents
+                  ? {
+                      id: requirement.documents.id,
+                      name: requirement.documents.name,
+                      type: requirement.documents.type,
+                      bucket: requirement.documents.bucket,
+                      storagePath: requirement.documents.storagePath,
+                      mimeType: requirement.documents.mimeType,
+                      sizeBytes: requirement.documents.sizeBytes,
+                      status: requirement.status,
+                    }
+                  : null
+              }
               effectiveStatus={requirement.status}
-              onSelectDocument={() => {
-                showToast({
-                  variant: "success",
-                  title: "Document updated",
-                });
-                router.refresh();
-              }}
+              onSelectDocument={handleDocumentSelected}
               onUnlinkDocument={() => {
                 if (requirement.documents) {
                   setDeleteCandidate({ id: requirement.documents.id, name: requirement.documents.name });
@@ -163,7 +202,6 @@ export default function StudentDocumentVault({
         </section>
       )}
 
-      {/* Simplified Delete Modal */}
       <StudentDocumentDeleteModal
         open={Boolean(deleteCandidate)}
         documentName={deleteCandidate?.name ?? ""}
@@ -172,7 +210,7 @@ export default function StudentDocumentVault({
         isSubmitting={deletingId}
         onClose={() => !deletingId && setDeleteCandidate(null)}
         onDelete={() => deleteCandidate && handleDelete(deleteCandidate.id)}
-        onHardDelete={() => deleteCandidate && handleDelete(deleteCandidate.id)}
+        onHardDelete={() => deleteCandidate && handleHardDelete(deleteCandidate.id)}
       />
     </div>
   );

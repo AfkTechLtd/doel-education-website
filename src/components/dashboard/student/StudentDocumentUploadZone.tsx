@@ -1,22 +1,24 @@
 "use client";
 
-import { useCallback, useMemo, useState } from "react";
-import { useDropzone, type FileRejection } from "react-dropzone";
-import { createStudentDocumentRecord } from "@/actions/documents";
+import { useMemo, useState } from "react";
+import { performDocumentUploads } from "@/lib/documents/client-upload";
 import { useToast } from "@/components/common/feedback/ToastProvider";
-import { STORAGE_BUCKETS } from "@/lib/constants";
-import { buildStudentDocumentStoragePath, inferDocumentType } from "@/lib/documents/paths";
+import {
+  DEFAULT_MAX_FILE_SIZE_BYTES,
+  DEFAULT_ACCEPT,
+  getFileKey,
+  getUploadRejectionMessage,
+} from "@/lib/documents/upload-helpers";
 import type {
   DocumentUploadConfig,
-  FileRequirementMap,
   RequirementWithDocuments,
   SelectedDocumentReference,
 } from "@/lib/documents/types";
-import { createClient as createSupabaseBrowserClient } from "@/lib/supabase/client";
 import FileDropZone from "./upload/FileDropZone";
 import RejectionList from "./upload/RejectionList";
-import SelectedFileItem from "./upload/SelectedFileItem";
+import SelectedFilesList from "./upload/SelectedFilesList";
 import UploadFooter from "./upload/UploadFooter";
+import { useDocumentDropzone } from "./upload/useDocumentDropzone";
 
 type StudentDocumentUploadZoneProps = {
   onCancel: () => void;
@@ -28,32 +30,13 @@ type StudentDocumentUploadZoneProps = {
   targetRequirementId?: string;
 };
 
-const DEFAULT_MAX_FILE_SIZE_BYTES = 10 * 1024 * 1024;
-const DEFAULT_ACCEPT = {
-  "application/pdf": [".pdf"],
-  "image/jpeg": [".jpg", ".jpeg"],
-  "image/png": [".png"],
-  "application/msword": [".doc"],
-  "application/vnd.openxmlformats-officedocument.wordprocessingml.document": [".docx"],
-};
-
-function getFileKey(file: File) {
-  return `${file.name}-${file.size}-${file.lastModified}`;
-}
-
-function getRejectionMessage(rejection: FileRejection, maxBytes: number) {
-  const firstError = rejection.errors[0];
-  if (!firstError) return "This file could not be added.";
-  if (firstError.code === "file-too-large") {
-    const mb = maxBytes >= 1024 * 1024 ? `${(maxBytes / (1024 * 1024)).toFixed(1)} MB` : `${Math.max(1, Math.round(maxBytes / 1024))} KB`;
-    return `${rejection.file.name} is larger than ${mb}.`;
-  }
-  if (firstError.code === "file-invalid-type") {
-    return `${rejection.file.name} is not a supported file type.`;
-  }
-  return `${rejection.file.name}: ${firstError.message}`;
-}
-
+/**
+ * Multi-file upload zone for the student document vault.
+ *
+ * In the general (non-scoped) flow the student must manually assign each file
+ * to a `DocumentRequirement`. In the scoped flow (Change Document) the
+ * requirement is fixed and only a single file is accepted.
+ */
 export default function StudentDocumentUploadZone({
   onCancel,
   onUploadComplete,
@@ -63,12 +46,8 @@ export default function StudentDocumentUploadZone({
   requirements = [],
   targetRequirementId,
 }: StudentDocumentUploadZoneProps) {
-  const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
-  const [rejectedFiles, setRejectedFiles] = useState<FileRejection[]>([]);
-  const [isUploading, setIsUploading] = useState(false);
-  const [fileRequirementMap, setFileRequirementMap] = useState<FileRequirementMap>({});
-
   const { showToast } = useToast();
+  const [isUploading, setIsUploading] = useState(false);
 
   const maxFileSizeBytes = uploadConfig?.maxFileSizeBytes ?? DEFAULT_MAX_FILE_SIZE_BYTES;
   const isRequirementScopedUpload = Boolean(targetRequirementId);
@@ -76,72 +55,59 @@ export default function StudentDocumentUploadZone({
   const maxFiles = uploadConfig?.maxFiles ?? 0;
   const accept = uploadConfig?.accept ?? DEFAULT_ACCEPT;
 
-  const selectedRequirementIds = useMemo(() => {
-    return new Set(Object.values(fileRequirementMap));
-  }, [fileRequirementMap]);
+  const {
+    selectedFiles,
+    rejectedFiles,
+    setSelectedFiles,
+    setRejectedFiles,
+    fileRequirementMap,
+    setFileRequirementMap,
+    getRootProps,
+    getInputProps,
+    isDragActive,
+    isDragReject,
+    open,
+  } = useDocumentDropzone({
+    maxFileSizeBytes,
+    multiple,
+    maxFiles,
+    accept,
+    isRequirementScopedUpload,
+    targetRequirementId,
+    onRejection: (message) =>
+      showToast({ variant: "error", title: "Some files were not added", description: message }),
+  });
 
-  const fulfilledRequirementIds = useMemo(() => {
-    return new Set(requirements.filter((r) => r.documents !== null).map((r) => r.id));
-  }, [requirements]);
+  const selectedRequirementIds = useMemo(
+    () => new Set(Object.values(fileRequirementMap)),
+    [fileRequirementMap],
+  );
 
-  // A file can ONLY be uploaded if it has an assigned requirement ID
+  const fulfilledRequirementIds = useMemo(
+    () => new Set(requirements.filter((r) => r.documents !== null).map((r) => r.id)),
+    [requirements],
+  );
+
+  // A file can ONLY be uploaded if every selected file has an assigned requirement.
   const canUpload = selectedFiles.length > 0 && selectedFiles.every((file) => {
-    if (isRequirementScopedUpload) {
-      return Boolean(targetRequirementId);
-    }
+    if (isRequirementScopedUpload) return Boolean(targetRequirementId);
     return Boolean(fileRequirementMap[getFileKey(file)]);
   });
 
-  const onDrop = useCallback(
-    (acceptedFiles: File[], fileRejections: FileRejection[]) => {
-      setSelectedFiles((currentFiles) => {
-        const existingKeys = new Set(currentFiles.map((file) => getFileKey(file)));
-        const uniqueNewFiles = acceptedFiles.filter((file) => !existingKeys.has(getFileKey(file)));
-        const nextFiles = [...currentFiles, ...uniqueNewFiles];
-        if (!multiple) return nextFiles.slice(-1);
-        if (maxFiles > 0) return nextFiles.slice(0, maxFiles);
-        return nextFiles;
-      });
-
-      if (isRequirementScopedUpload && targetRequirementId && acceptedFiles.length > 0) {
-        const file = acceptedFiles[acceptedFiles.length - 1];
-        const key = getFileKey(file);
-        setFileRequirementMap({ [key]: targetRequirementId });
-      }
-
-      setRejectedFiles(fileRejections);
-
-      if (fileRejections.length) {
-        const firstMessage = getRejectionMessage(fileRejections[0], maxFileSizeBytes);
-        showToast({
-          variant: "error",
-          title: "Some files were not added",
-          description: firstMessage,
-        });
-      }
-    },
-    [isRequirementScopedUpload, maxFileSizeBytes, multiple, maxFiles, showToast, targetRequirementId],
-  );
-
-  const { getRootProps, getInputProps, isDragActive, isDragReject, open } = useDropzone({
-    onDrop,
-    multiple,
-    noClick: true,
-    maxFiles: maxFiles > 0 ? maxFiles : undefined,
-    maxSize: maxFileSizeBytes,
-    accept,
-  });
-
   const rejectionMessages = useMemo(
-    () => rejectedFiles.map((rejection) => getRejectionMessage(rejection, maxFileSizeBytes)),
+    () =>
+      rejectedFiles.map((r) =>
+        getUploadRejectionMessage({ file: r.file, errors: r.errors }, maxFileSizeBytes),
+      ),
     [maxFileSizeBytes, rejectedFiles],
   );
 
   function handleRemoveFile(fileToRemove: File) {
     const key = getFileKey(fileToRemove);
-    setSelectedFiles((currentFiles) =>
-      currentFiles.filter(
-        (file) => !(file.name === fileToRemove.name && file.size === fileToRemove.size && file.lastModified === fileToRemove.lastModified),
+    setSelectedFiles((current) =>
+      current.filter(
+        (file) =>
+          !(file.name === fileToRemove.name && file.size === fileToRemove.size && file.lastModified === fileToRemove.lastModified),
       ),
     );
     setFileRequirementMap((prev) => {
@@ -159,66 +125,20 @@ export default function StudentDocumentUploadZone({
     if (!selectedFiles.length || isUploading || !canUpload) return;
 
     setIsUploading(true);
-
-    const supabase = createSupabaseBrowserClient();
-    const { data: { user }, error: userError } = await supabase.auth.getUser();
-
-    if (userError || !user) {
-      showToast({ variant: "error", title: "Upload failed", description: "You must be signed in to upload documents." });
-      setIsUploading(false);
-      return;
-    }
-
-    const successfulUploads: SelectedDocumentReference[] = [];
-    const failedUploads: string[] = [];
-    const failedFileKeys = new Set<string>();
-
-    for (const file of selectedFiles) {
-      const fileKey = getFileKey(file);
-      const requirementId = isRequirementScopedUpload ? targetRequirementId : fileRequirementMap[fileKey];
-
-      if (!requirementId) {
-        failedUploads.push(`${file.name}: No requirement selected.`);
-        failedFileKeys.add(fileKey);
-        continue;
-      }
-
-      const documentId = crypto.randomUUID();
-      const storagePath = buildStudentDocumentStoragePath(user.id, documentId, file.name);
-
-      const { error: uploadError } = await supabase.storage
-        .from(STORAGE_BUCKETS.DOCUMENTS)
-        .upload(storagePath, file, { upsert: false });
-
-      if (uploadError) {
-        failedUploads.push(`${file.name}: ${uploadError.message}`);
-        failedFileKeys.add(fileKey);
-        continue;
-      }
-
-      const documentResult = await createStudentDocumentRecord({
-        id: documentId,
-        requirementId: requirementId,
-        name: file.name,
-        type: inferDocumentType(file.name, file.type),
-        bucket: STORAGE_BUCKETS.DOCUMENTS,
-        storagePath,
-        mimeType: file.type || null,
-        sizeBytes: file.size,
-        source: "VAULT_UPLOAD",
+    const { successfulUploads, failedUploads, failedFileKeys, authError } =
+      await performDocumentUploads({
+        files: selectedFiles,
+        fileRequirementMap,
+        isRequirementScopedUpload,
+        targetRequirementId,
       });
 
-      if (!documentResult.success || !documentResult.data) {
-        failedUploads.push(documentResult.error ?? `${file.name}: Failed to save the uploaded document.`);
-        failedFileKeys.add(fileKey);
-        await supabase.storage.from(STORAGE_BUCKETS.DOCUMENTS).remove([storagePath]);
-        continue;
-      }
-
-      successfulUploads.push(documentResult.data);
-    }
-
     setIsUploading(false);
+
+    if (authError) {
+      showToast({ variant: "error", title: "Upload failed", description: authError });
+      return;
+    }
 
     if (failedUploads.length) {
       showToast({
@@ -226,10 +146,11 @@ export default function StudentDocumentUploadZone({
         title: "Upload failed for some files",
         description: failedUploads[0],
       });
-      setSelectedFiles((currentFiles) =>
-        currentFiles.filter((file) => failedFileKeys.has(getFileKey(file))),
-      );
-    } else if (successfulUploads.length) {
+      setSelectedFiles((current) => current.filter((file) => failedFileKeys.has(getFileKey(file))));
+      return;
+    }
+
+    if (successfulUploads.length) {
       showToast({
         variant: "success",
         title: `${successfulUploads.length} ${successfulUploads.length === 1 ? "file" : "files"} uploaded and linked`,
@@ -252,33 +173,17 @@ export default function StudentDocumentUploadZone({
         disabled={isUploading}
       />
       {selectedFiles.length > 0 && (
-        <div className="space-y-3 rounded-[1.5rem] border border-slate-200 bg-white p-4 shadow-sm">
-          <div className="flex items-center justify-between gap-3">
-            <p className="font-poppins text-lg font-semibold text-slate-900">Selected Files</p>
-            <p className="font-inter text-sm text-slate-400">{selectedFiles.length} {selectedFiles.length === 1 ? "file" : "files"}</p>
-          </div>
-          <div className="max-h-60 space-y-3 overflow-y-auto pr-1">
-            {selectedFiles.map((file) => (
-              // In requirement-scoped uploads (Change Document flow), requirement is fixed.
-              <SelectedFileItem
-                key={getFileKey(file)}
-                file={file}
-                chosenRequirementId={isRequirementScopedUpload ? targetRequirementId : fileRequirementMap[getFileKey(file)]}
-                requirements={requirements}
-                fulfilledRequirementIds={fulfilledRequirementIds}
-                selectedRequirementIds={selectedRequirementIds}
-                hideRequirementSelect={isRequirementScopedUpload}
-                fixedRequirementLabel={
-                  isRequirementScopedUpload
-                    ? (requirements.find((r) => r.id === targetRequirementId)?.name ?? "Selected requirement")
-                    : undefined
-                }
-                onRequirementChange={handleRequirementChange}
-                onRemove={handleRemoveFile}
-              />
-            ))}
-          </div>
-        </div>
+        <SelectedFilesList
+          files={selectedFiles}
+          fileRequirementMap={fileRequirementMap}
+          requirements={requirements}
+          fulfilledRequirementIds={fulfilledRequirementIds}
+          selectedRequirementIds={selectedRequirementIds}
+          isRequirementScopedUpload={isRequirementScopedUpload}
+          targetRequirementId={targetRequirementId}
+          onRequirementChange={handleRequirementChange}
+          onRemove={handleRemoveFile}
+        />
       )}
       <RejectionList messages={rejectionMessages} />
       <UploadFooter
