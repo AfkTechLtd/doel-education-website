@@ -40,6 +40,7 @@ function LoginFormContent() {
       });
 
       if (error) {
+        console.log("Login error:", error);
         setServerError(error.message);
         return;
       }
@@ -53,21 +54,24 @@ function LoginFormContent() {
       const response = await fetch("/api/auth/me");
       if (response.ok) {
         const { role } = await response.json();
-        if (role !== "STUDENT") {
-          await supabase.auth.signOut();
-          setServerError(
-            "This portal is for students only. Please use the staff portal to log in."
-          );
-          return;
-        }
-        router.push(ROLE_DASHBOARD[role as RoleType]);
+        // if (role !== "STUDENT") {
+        //   await supabase.auth.signOut();
+        //   setServerError(
+        //     "This portal is for students only. Please use the staff portal to log in."
+        //   );
+        //   return;
+        // }
+        // router.push(ROLE_DASHBOARD[role as RoleType]);
+        console.log(response)
+        router.push('/student')
         router.refresh();
       } else {
         // Fallback: let middleware handle the redirect
         router.push("/student");
         router.refresh();
       }
-    } catch {
+    } catch (error) {
+      console.log("Unexpected error during login:", error);
       setServerError("An unexpected error occurred. Please try again.");
     } finally {
       setLoading(false);

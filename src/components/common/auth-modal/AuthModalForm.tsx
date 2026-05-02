@@ -7,6 +7,9 @@ import { FormProvider, useFormContext } from "@/context/FormContext";
 import { FormField } from "@/components/FormField/FormField";
 import { PasswordField } from "@/components/FormField/FormPasswordField";
 import { useAuthModal } from "./AuthModalProvider";
+import { createClient } from "@/lib/supabase/client";
+import { ROLE_DASHBOARD, type RoleType } from "@/lib/constants";
+import { useRouter } from "next/navigation";
 
 function validateEmail(value: string): string | undefined {
   const trimmed = value.trim();
@@ -42,6 +45,9 @@ function AuthModalFormContent({ onClose }: AuthModalFormProps) {
   const { errors, validateAllFields, values, resetForm } = useFormContext();
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
+  const [authData, setAuthData] = useState<any>(null);
+  const [authError, setAuthError] = useState<any>(null);
+  const router = useRouter();
 
   const isLogin = view === "login";
 
@@ -62,11 +68,78 @@ function AuthModalFormContent({ onClose }: AuthModalFormProps) {
     setLoading(true);
     setSuccess(false);
 
-    // Simulate network delay — no API call
-    setTimeout(() => {
+    try {
+      const supabase = createClient();
+      let currentData;
+      let currentError;
+
+      if (isLogin) {
+        const { data, error } = await supabase.auth.signInWithPassword({
+          email: values.email as string,
+          password: values.password as string,
+        });
+        currentData = data;
+        currentError = error;
+        setAuthData(data);
+        setAuthError(error);
+        console.log("Login response:", { data, error });
+      } else {
+        const { data, error } = await supabase.auth.signUp({
+          email: values.email as string,
+          password: values.password as string,
+          options: {
+            data: {
+              name: values.name as string,
+              phone: values.phone as string,
+            },
+            emailRedirectTo: `${process.env.NEXT_PUBLIC_APP_URL}/api/auth/callback`,
+          },
+        });
+        currentData = data;
+        currentError = error;
+        setAuthData(data);
+        setAuthError(error);
+      }
+
+      // Check currentError instead of the async state variable authError
+      if (currentError) {
+        console.error("Auth error:", currentError);
+        return;
+      }
+
+      // Check currentData instead of the async state variable authData
+      if (!currentData?.user) {
+        return;
+      }
+
+      if (isLogin) {
+        // Fetch user role from our DB to determine redirect
+        const response = await fetch("/api/auth/me");
+        if (response.ok) {
+          const { role } = await response.json();
+          // if (role !== "STUDENT") {
+          //   await supabase.auth.signOut();
+          //   console.log(
+          //     "This portal is for students only. Please use the staff portal to log in."
+          //   );
+          //   return;
+          // }
+          router.push(ROLE_DASHBOARD[role as RoleType]);
+          router.refresh();
+        } else {
+          // Fallback: let middleware handle the redirect
+          router.push("/student");
+          router.refresh();
+        }
+      } else {
+        // If sign up is successful, show the success screen
+        setSuccess(true);
+      }
+    } catch (e) {
+      console.log("An unexpected error occurred. Please try again.", e);
+    } finally {
       setLoading(false);
-      setSuccess(true);
-    }, 1500);
+    }
   }
 
   if (success) {
@@ -82,7 +155,7 @@ function AuthModalFormContent({ onClose }: AuthModalFormProps) {
           <p className="font-inter text-sm text-slate-500">
             {isLogin
               ? "You have successfully signed in."
-              : "Your account has been created successfully."}
+              : "Please check your email to verify your account."}
           </p>
         </div>
         <button
