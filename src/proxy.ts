@@ -1,6 +1,5 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
-import { prisma } from "@/lib/prisma";
 import { ROLE_DASHBOARD, ROUTES, type RoleType } from "@/lib/constants";
 
 // Routes that require authentication (dashboard prefix patterns)
@@ -12,6 +11,9 @@ const ROLE_PREFIX: Record<RoleType, string> = {
   COUNSELOR: "/counselor",
   ADMIN: "/admin",
 };
+
+// Cookie name written by /api/auth/me at login time
+const ROLE_COOKIE = "doel-role";
 
 export async function proxy(request: NextRequest) {
   let supabaseResponse = NextResponse.next({ request });
@@ -47,18 +49,9 @@ export async function proxy(request: NextRequest) {
   // ── Redirect authenticated users away from login ──────────────
   if (pathname === ROUTES.LOGIN || pathname === ROUTES.REGISTER) {
     if (authUser) {
-      // Look up their role and redirect to the correct dashboard
-      try {
-        const dbUser = await prisma.user.findUnique({
-          where: { supabaseId: authUser.id },
-          select: { role: true },
-        });
-        if (dbUser) {
-          const dest = ROLE_DASHBOARD[dbUser.role as RoleType];
-          return NextResponse.redirect(new URL(dest, request.url));
-        }
-      } catch {
-        // If DB lookup fails, fall through and let them reach login
+      const role = request.cookies.get(ROLE_COOKIE)?.value as RoleType | undefined;
+      if (role && ROLE_DASHBOARD[role]) {
+        return NextResponse.redirect(new URL(ROLE_DASHBOARD[role], request.url));
       }
     }
     return supabaseResponse;
@@ -80,43 +73,17 @@ export async function proxy(request: NextRequest) {
     return NextResponse.redirect(loginUrl);
   }
 
-  // Fetch user role from DB for RBAC enforcement
-  try {
-    const dbUser = await prisma.user.findUnique({
-      where: { supabaseId: authUser.id },
-      select: { role: true },
-    });
+  // Read role from cookie — set by /api/auth/me at login time
+  const role = request.cookies.get(ROLE_COOKIE)?.value as RoleType | undefined;
 
-    if (!dbUser) {
-      // User exists in Supabase but not in our DB — send to login
-      return NextResponse.redirect(new URL(ROUTES.LOGIN, request.url));
-    }
-
-    const allowedPrefix = ROLE_PREFIX[dbUser.role as RoleType];
-
-    // If the user is trying to access a dashboard section they don't own, redirect
-    if (!pathname.startsWith(allowedPrefix)) {
+  if (role) {
+    const allowedPrefix = ROLE_PREFIX[role];
+    if (allowedPrefix && !pathname.startsWith(allowedPrefix)) {
       return NextResponse.redirect(
-        new URL(ROLE_DASHBOARD[dbUser.role as RoleType], request.url),
+        new URL(ROLE_DASHBOARD[role], request.url),
       );
     }
-  } catch {
-    // DB error — fail safe by redirecting to login
-    return NextResponse.redirect(new URL(ROUTES.LOGIN, request.url));
   }
 
   return supabaseResponse;
 }
-
-export const config = {
-  matcher: [
-    /*
-     * Match all request paths except:
-     * - _next/static (static files)
-     * - _next/image (image optimization files)
-     * - favicon.ico, sitemap.xml, robots.txt (metadata files)
-     * - public folder files (images, svgs, etc.)
-     */
-    "/((?!_next/static|_next/image|favicon\\.ico|sitemap\\.xml|robots\\.txt|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico|css|js)$).*)",
-  ],
-};

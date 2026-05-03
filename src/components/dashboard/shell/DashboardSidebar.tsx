@@ -48,6 +48,8 @@ export default function DashboardSidebar({
   async function handleLogout() {
     const supabase = createClient();
     await supabase.auth.signOut();
+    // Clear role cookie so middleware doesn't redirect on next visit
+    document.cookie = "doel-role=; path=/; max-age=0";
     const dest = role === "STUDENT" ? "/login" : "/staff-login";
     router.push(dest);
     router.refresh();
