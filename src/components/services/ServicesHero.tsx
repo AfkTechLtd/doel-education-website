@@ -11,7 +11,7 @@ import HeroSection, {
 } from "@/components/common/HeroSection";
 import PrimaryButton from "@/components/common/PrimaryButton";
 import OutlineButton from "@/components/common/OutlineButton";
-import { useInquiryModal } from "@/components/common/InquiryModalProvider";
+import { useInquiryModal } from "@/components/common/modal";
 
 const fadeInUp = {
   hidden: { opacity: 0, y: 30 },
@@ -61,7 +61,7 @@ export default function ServicesHero() {
           <HeroCTAs>
             <PrimaryButton
               isLink={false}
-              onClick={openModal}
+              onClick={() => openModal()}
               rightIcon={<ArrowRight size={16} />}
             >
               Book Free Consultation

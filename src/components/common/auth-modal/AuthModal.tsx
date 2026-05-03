@@ -3,18 +3,15 @@
 import { AnimatePresence, motion } from "framer-motion";
 import { X } from "lucide-react";
 import { useEffect } from "react";
-import InquiryModalForm from "./InquiryModalForm";
-import InquiryModalHeader from "./InquiryModalHeader";
+import AuthModalHeader from "./AuthModalHeader";
+import AuthModalForm from "./AuthModalForm";
 
-type InquiryModalProps = {
+type AuthModalProps = {
   isOpen: boolean;
   onClose: () => void;
 };
 
-export default function InquiryModal({
-  isOpen,
-  onClose,
-}: InquiryModalProps) {
+export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
   useEffect(() => {
     if (!isOpen) return;
 
@@ -52,7 +49,7 @@ export default function InquiryModal({
           />
 
           <motion.div
-            className="relative max-h-[90vh] w-full max-w-3xl overflow-y-auto rounded-3xl border border-gray-100 bg-white p-6 shadow-2xl bg-[radial-gradient(circle_at_bottom_right,_#fffbeb_0%,_transparent_40%)] md:p-10"
+            className="relative max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-3xl border border-gray-100 bg-white p-6 shadow-2xl bg-[radial-gradient(circle_at_bottom_right,_#fffbeb_0%,_transparent_40%)] md:p-10"
             initial={{ opacity: 0, y: 20, scale: 0.96 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 12, scale: 0.98 }}
@@ -67,8 +64,8 @@ export default function InquiryModal({
               <X size={16} />
             </button>
 
-            <InquiryModalHeader />
-            <InquiryModalForm onClose={onClose} />
+            <AuthModalHeader />
+            <AuthModalForm onClose={onClose} />
           </motion.div>
         </motion.div>
       )}

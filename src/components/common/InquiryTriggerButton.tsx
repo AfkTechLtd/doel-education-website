@@ -1,7 +1,7 @@
 "use client";
 
 import { ButtonHTMLAttributes, MouseEvent } from "react";
-import { useInquiryModal } from "@/components/common/InquiryModalProvider";
+import { useInquiryModal } from "@/components/common/modal";
 
 type InquiryTriggerButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & {
   onBeforeOpen?: () => void;
@@ -11,6 +11,7 @@ export default function InquiryTriggerButton({
   type = "button",
   onClick,
   onBeforeOpen,
+  disabled,
   ...props
 }: InquiryTriggerButtonProps) {
   const { openModal } = useInquiryModal();
@@ -26,5 +27,12 @@ export default function InquiryTriggerButton({
     openModal();
   };
 
-  return <button {...props} type={type} onClick={handleClick} />;
+  return (
+    <button
+      {...props}
+      type={type}
+      onClick={handleClick}
+      disabled={disabled}
+    />
+  );
 }

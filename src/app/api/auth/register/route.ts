@@ -6,6 +6,7 @@ const schema = z.object({
   supabaseId: z.string().min(1),
   email: z.string().email(),
   name: z.string().min(1),
+  phone: z.string().optional(),
 });
 
 export async function POST(request: Request) {
@@ -21,7 +22,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Invalid input." }, { status: 400 });
   }
 
-  const { supabaseId, email, name } = parsed.data;
+  const { supabaseId, email, name, phone } = parsed.data;
 
   try {
     // Idempotent — skip if user already exists
@@ -35,9 +36,12 @@ export async function POST(request: Request) {
         supabaseId,
         email,
         name,
+        phone: phone ?? null,
         role: "STUDENT",
         studentProfile: {
-          create: {},
+          create: {
+            phone: phone ?? null,
+          },
         },
       },
     });

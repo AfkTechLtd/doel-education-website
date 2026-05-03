@@ -7,8 +7,32 @@ import { FormProvider, useFormContext } from "@/context/FormContext";
 import { FormField } from "@/components/FormField/FormField";
 import { PasswordField } from "@/components/FormField/FormPasswordField";
 import AuthCard from "./AuthCard";
-import { validateEmail, validatePassword } from "./auth-utils";
 import { createClient } from "@/lib/supabase/client";
+
+function validateEmail(value: string): string | undefined {
+  const trimmed = value.trim();
+  if (!trimmed) return "Email is required";
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmed)) return "Invalid email address";
+  return undefined;
+}
+
+function validatePassword(value: string): string | undefined {
+  if (!value.trim()) return "Password is required";
+  if (value.trim().length < 6) return "Password must be at least 6 characters";
+  return undefined;
+}
+
+function validateName(value: string): string | undefined {
+  if (!value.trim()) return "Full name is required";
+  if (value.trim().length < 2) return "Name must be at least 2 characters";
+  return undefined;
+}
+
+function validatePhone(value: string): string | undefined {
+  if (!value.trim()) return "Phone number is required";
+  if (!/\d{7,}/.test(value)) return "Phone must contain at least 7 digits";
+  return undefined;
+}
 
 function RegisterFormContent() {
   const router = useRouter();
@@ -25,6 +49,7 @@ function RegisterFormContent() {
 
     const name = String(values.name ?? "");
     const email = String(values.email ?? "");
+    const phone = String(values.phone ?? "");
     const password = String(values.password ?? "");
 
     setLoading(true);
@@ -33,12 +58,12 @@ function RegisterFormContent() {
     try {
       const supabase = createClient();
 
-      // 1. Sign up with Supabase Auth
       const { data, error: signUpError } = await supabase.auth.signUp({
         email,
         password,
         options: {
-          data: { name },
+          data: { name, phone },
+          emailRedirectTo: `${window.location.origin}/api/auth/callback`,
         },
       });
 
@@ -52,7 +77,7 @@ function RegisterFormContent() {
         return;
       }
 
-      // 2. Create the User row in our database via Server Action
+      // Create the Prisma user record immediately
       const response = await fetch("/api/auth/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -60,16 +85,18 @@ function RegisterFormContent() {
           supabaseId: data.user.id,
           email,
           name,
+          phone,
         }),
       });
 
       if (!response.ok) {
         const body = await response.json().catch(() => ({}));
-        setServerError(body.error ?? "Failed to complete registration.");
+        setServerError(body.error ?? "Failed to complete registration. Please try again.");
         return;
       }
 
-      router.push("/student");
+      // Redirect to the email verification page
+      router.push(`/verify-email?email=${encodeURIComponent(email)}`);
     } catch {
       setServerError("An unexpected error occurred. Please try again.");
     } finally {
@@ -107,9 +134,7 @@ function RegisterFormContent() {
           type="text"
           required
           error={errors.name}
-          validate={(value) =>
-            value.trim() ? undefined : "Full name is required"
-          }
+          validate={validateName}
         />
 
         <FormField
@@ -119,6 +144,15 @@ function RegisterFormContent() {
           required
           error={errors.email}
           validate={validateEmail}
+        />
+
+        <FormField
+          name="phone"
+          label="Phone Number"
+          type="tel"
+          required
+          error={errors.phone}
+          validate={validatePhone}
         />
 
         <PasswordField
