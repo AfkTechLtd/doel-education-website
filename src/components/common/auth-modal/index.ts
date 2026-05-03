@@ -1,3 +1,2 @@
-export { default as AuthModalProvider } from "./AuthModalProvider";
-export { useAuthModal } from "./AuthModalProvider";
+export { useAuthModal } from "@/components/common/modal";
 export { default as AuthTriggerButton } from "./AuthTriggerButton";

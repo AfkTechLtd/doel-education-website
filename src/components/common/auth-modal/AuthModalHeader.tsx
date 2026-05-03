@@ -1,6 +1,6 @@
 "use client";
 
-import { useAuthModal } from "./AuthModalProvider";
+import { useAuthModal } from "@/components/common/modal";
 
 export default function AuthModalHeader() {
   const { view } = useAuthModal();

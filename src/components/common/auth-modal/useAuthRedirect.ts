@@ -3,7 +3,7 @@
 import { useCallback, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
-import { useAuthModal } from "./AuthModalProvider";
+import { useAuthModal } from "@/components/common/modal";
 
 /**
  * Shared hook for CTA buttons that should either redirect an authenticated

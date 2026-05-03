@@ -36,30 +36,24 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          transition={{ duration: 0.32, ease: [0.22, 1, 0.36, 1] }}
+          transition={{ duration: 0.2, ease: "easeOut" }}
         >
-          <motion.button
-            type="button"
-            aria-label="Close auth form"
+          <motion.div
+            aria-hidden="true"
             onClick={onClose}
-            className="absolute inset-0 bg-slate-900/50 backdrop-blur-[2px]"
+            className="absolute inset-0 bg-slate-900/60"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            transition={{ duration: 0.35, ease: "easeOut" }}
+            transition={{ duration: 0.2, ease: "easeOut" }}
           />
 
           <motion.div
-            className="relative max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-3xl border border-gray-100 bg-white p-6 shadow-2xl will-change-transform bg-[radial-gradient(circle_at_bottom_right,_#fffbeb_0%,_transparent_40%)] md:p-10"
-            initial={{ opacity: 0, y: 16, scale: 0.985 }}
+            className="relative max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-3xl border border-gray-100 bg-white p-6 shadow-2xl bg-[radial-gradient(circle_at_bottom_right,_#fffbeb_0%,_transparent_40%)] md:p-10"
+            initial={{ opacity: 0, y: 20, scale: 0.96 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 10, scale: 0.99 }}
-            transition={{
-              type: "spring",
-              stiffness: 210,
-              damping: 24,
-              mass: 0.9,
-            }}
+            exit={{ opacity: 0, y: 12, scale: 0.98 }}
+            transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
           >
             <button
               type="button"

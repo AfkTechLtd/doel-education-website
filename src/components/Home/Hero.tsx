@@ -3,7 +3,7 @@
 import { GraduationCap, CheckCircle2, Globe, ArrowRight } from "lucide-react";
 import PrimaryButton from "@/components/common/PrimaryButton";
 import OutlineButton from "@/components/common/OutlineButton";
-import { useAuthRedirect } from "@/components/common/auth-modal/useAuthRedirect";
+import { useInquiryModal } from "@/components/common/modal";
 
 type University = {
   name: string;
@@ -88,7 +88,7 @@ function OrbitRing({ items, diameter, duration, cw = true }: OrbitRingProps) {
 }
 
 const Hero = () => {
-  const { handleAuthAction } = useAuthRedirect();
+  const { openModal } = useInquiryModal();
 
   return (
     <>
@@ -187,7 +187,7 @@ const Hero = () => {
                 <div className="fu d3 flex flex-col sm:flex-row gap-3">
                   <PrimaryButton
                     isLink={false}
-                    onClick={() => handleAuthAction()}
+                    onClick={() => openModal()}
                     rightIcon={<ArrowRight size={16} />}
                   >
                     Book Session

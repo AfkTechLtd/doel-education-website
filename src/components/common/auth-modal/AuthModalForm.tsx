@@ -5,7 +5,7 @@ import Link from "next/link";
 import { FormProvider, useFormContext } from "@/context/FormContext";
 import { FormField } from "@/components/FormField/FormField";
 import { PasswordField } from "@/components/FormField/FormPasswordField";
-import { useAuthModal } from "./AuthModalProvider";
+import { useAuthModal } from "@/components/common/modal";
 import { createClient } from "@/lib/supabase/client";
 import { ROLE_DASHBOARD, type RoleType } from "@/lib/constants";
 import { useRouter } from "next/navigation";

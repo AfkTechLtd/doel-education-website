@@ -557,3 +557,16 @@ enum DocumentLinkContext {
   APPLICATION_FIELD
   RESOURCE_TEMPLATE
 }
+
+model Inquiry {
+  id              String   @id @default(cuid())
+  createdAt       DateTime @default(now()) @map("created_at")
+  studentName     String   @map("student_name")
+  phone           String
+  email           String
+  programInterest String   @map("program_interest")
+  message         String?
+  resolved        Boolean  @default(false)
+
+  @@map("inquiries")
+}

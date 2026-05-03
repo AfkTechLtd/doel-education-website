@@ -1,7 +1,7 @@
 "use client";
 
 import { ButtonHTMLAttributes, MouseEvent } from "react";
-import { useAuthModal } from "./AuthModalProvider";
+import { useAuthModal } from "@/components/common/modal";
 
 type AuthView = "login" | "register";
 
