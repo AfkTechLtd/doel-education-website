@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation";
 import navLinks from "@/data/navData";
 import { ChevronDown } from "lucide-react";
 import { useState } from "react";
-import InquiryTriggerButton from "@/components/common/InquiryTriggerButton";
+import { useAuthModal } from "@/components/common/modal";
 
 interface MobileMenuProps {
   isOpen: boolean;
@@ -15,6 +15,7 @@ interface MobileMenuProps {
 export default function MobileMenu({ isOpen, onToggle }: MobileMenuProps) {
   const pathname = usePathname();
   const [openGroup, setOpenGroup] = useState<string | null>(null);
+  const { openModal } = useAuthModal();
 
   function toggleGroup(href: string) {
     setOpenGroup((prev) => (prev === href ? null : href));
@@ -137,12 +138,16 @@ export default function MobileMenu({ isOpen, onToggle }: MobileMenuProps) {
           })}
 
           <div className="mt-3 px-4">
-            <InquiryTriggerButton
-              onBeforeOpen={onToggle}
+            <button
+              type="button"
+              onClick={() => {
+                onToggle();
+                openModal();
+              }}
               className="flex items-center justify-center w-full py-3 rounded-xl text-sm font-semibold text-white bg-primary transition-all duration-200 hover:brightness-110"
             >
-              Get Free Consultation
-            </InquiryTriggerButton>
+              Start Your Application
+            </button>
           </div>
         </nav>
       </div>

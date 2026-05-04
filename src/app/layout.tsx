@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import "../styles/globals.css";
 import { Inter, Poppins } from "next/font/google";
 import { ToastProvider } from "@/components/common/feedback/ToastProvider";
+import { ModalProvider } from "@/components/common/modal";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -29,7 +30,9 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${inter.variable} ${poppins.variable}`}>
-        <ToastProvider>{children}</ToastProvider>
+        <ModalProvider>
+          <ToastProvider>{children}</ToastProvider>
+        </ModalProvider>
       </body>
     </html>
   );

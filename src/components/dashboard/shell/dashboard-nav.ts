@@ -22,6 +22,8 @@ export type DashboardNavItem = {
   comingSoon?: boolean;
   /** Renders a small divider + label above this item to start a new group */
   sectionLabel?: string;
+  /** Grey out and disable this item if the student has no counselor assigned */
+  requiresCounselor?: boolean;
 };
 
 // ── Student ────────────────────────────────────────────────────────────────
@@ -39,21 +41,25 @@ export const studentNavItems: DashboardNavItem[] = [
     icon: ClipboardList,
     href: "/student/application",
     comingSoon: true,
+    requiresCounselor: true,
   },
   {
     label: "Document Vault",
     icon: FolderOpen,
     href: "/student/documents",
+    requiresCounselor: true,
   },
   {
     label: "Resources",
     icon: BookOpen,
     href: "/student/resources",
+    requiresCounselor: true,
   },
   {
     label: "Application History",
     icon: History,
     href: "/student/application/history",
+    requiresCounselor: true,
   },
   // ── Post-Admission ──────────────────────────────────────────────────────
   {

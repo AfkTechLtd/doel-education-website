@@ -9,6 +9,7 @@ interface DashboardShellProps {
   role: string;
   userName: string;
   userEmail: string;
+  hasCounselor?: boolean;
 }
 
 export default function DashboardShell({
@@ -16,13 +17,14 @@ export default function DashboardShell({
   role,
   userName,
   userEmail,
+  hasCounselor,
 }: DashboardShellProps) {
   const [mobileOpen, setMobileOpen] = useState(false);
 
   return (
     <div className="min-h-screen bg-slate-50">
       <div className="hidden lg:fixed lg:inset-y-0 lg:flex lg:w-72">
-        <DashboardSidebar role={role} userName={userName} userEmail={userEmail} />
+        <DashboardSidebar role={role} userName={userName} userEmail={userEmail} hasCounselor={hasCounselor} />
       </div>
 
       {mobileOpen ? (
@@ -38,6 +40,7 @@ export default function DashboardShell({
               role={role}
               userName={userName}
               userEmail={userEmail}
+              hasCounselor={hasCounselor}
               onClose={() => setMobileOpen(false)}
             />
           </div>
